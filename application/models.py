@@ -70,6 +70,7 @@ class PassTypes(models.Model):
         verbose_name = u'Тип абонемента'
         verbose_name_plural = u'Типы абонементов'
 
+
 class Passes(models.Model):
 
     u"""
@@ -81,3 +82,8 @@ class Passes(models.Model):
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент')
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
+
+    class Meta:
+        app_label = u'dh_journal'
+        verbose_name = u'Абонемент'
+        verbose_name_plural = u'Абонементы'
