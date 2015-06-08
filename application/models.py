@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
+from django.contrib.auth.models import User
+
+
+class Days(models.Model):
+    name = models.CharField(max_length=2)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'День недели'
+        verbose_name_plural = u'Дни недели'
 
 
 class Groups(models.Model):
@@ -11,17 +24,18 @@ class Groups(models.Model):
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     start_date = models.DateField(verbose_name=u'Дата начала группы')
-    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель - партнер', null=True, blank=True, related_name=u'leader')
-    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель - партнерша', null=True, blank=True, related_name=u'follower')
-    days = models.CharField(max_length=30, verbose_name=u'Дни проведения')
+    teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
+    teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
+    days = models.ManyToManyField(Days, verbose_name=u'Дни проведения')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
+    is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
 
     def __unicode__(self):
 
         leader = self.teacher_leader.first_name if self.teacher_leader else ''
         follower = self.teacher_follower.first_name if self.teacher_follower else ''
-
-        return u'%s - %s %s - %s' % (self.name, leader, follower, self.days)
+        days = ' '.join(map(lambda x: x.name, self.days.all()))
+        return u'%s - %s %s - %s' % (self.name, leader, follower, days)
 
     class Meta:
         app_label = u'application'
