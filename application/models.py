@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from django.contrib.auth.models import User
 
 
 class Groups(models.Model):
@@ -11,9 +10,9 @@ class Groups(models.Model):
     """
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
-    start_date = models.DateTimeField(verbose_name=u'Дата начала группы')
-    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель - партнер', null=True, blank=True)
-    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель - партнерша', null=True, blank=True)
+    start_date = models.DateField(verbose_name=u'Дата начала группы')
+    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель - партнер', null=True, blank=True, related_name=u'leader')
+    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель - партнерша', null=True, blank=True, related_name=u'follower')
     days = models.CharField(max_length=30, verbose_name=u'Дни проведения')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
 
@@ -25,8 +24,8 @@ class Groups(models.Model):
         return u'%s - %s %s - %s' % (self.name, leader, follower, self.days)
 
     class Meta:
-        app_label = u'dh_journal'
-        verbose_name = u'Группа'
+        app_label = u'application'
+        verbose_name = u'Группу'
         verbose_name_plural = u'Группы'
 
 
@@ -46,7 +45,7 @@ class Students(models.Model):
         return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper())
 
     class Meta:
-        app_label = u'dh_journal'
+        app_label = u'application'
         verbose_name = u'Ученик'
         verbose_name_plural = u'Ученики'
 
@@ -60,13 +59,13 @@ class PassTypes(models.Model):
     name = models.CharField(max_length=100, verbose_name=u'Наименование')
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
     lessons = models.PositiveIntegerField(verbose_name=u'Количество занятий')
-    skips = models.PositiveIntegerField(verbose_name=u'Количество пропусков')
+    skips = models.PositiveIntegerField(verbose_name=u'Количество пропусков', null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%dр.)' % (self.name, self.prise)
 
     class Meta:
-        app_label = u'dh_journal'
+        app_label = u'application'
         verbose_name = u'Тип абонемента'
         verbose_name_plural = u'Типы абонементов'
 
@@ -84,6 +83,6 @@ class Passes(models.Model):
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
 
     class Meta:
-        app_label = u'dh_journal'
+        app_label = u'application'
         verbose_name = u'Абонемент'
         verbose_name_plural = u'Абонементы'
