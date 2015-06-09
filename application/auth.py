@@ -6,7 +6,7 @@ from django.contrib import auth
 def check_auth(request):
 
     if request.user.is_authenticated():
-        return True
+        return request.user
 
     username = request.POST['username'] if 'username' in request.POST else None
     password = request.POST['password'] if 'password' in request.POST else None
@@ -15,7 +15,7 @@ def check_auth(request):
     if user and user.is_active:
         if 'remember' in request.POST:
             auth.login(request, user)
-        return True
+        return user
 
     else:
-        return False
+        return None

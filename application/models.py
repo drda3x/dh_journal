@@ -32,8 +32,8 @@ class Groups(models.Model):
 
     def __unicode__(self):
 
-        leader = self.teacher_leader.first_name if self.teacher_leader else ''
-        follower = self.teacher_follower.first_name if self.teacher_follower else ''
+        leader = self.teacher_leader.last_name if self.teacher_leader else ''
+        follower = self.teacher_follower.last_name if self.teacher_follower else ''
         days = ' '.join(map(lambda x: x.name, self.days.all()))
         return u'%s - %s %s - %s' % (self.name, leader, follower, days)
 
