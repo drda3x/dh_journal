@@ -3,3 +3,5 @@
 .idea/
 
 venv/
+
+project/settings_local.py

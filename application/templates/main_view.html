@@ -1,17 +1,27 @@
 {% extends "base.html" %}
+{% block head %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+
+
+        });
+    </script>
+{% endblock %}
 {% block body %}
     Привет!!! {{ user }}<br>
     {% if groups %}
-    Вот список твоих групп:<br>
+
+        Вот список твоих групп:<br>
         <ul>
             {% for group in groups %}
-                <li><a>{{ group.name }}</a></li>
+                <li><a href="{{request.build_absolute_uri}}">{{ group.name }}</a></li>
             {% endfor %}
         </ul>
-        <iframe>
+        <iframe></iframe>
 
-        </iframe>
     {% else %}
+
         Ты еще не ведешь ни одной группы
     {% endif %}
 {% endblock %}

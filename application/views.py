@@ -35,13 +35,5 @@ def index(request):
         return render_to_response('login.html', args, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def get_groups(user):
-
-    if not isinstance(user, User):
-        return None
-
-    groups = Groups.objects.filter(
-        Q(teacher_leader=user) | Q(teacher_follower=user)
-    ).values()
-
-    return groups
+def get_group_detail(request):
+    return render_to_response()

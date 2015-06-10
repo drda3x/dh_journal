@@ -91,6 +91,7 @@ class Passes(models.Model):
     """
 
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
+    group = models.ForeignKey(Groups, verbose_name=u'Группа', null=True, blank=True)
     start_date = models.DateField(verbose_name=u'Начало действия абонемента')
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент')
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
