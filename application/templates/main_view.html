@@ -5,9 +5,12 @@
     Вот список твоих групп:<br>
         <ul>
             {% for group in groups %}
-                <li>{{ group.name }}</li>
+                <li><a>{{ group.name }}</a></li>
             {% endfor %}
         </ul>
+        <iframe>
+
+        </iframe>
     {% else %}
         Ты еще не ведешь ни одной группы
     {% endif %}

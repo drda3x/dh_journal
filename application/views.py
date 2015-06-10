@@ -20,9 +20,12 @@ def custom_proc(request):
 
 def index(request):
 
-    if check_auth(request):
+    user = check_auth(request)
+
+    if user:
         context = {}
-        context['groups'] = get_groups(request.user)
+        context['user'] = user
+        context['groups'] = get_groups(user)
 
         return render_to_response('main_view.html', context, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -33,6 +36,9 @@ def index(request):
 
 
 def get_groups(user):
+
+    if not isinstance(user, User):
+        return None
 
     groups = Groups.objects.filter(
         Q(teacher_leader=user) | Q(teacher_follower=user)
