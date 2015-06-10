@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import datetime
+import datetime, math
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -130,6 +130,25 @@ class Passes(models.Model):
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
+
+    def get_lessons_count(self, time_from, time_to):
+
+        u"""
+        Метод возвращяющий максимальное кол-во занятий для заданного диапазона дат
+        """
+
+        lessons_per_week = len(self.group.days.all())
+
+        def calc_lessons(_from, _to):
+            return math.trunc((_to - _from).total_seconds() / (7*24*3600) * lessons_per_week)
+
+        if self.start_date >= time_to:
+            return self.lessons
+
+        lessons_before_start = calc_lessons(self.start_date, time_from)
+        lessons_in_diapazon = calc_lessons(time_from, time_to)
+
+        
 
     class Meta:
         app_label = u'application'
