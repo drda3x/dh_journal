@@ -15,6 +15,7 @@ Including another URLconf
 """
 
 import views
+import utils.site_api as api
 
 from django.conf.urls import include, url
 from django.contrib import admin
@@ -22,6 +23,7 @@ from django.contrib.auth.views import login, logout
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^group', views.get_group_detail),
-    url(r'', views.index)
+    url(r'^group/addstudent', api.add_student_to_group),
+    url(r'^group', views.group_detail_view),
+    url(r'', views.index_view)
 ]

@@ -3,7 +3,12 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
+            $('.group').click(function() {
 
+                $('iframe').attr('src', $(this).attr('href'));
+
+                return false;
+            })
 
         });
     </script>
@@ -15,10 +20,10 @@
         Вот список твоих групп:<br>
         <ul>
             {% for group in groups %}
-                <li><a href="{{request.build_absolute_uri}}">{{ group.name }}</a></li>
+                <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }}</a></li>
             {% endfor %}
         </ul>
-        <iframe></iframe>
+        <iframe width="700px" height="500px"></iframe>
 
     {% else %}
 

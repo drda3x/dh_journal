@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from django.db import models
 from django.contrib.auth.models import User
+
+from application.utils.date_api import get_week_offsets_from_start_date
 
 
 class Days(models.Model):
@@ -29,6 +32,37 @@ class Groups(models.Model):
     days = models.ManyToManyField(Days, verbose_name=u'Дни проведения')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
+
+    def get_calendar(self, date_to=None, date_from=None):
+
+        start_date = date_from if date_from else self.start_date
+        end_date = date_to if date_to else datetime.date.today()
+
+        week_offsets = get_week_offsets_from_start_date(start_date, [i.name for i in self.days.all()])
+
+        first_offset = week_offsets.pop(0)
+        current_date = start_date + datetime.timedelta(days=first_offset)
+
+        dates = [current_date]
+        offset_index = 0
+
+        while current_date <= end_date:
+
+            try:
+                delta = datetime.timedelta(days=week_offsets[offset_index])
+
+            except IndexError:
+                offset_index = 0
+                delta = [0]
+
+            current_date = current_date + delta
+
+            dates.append(current_date)
+
+            if len(week_offsets) > 1:
+                offset_index += 1
+
+        return dates
 
     def __unicode__(self):
 
@@ -93,7 +127,7 @@ class Passes(models.Model):
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
     group = models.ForeignKey(Groups, verbose_name=u'Группа', null=True, blank=True)
     start_date = models.DateField(verbose_name=u'Начало действия абонемента')
-    pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент')
+    pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
 
