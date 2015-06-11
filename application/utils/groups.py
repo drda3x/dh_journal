@@ -29,13 +29,20 @@ def get_group_detail(group_id):
     """
 
     group = Groups.objects.get(pk=group_id)
-    students = get_group_students_list(group)
+    date = datetime.date(2015, 7, 1)
+    students = [
+        {
+            'person': s,
+            'calendar': get_student_calendar(s, group, date)
+        } for s in get_group_students_list(group)
+    ]
+
     return {
         'id': group.id,
         'name': group.name,
         'start_date': group.start_date,
         'students': students,
-        'calendar': map(lambda d: d.strftime('%d.%m'), group.get_calendar(date_to=datetime.date(2015, 7, 1)))
+        'calendar': map(lambda d: d.strftime('%d.%m'), group.get_calendar(date_to=date))
     }
 
 
@@ -80,7 +87,7 @@ def get_student_calendar(student, group, from_date):
     Получить календарь занятий для конкретного ученика и конкретной ргуппы
     """
 
-    group_calendar = group.get_calendar(date_from=from_date)
+    group_calendar = group.get_calendar(date_to=from_date)
     lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
 
     calendar = []
@@ -106,5 +113,5 @@ def get_student_calendar(student, group, from_date):
             'date': c_date,
             'sign': sign
         })
-    
+
     return calendar

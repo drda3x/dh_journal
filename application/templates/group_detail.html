@@ -7,6 +7,9 @@
         table th {
             border: 1px solid;
         }
+        table td {
+            border: 1px solid;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -16,12 +19,20 @@
     <table>
         <tr>
             <th>
-                ФИО
+                Фамилия Имя
             </th>
             {% for date in group_detail.calendar %}
                 <th>{{ date }}</th>
             {% endfor %}
         </tr>
+        {% for student in group_detail.students %}
+            <tr>
+            <td>{{ student.person.first_name }} {{ student.person.last_name }}</td>
+            {% for date in student.calendar %}
+                <td>{{ date.sign }}</td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
     </table>
 
 {% endblock %}
