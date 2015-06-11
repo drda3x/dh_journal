@@ -120,6 +120,21 @@ class PassTypes(models.Model):
         verbose_name_plural = u'Типы абонементов'
 
 
+class GroupList(models.Model):
+
+    u"""
+    Список группы
+    """
+
+    group = models.ForeignKey(Groups, verbose_name=u'Группа')
+    student = models.ForeignKey(Students, verbose_name=u'Ученик')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Список группы'
+        verbose_name_plural = u'Списки групп'
+
+
 class Passes(models.Model):
 
     u"""
@@ -127,7 +142,7 @@ class Passes(models.Model):
     """
 
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
-    group = models.ForeignKey(Groups, verbose_name=u'Группа', null=True, blank=True)
+    group = models.ManyToManyField(Groups, verbose_name=u'Группа', null=True, blank=True)
     start_date = models.DateField(verbose_name=u'Начало действия абонемента')
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')

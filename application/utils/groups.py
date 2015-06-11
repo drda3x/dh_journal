@@ -5,7 +5,7 @@ import datetime
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from application.models import Groups, Students, Passes, Lessons
+from application.models import Groups, Students, Passes, Lessons, GroupList
 
 
 def get_groups_list(user):
@@ -33,7 +33,7 @@ def get_group_detail(group_id):
     students = [
         {
             'person': s,
-            'calendar': get_student_calendar(s, group, date)
+            'calendar': get_student_calendar(s, group, date, '%d.%m')
         } for s in get_group_students_list(group)
     ]
 
@@ -56,7 +56,7 @@ def get_group_students_list(group):
         raise TypeError('Expected Groups instance!')
 
     return Students.objects.filter(
-        pk__in=Passes.objects.filter(group=group).values('student_id')
+        pk__in=GroupList.objects.filter(group=group).values('student_id')
     )
 
 
@@ -81,7 +81,7 @@ def get_teacher_students_list(teacher):
     return res
 
 
-def get_student_calendar(student, group, from_date):
+def get_student_calendar(student, group, from_date, form=None):
 
     u"""
     Получить календарь занятий для конкретного ученика и конкретной ргуппы
@@ -97,20 +97,30 @@ def get_student_calendar(student, group, from_date):
 
     except StopIteration:
         return [
-            {'date': d, 'sign': False} for d in group_calendar
+            {
+                'date': d if not form else d.strftime(form),
+                'sign': False
+            } for d in group_calendar
         ]
+
+    no_lessons = False
 
     for c_date in group_calendar:
 
-        if c_lesson.date > c_date:
+        if no_lessons or c_lesson.date > c_date:
             sign = False
 
         else:
             sign = True
-            c_lesson = lessons.next()
+
+            try:
+                c_lesson = lessons.next()
+
+            except StopIteration:
+                no_lessons = True
 
         calendar.append({
-            'date': c_date,
+            'date': c_date if not form else c_date.strftime(form),
             'sign': sign
         })
 

@@ -9,6 +9,10 @@
         }
         table td {
             border: 1px solid;
+            cursor: pointer;
+        }
+        table td:hover {
+            color: #FF00FF
         }
     </style>
 {% endblock %}
@@ -26,13 +30,57 @@
             {% endfor %}
         </tr>
         {% for student in group_detail.students %}
-            <tr>
+            <tr  data-stid="{{ student.person.id }}" class="student_row">
             <td>{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td>{{ date.sign }}</td>
+                <td data-date="{{ date.date }}">{{ date.sign }}</td>
             {% endfor %}
             </tr>
         {% endfor %}
     </table>
+
+    <br><br>
+    <form action="/group/addstudent">
+        <label for="first_name">Имя</label>
+        <input type="text" name="first_name" id="first_name" value="test" />
+        <label for="last_name">Фамилия</label>
+        <input type="text" name="last_name" id="last_name" value="test" />
+        <label for="phone">Тел.</label>
+        <input type="tel" name="phone" id="phone" value="+712345678"/>
+        <label for="e_mail">E-mail</label>
+        <input type="email" name="e_mail" id="e_mail" value="t@e.st">
+        <input type="hidden" name="id" value="{{ group_detail.id }}" />
+
+        <input type="submit" value="Добавить">
+    </form><br><br>
+
+    Добавление абонемента<br>
+    <form action="/group/addpass" id="add_pass">
+        <input type="hidden" disabled name="student_id" id="student_id" />
+        <input type="hidden" value="{{ group_detail.id }}" />
+        <label for="pass_type">Тип абонемента</label>
+        <select id="pass_type">
+            {% for p in pass_detail %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Добавить абонемент" id="pass_submit">
+    </form>
+
+    <script type="text/javascript">
+        (function() {
+
+            var target, studentName, studentId, date;
+
+            $('.student_row').click(function(event) {
+                target = $(event.target);
+                studentId = target.data('stid');
+                studentName = $($(this).children()[0]).text();
+                date = target.data('date');
+                $('student_id').value(studentId);
+            });
+
+        })();
+    </script>
 
 {% endblock %}

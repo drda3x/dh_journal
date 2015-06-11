@@ -2,7 +2,9 @@
 
 import datetime
 
-from application.models import Students, Passes
+from django.http.response import HttpResponse
+
+from application.models import Students, Passes, Groups, GroupList
 from application.views import group_detail_view
 
 
@@ -27,14 +29,16 @@ def add_student_to_group(request):
 
         student.save()
 
-    student_pass = Passes(
+    group_list = GroupList(
         student=student,
-        group_id=group_id,
-        start_date=datetime.date.today(),
-        lessons=0,
-        skips=0
+        group_id=group_id
     )
 
-    student_pass.save()
+    group_list.save()
 
     return group_detail_view(request)
+
+
+def add_pass(request):
+
+    return HttpResponse()

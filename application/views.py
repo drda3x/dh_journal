@@ -6,6 +6,7 @@ from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.db.models import Q
 
+from application.models import PassTypes
 from application.utils.groups import get_groups_list, get_group_detail
 
 from models import Groups, Students, User
@@ -47,5 +48,6 @@ def group_detail_view(request):
     group_id = int(request.GET['id'])
 
     context['group_detail'] = get_group_detail(group_id)
+    context['pass_detail'] = PassTypes.objects.all()
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
