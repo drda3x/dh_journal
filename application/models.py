@@ -46,14 +46,16 @@ class Groups(models.Model):
         dates = [current_date]
         offset_index = 0
 
+        get_delta = lambda index: datetime.timedelta(days=week_offsets[index])
+
         while current_date <= end_date:
 
             try:
-                delta = datetime.timedelta(days=week_offsets[offset_index])
+                delta = get_delta(offset_index)
 
             except IndexError:
                 offset_index = 0
-                delta = [0]
+                delta = get_delta(offset_index)
 
             current_date = current_date + delta
 
@@ -137,18 +139,18 @@ class Passes(models.Model):
         verbose_name_plural = u'Абонементы'
 
 
-# class Lessons(models.Model):
-#
-#     u"""
-#     Посещения занятий
-#     """
-#
-#     date = models.DateField(verbose_name=u'Дата занятия')
-#     group = models.ForeignKey(Groups, verbose_name=u'Группа')
-#     student = models.ForeignKey(Students, verbose_name=u'Учение')
-#     group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент')
-#     presence_sign = models.BooleanField(verbose_name=u'Отметка о присутствии', default=False)
-#
-#     class Meta:
-#         app_label = u'application'
-#         verbose_name = u'Журнал посещения'
+class Lessons(models.Model):
+
+    u"""
+    Посещения занятий
+    """
+
+    date = models.DateField(verbose_name=u'Дата занятия')
+    group = models.ForeignKey(Groups, verbose_name=u'Группа')
+    student = models.ForeignKey(Students, verbose_name=u'Учение')
+    group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент', related_name=u'lesson_group_pass')
+    presence_sign = models.BooleanField(verbose_name=u'Отметка о присутствии', default=False)
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Журнал посещения'

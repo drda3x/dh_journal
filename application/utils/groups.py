@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
 
+import datetime
+
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from application.models import Groups, Students, Passes
+from application.models import Groups, Students, Passes, Lessons
 
 
 def get_groups_list(user):
@@ -28,12 +30,12 @@ def get_group_detail(group_id):
 
     group = Groups.objects.get(pk=group_id)
     students = get_group_students_list(group)
-    cl = group.get_calendar()
     return {
         'id': group.id,
         'name': group.name,
         'start_date': group.start_date,
-        'students': students
+        'students': students,
+        'calendar': map(lambda d: d.strftime('%d.%m'), group.get_calendar(date_to=datetime.date(2015, 7, 1)))
     }
 
 
@@ -66,7 +68,43 @@ def get_teacher_students_list(teacher):
 
         res += filter(
             lambda elem: elem not in res,
-            __get_group_students_list(group)
+            get_group_students_list(group)
         )
 
     return res
+
+
+def get_student_calendar(student, group, from_date):
+
+    u"""
+    Получить календарь занятий для конкретного ученика и конкретной ргуппы
+    """
+
+    group_calendar = group.get_calendar(date_from=from_date)
+    lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
+
+    calendar = []
+
+    try:
+        c_lesson = lessons.next()
+
+    except StopIteration:
+        return [
+            {'date': d, 'sign': False} for d in group_calendar
+        ]
+
+    for c_date in group_calendar:
+
+        if c_lesson.date > c_date:
+            sign = False
+
+        else:
+            sign = True
+            c_lesson = lessons.next()
+
+        calendar.append({
+            'date': c_date,
+            'sign': sign
+        })
+    
+    return calendar

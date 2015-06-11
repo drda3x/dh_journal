@@ -1,25 +1,27 @@
 {% extends "base.html" %}
+{% block head %}
+    <style>
+        table {
+            border: 1px solid;
+        }
+        table th {
+            border: 1px solid;
+        }
+    </style>
+{% endblock %}
 {% block body %}
     {{ group_detail.name }}
     <br>
     {{ group_detail.start_date }}
-    <br><br>
-    <form action="/group/addstudent">
-        <label for="first_name">Имя</label>
-        <input type="text" name="first_name" id="first_name" value="test" />
-        <label for="last_name">Фамилия</label>
-        <input type="text" name="last_name" id="last_name" value="test" />
-        <label for="phone">Тел.</label>
-        <input type="tel" name="phone" id="phone" value="+712345678"/>
-        <label for="e_mail">E-mail</label>
-        <input type="email" name="e_mail" id="e_mail" value="t@e.st">
-        <input type="hidden" name="id" value="{{ group_detail.id }}" />
-
-        <input type="submit" value="Добавить">
-    </form>
-
-    {% for student in group_detail.students %}
-        {{ student.first_name }} {{ student.last_name }}<br>
-    {% endfor %}
+    <table>
+        <tr>
+            <th>
+                ФИО
+            </th>
+            {% for date in group_detail.calendar %}
+                <th>{{ date }}</th>
+            {% endfor %}
+        </tr>
+    </table>
 
 {% endblock %}
