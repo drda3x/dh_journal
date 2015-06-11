@@ -27,7 +27,7 @@ def get_group_detail(group_id):
     """
 
     group = Groups.objects.get(pk=group_id)
-    students = __get_group_students_list(group)
+    students = get_group_students_list(group)
     cl = group.get_calendar()
     return {
         'id': group.id,
@@ -37,7 +37,7 @@ def get_group_detail(group_id):
     }
 
 
-def __get_group_students_list(group):
+def get_group_students_list(group):
 
     u"""
     Получить список учеников из группы
@@ -51,7 +51,7 @@ def __get_group_students_list(group):
     )
 
 
-def __get_teacher_students_list(teacher):
+def get_teacher_students_list(teacher):
 
     u"""
     Получить список учеников конкретного преподавателя

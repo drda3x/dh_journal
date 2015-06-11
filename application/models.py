@@ -137,18 +137,18 @@ class Passes(models.Model):
         verbose_name_plural = u'Абонементы'
 
 
-class Lessons(models.Model):
-
-    u"""
-    Посещения занятий
-    """
-
-    date = models.DateField(verbose_name=u'Дата занятия')
-    group = models.ForeignKey(Groups, verbose_name=u'Группа')
-    student = models.ForeignKey(Students, verbose_name=u'Учение')
-    group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент')
-    presence_sign = models.BooleanField(verbose_name=u'Отметка о присутствии', default=False)
-
-    class Meta:
-        app_label = u'application'
-        verbose_name = u'Журнал посещения'
+# class Lessons(models.Model):
+#
+#     u"""
+#     Посещения занятий
+#     """
+#
+#     date = models.DateField(verbose_name=u'Дата занятия')
+#     group = models.ForeignKey(Groups, verbose_name=u'Группа')
+#     student = models.ForeignKey(Students, verbose_name=u'Учение')
+#     group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент')
+#     presence_sign = models.BooleanField(verbose_name=u'Отметка о присутствии', default=False)
+#
+#     class Meta:
+#         app_label = u'application'
+#         verbose_name = u'Журнал посещения'
