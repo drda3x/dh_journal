@@ -1,18 +1,15 @@
 {% extends "base.html" %}
 {% block head %}
     <style>
-        table {
-            border: 1px solid;
-        }
-        table th {
-            border: 1px solid;
-        }
-        table td {
-            border: 1px solid;
+        table td, table th {
             cursor: pointer;
         }
-        table td:hover {
-            color: #FF00FF
+        .form-horizontal{
+            margin: 0;
+        }
+        .modal-backdrop{
+            background-color: inherit;
+            opacity: 1;
         }
     </style>
 {% endblock %}
@@ -20,7 +17,7 @@
     {{ group_detail.name }}
     <br>
     {{ group_detail.start_date }}
-    <table>
+    <table class="table table-bordered table-hover">
         <tr>
             <th>
                 Фамилия Имя
@@ -31,40 +28,82 @@
         </tr>
         {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-            <td>{{ student.person.first_name }} {{ student.person.last_name }}</td>
+            <td class="student_name">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td data-date="{{ date.date }}">{{ date.sign }}</td>
+                <td data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                {% if date.pass %}
+                    <strong>{{ date.sign }}</strong>
+                {% else %}
+                    {{ date.sign }}
+                {% endif %}
+                </td>
             {% endfor %}
             </tr>
         {% endfor %}
     </table>
 
-    <br><br>
-    <form action="/group/addstudent">
-        <label for="first_name">Имя</label>
-        <input type="text" name="first_name" id="first_name" value="test" />
-        <label for="last_name">Фамилия</label>
-        <input type="text" name="last_name" id="last_name" value="test" />
-        <label for="phone">Тел.</label>
-        <input type="tel" name="phone" id="phone" value="+712345678"/>
-        <label for="e_mail">E-mail</label>
-        <input type="email" name="e_mail" id="e_mail" value="t@e.st">
-        <input type="hidden" name="id" value="{{ group_detail.id }}" />
+    <a href="#addStudent" role="button" class="btn" data-toggle="modal">Добавить ученика</a>
 
-        <input type="submit" value="Добавить">
-    </form><br><br>
+    <div id="addStudent" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>Добавить ученика в группу</h3>
+        </div>
+        <form class="form-horizontal" action="/group/addstudent">
+            <input type="hidden" name="id" value="{{ group_detail.id }}" />
+            <div class="modal-body">
+                    <div class="control-group">
+                        <label class="control-label" for="first_name">Имя</label>
+                        <div class="controls">
+                            <input type="text" name="first_name" id="first_name" value="test" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="last_name">Фамилия</label>
+                        <div class="controls">
+                            <input type="text" name="last_name" id="last_name" value="test" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="phone">Тел.</label>
+                        <div class="controls">
+                            <input type="tel" name="phone" id="phone" value="+712345678"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="e_mail">E-mail</label>
+                        <div class="controls">
+                            <input type="email" name="e_mail" id="e_mail" value="t@e.st">
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                <input class="btn btn-primary" type="submit" value="Добавить">
+            </div>
+        </form>
+    </div>
 
-    Добавление абонемента<br>
-    <form action="/group/addpass" id="add_pass">
-        <input type="hidden" disabled name="student_id" id="student_id" />
-        <input type="hidden" value="{{ group_detail.id }}" />
-        <label for="pass_type">Тип абонемента</label>
-        <select id="pass_type">
-            {% for p in pass_detail %}
-                <option value="{{ p.id }}">{{ p.name }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Добавить абонемент" id="pass_submit">
+
+    <form class="form-horizontal" action="/group/addpass" id="add_pass">
+        <input type="hidden" name="pass_start_date" id="pass_start_date" />
+        <input type="hidden" name="student_id" id="student_id" />
+        <input type="hidden" name="pass_group" value="{{ group_detail.id }}" />
+        <div class="control-group">
+            <label class="control-label" for="pass_type">Тип абонемента</label>
+            <div class="controls">
+                <select id="pass_type" name="pass_type">
+                    {% for p in pass_detail %}
+                        <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <input type="submit" class="btn" value="Добавить абонемент" id="pass_submit">
+            </div>
+        </div>
     </form>
 
     <script type="text/javascript">
@@ -73,11 +112,12 @@
             var target, studentName, studentId, date;
 
             $('.student_row').click(function(event) {
-                target = $(event.target);
-                studentId = target.data('stid');
-                studentName = $($(this).children()[0]).text();
-                date = target.data('date');
-                $('student_id').value(studentId);
+              target = $(event.target);
+              studentId = $(this).data('stid');
+              studentName = $($(this).children()[0]).text();
+              date = target.data('date');
+              $('#student_id').val(studentId);
+              $('#pass_start_date').val(date)
             });
 
         })();

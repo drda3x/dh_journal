@@ -4,6 +4,22 @@
 WEEK = [u'Пн', u'Вт', u'Ср', u'Чт', u'Пт', u'Сб', u'Вс']
 
 
+def get_count_of_weekdays_per_interval(wd, int_start, int_stop):
+
+    d_delta = (int_stop - int_start).days
+    first_day = int_start.weekday()
+    weeks = int(round(d_delta / 7))
+
+    calendar = (WEEK[first_day:] + WEEK * weeks)[:d_delta + 1]
+
+    return len(
+        filter(
+            lambda d: d in wd,
+            calendar
+        )
+    )
+
+
 def get_week_offsets(week_days):
     days = week_days + [week_days[0]]
 

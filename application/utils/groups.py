@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 from application.models import Groups, Students, Passes, Lessons, GroupList
-
+from application.utils.date_api import get_count_of_weekdays_per_interval
 
 def get_groups_list(user):
 
@@ -22,18 +22,25 @@ def get_groups_list(user):
     ).values()
 
 
-def get_group_detail(group_id):
+def get_group_detail(group_id, date_from, date_to):
 
     u"""
     Получить детальную информацию о группе
     """
 
     group = Groups.objects.get(pk=group_id)
-    date = datetime.date(2015, 7, 1)
+    date = datetime.date(2015, 6, 1)
+
+    dates_count = get_count_of_weekdays_per_interval(
+        group.days.all().values_list('name', flat=True),
+        date_from,
+        date_to
+    )
+
     students = [
         {
             'person': s,
-            'calendar': get_student_calendar(s, group, date, '%d.%m')
+            'calendar': get_student_calendar(s, group, date, dates_count, '%d.%m.%Y')
         } for s in get_group_students_list(group)
     ]
 
@@ -42,7 +49,7 @@ def get_group_detail(group_id):
         'name': group.name,
         'start_date': group.start_date,
         'students': students,
-        'calendar': map(lambda d: d.strftime('%d.%m'), group.get_calendar(date_to=date))
+        'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date, count=dates_count))
     }
 
 
@@ -81,13 +88,13 @@ def get_teacher_students_list(teacher):
     return res
 
 
-def get_student_calendar(student, group, from_date, form=None):
+def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
     u"""
     Получить календарь занятий для конкретного ученика и конкретной ргуппы
     """
 
-    group_calendar = group.get_calendar(date_to=from_date)
+    group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
     lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
 
     calendar = []
@@ -108,10 +115,10 @@ def get_student_calendar(student, group, from_date, form=None):
     for c_date in group_calendar:
 
         if no_lessons or c_lesson.date > c_date:
-            sign = False
+            _pass = False
 
         else:
-            sign = True
+            _pass = True
 
             try:
                 c_lesson = lessons.next()
@@ -121,7 +128,8 @@ def get_student_calendar(student, group, from_date, form=None):
 
         calendar.append({
             'date': c_date if not form else c_date.strftime(form),
-            'sign': sign
+            'pass': _pass,
+            'sign': c_lesson.presence_sign
         })
 
     return calendar

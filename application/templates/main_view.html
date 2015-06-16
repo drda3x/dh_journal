@@ -14,19 +14,27 @@
     </script>
 {% endblock %}
 {% block body %}
-    Привет!!! {{ user }}<br>
-    {% if groups %}
+    <div class="row">
+        <div class="span2">Привет!!! {{ user }}</div>
+    </div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            {% if groups %}
+                <div class="span1">
+                    <div>Вот список твоих групп:</div>
+                <ul>
+                    {% for group in groups %}
+                        <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }}</a></li>
+                    {% endfor %}
+                </ul>
+                </div>
+                <div class="span11">
+                    <iframe frameborder="0" width="100%px" height="900px"></iframe>
+                </div>
+            {% else %}
 
-        Вот список твоих групп:<br>
-        <ul>
-            {% for group in groups %}
-                <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }}</a></li>
-            {% endfor %}
-        </ul>
-        <iframe width="700px" height="500px"></iframe>
-
-    {% else %}
-
-        Ты еще не ведешь ни одной группы
-    {% endif %}
+                Ты еще не ведешь ни одной группы
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

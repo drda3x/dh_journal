@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-
+import datetime
 from django.shortcuts import render_to_response
 from auth import check_auth
 from django.template import RequestContext
@@ -47,7 +47,12 @@ def group_detail_view(request):
 
     group_id = int(request.GET['id'])
 
-    context['group_detail'] = get_group_detail(group_id)
+    test = [
+        datetime.datetime(2015, 6, 1),
+        datetime.datetime(2015, 6, 30)
+    ]
+
+    context['group_detail'] = get_group_detail(group_id, test[0], test[1])
     context['pass_detail'] = PassTypes.objects.all()
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

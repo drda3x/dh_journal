@@ -4,7 +4,7 @@ import datetime, math
 from django.db import models
 from django.contrib.auth.models import User
 
-from application.utils.date_api import get_week_offsets_from_start_date
+from application.utils.date_api import get_week_offsets_from_start_date, WEEK
 
 
 class Days(models.Model):
@@ -33,22 +33,25 @@ class Groups(models.Model):
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
 
-    def get_calendar(self, date_to=None, date_from=None):
+    def get_calendar(self, count, date_from=None):
 
         start_date = date_from if date_from else self.start_date
-        end_date = date_to if date_to else datetime.date.today()
 
         week_offsets = get_week_offsets_from_start_date(start_date, [i.name for i in self.days.all()])
 
         first_offset = week_offsets.pop(0)
-        current_date = start_date + datetime.timedelta(days=first_offset)
 
-        dates = [current_date]
+        if WEEK[start_date.weekday()] in self.days.all().values_list('name', flat=True):
+            current_date = start_date
+
+        else:
+            current_date = start_date + datetime.timedelta(days=first_offset)
+
         offset_index = 0
 
         get_delta = lambda index: datetime.timedelta(days=week_offsets[index])
 
-        while current_date <= end_date:
+        while count > 0:
 
             try:
                 delta = get_delta(offset_index)
@@ -57,14 +60,14 @@ class Groups(models.Model):
                 offset_index = 0
                 delta = get_delta(offset_index)
 
+            yield current_date
+
             current_date = current_date + delta
 
-            dates.append(current_date)
+            count -= 1
 
             if len(week_offsets) > 1:
                 offset_index += 1
-
-        return dates
 
     def __unicode__(self):
 
@@ -148,6 +151,7 @@ class Passes(models.Model):
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
+    color = models.TextField(verbose_name=u'Цвет', null=True, blank=True)
 
     class Meta:
         app_label = u'application'
