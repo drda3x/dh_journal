@@ -18,7 +18,7 @@ def add_student_to_group(request):
 
     try:
         student = Students.objects.get(first_name=first_name, last_name=first_name, phone=phone)
-        print student.first_name
+
     except Students.DoesNotExist:
         student = Students(
             first_name=first_name,
@@ -34,7 +34,11 @@ def add_student_to_group(request):
         group_id=group_id
     )
 
-    group_list.save()
+    try:
+        group_list.save()
+
+    except Exception:
+        pass
 
     return group_detail_view(request)
 

@@ -133,6 +133,7 @@ class GroupList(models.Model):
         app_label = u'application'
         verbose_name = u'Список группы'
         verbose_name_plural = u'Списки групп'
+        unique_together = ('group', 'student')
 
 
 class Passes(models.Model):
