@@ -11,6 +11,18 @@
             background-color: inherit;
             opacity: 1;
         }
+        .hover {
+            position: relative;
+        }
+        .hover:after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            content: "";
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -30,7 +42,7 @@
             <tr  data-stid="{{ student.person.id }}" class="student_row">
             <td class="student_name">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                <td class="calendar" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
                     <strong>{{ date.sign }}</strong>
                 {% else %}
@@ -112,12 +124,22 @@
             var target, studentName, studentId, date;
 
             $('.student_row').click(function(event) {
-              target = $(event.target);
-              studentId = $(this).data('stid');
-              studentName = $($(this).children()[0]).text();
-              date = target.data('date');
-              $('#student_id').val(studentId);
+                target = $(event.target);
+                studentId = $(this).data('stid');
+                studentName = $($(this).children()[0]).text();
+                date = target.data('date');
+                $('#student_id').val(studentId);
               $('#pass_start_date').val(date)
+            });
+
+            var cl = $('.calendar');
+
+            cl.mouseenter(function() {
+                $(this).addClass('hover')
+            });
+
+            cl.mouseleave(function() {
+                $(this).removeClass('hover')
             });
 
         })();

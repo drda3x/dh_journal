@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from application.models import Groups, Students, Passes, Lessons, GroupList
 from application.utils.date_api import get_count_of_weekdays_per_interval
 
+
 def get_groups_list(user):
 
     u"""
@@ -129,7 +130,8 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
         calendar.append({
             'date': c_date if not form else c_date.strftime(form),
             'pass': _pass,
-            'sign': c_lesson.presence_sign
+            'sign': str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign else '',
+            'color': c_lesson.group_pass.color
         })
 
     return calendar

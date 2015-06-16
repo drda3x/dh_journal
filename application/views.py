@@ -9,7 +9,7 @@ from django.db.models import Q
 from application.models import PassTypes
 from application.utils.groups import get_groups_list, get_group_detail
 
-from models import Groups, Students, User
+from models import Groups, Students, User, PassTypes
 
 
 def custom_proc(request):

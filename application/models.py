@@ -154,6 +154,14 @@ class Passes(models.Model):
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
 
+    @property
+    def color(self):
+        return self.pass_type.color
+
+    @property
+    def one_lesson_prise(self):
+        return self.pass_type.prise / self.pass_type.lessons
+
     class Meta:
         app_label = u'application'
         verbose_name = u'Абонемент'
