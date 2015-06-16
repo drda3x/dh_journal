@@ -93,6 +93,7 @@ class Students(models.Model):
     father_name = models.CharField(max_length=30, verbose_name=u'Отчество', null=True, blank=True)
     phone = models.IntegerField(verbose_name=u'Телефон')
     e_mail = models.CharField(max_length=30, verbose_name=u'e-mail')
+    org = models.BooleanField(verbose_name=u'Орг', default=False)
 
     def __unicode__(self):
         return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper())
@@ -113,6 +114,7 @@ class PassTypes(models.Model):
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
     lessons = models.PositiveIntegerField(verbose_name=u'Количество занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество пропусков', null=True, blank=True)
+    color = models.CharField(verbose_name=u'Цвет', max_length=7, null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%dр.)' % (self.name, self.prise)
@@ -151,7 +153,6 @@ class Passes(models.Model):
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков')
-    color = models.TextField(verbose_name=u'Цвет', null=True, blank=True)
 
     class Meta:
         app_label = u'application'
