@@ -5,6 +5,7 @@ import datetime
 from django.db.models import Q
 from django.contrib.auth.models import User
 
+from application.utils.passes import get_color_classes
 from application.models import Groups, Students, Passes, Lessons, GroupList
 from application.utils.date_api import get_count_of_weekdays_per_interval
 
@@ -95,6 +96,10 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     Получить календарь занятий для конкретного ученика и конкретной ргуппы
     """
 
+    html_color_classes = {
+        key: val for val, key in get_color_classes()
+    }
+
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
     lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
 
@@ -107,7 +112,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
         return [
             {
                 'date': d if not form else d.strftime(form),
-                'sign': False
+                'sign': ''
             } for d in group_calendar
         ]
 
@@ -131,7 +136,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
             'date': c_date if not form else c_date.strftime(form),
             'pass': _pass,
             'sign': str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign else '',
-            'color': c_lesson.group_pass.color
+            'color': html_color_classes[c_lesson.group_pass.color] if _pass else None
         })
 
     return calendar

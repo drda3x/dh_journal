@@ -20,16 +20,21 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.3);
             content: "";
         }
+    {% for color_class in passes_color_classes %}
+        .{{ color_class.name }} {
+            background-color: {{ color_class.val }};
+        }
+    {% endfor %}
     </style>
 {% endblock %}
 {% block body %}
     {{ group_detail.name }}
     <br>
     {{ group_detail.start_date }}
-    <table class="table table-bordered table-hover">
+    <table class="table table-bordered">
         <tr>
             <th>
                 Фамилия Имя
@@ -42,7 +47,7 @@
             <tr  data-stid="{{ student.person.id }}" class="student_row">
             <td class="student_name">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td class="calendar" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                <td class="calendar {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
                     <strong>{{ date.sign }}</strong>
                 {% else %}

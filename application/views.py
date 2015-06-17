@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.db.models import Q
 
-from application.models import PassTypes
+from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail
 
 from models import Groups, Students, User, PassTypes
@@ -52,6 +52,9 @@ def group_detail_view(request):
         datetime.datetime(2015, 6, 30)
     ]
 
+    context['passes_color_classes'] = [
+        {'name': key, 'val': val} for key, val in get_color_classes()
+    ]
     context['group_detail'] = get_group_detail(group_id, test[0], test[1])
     context['pass_detail'] = PassTypes.objects.all()
 
