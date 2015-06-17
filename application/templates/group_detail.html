@@ -140,34 +140,50 @@
             var cl = $('.student_cell');
 
             cl.mouseenter(function() {
-                $(this).addClass('hover');
+                if(!$(this).hasClass('active')) $(this).addClass('hover');
             });
 
             cl.mouseleave(function() {
-                $(this).removeClass('hover');
+                if(!$(this).hasClass('active')) $(this).removeClass('hover');
             });
 
             var prev_popover;
 
-            cl.click(function(event) {
+            function cleanScreen() {
 
                 try {
                     prev_popover.popover('destroy');
-                } catch (e) {}
-
-                target = $(event.target);
-
-                if(!target.is('td')) {
-                    var parents = target.parentsUntil('tr').reverse();
-                    target = $(parents.pop());
+                    prev_popover.remove();
+                } catch(e) {
                 }
 
-                popover_target = $(target.children()[0]);
+                cl.removeClass('hover');
+            }
 
-                popover_target.popover({placement: 'bottom', content:'right'});
-                popover_target.popover('show');
+            cl.click(function(event) {
 
-                prev_popover = popover_target;
+                cleanScreen();
+
+                if(!$(this).hasClass('active')) {
+                    cl.removeClass('active');
+                    $(this).addClass('active');
+                    $(this).addClass('hover');
+
+                    var self = $(this),
+                        pos = self.position(),
+                        dim = {
+                            width: self.width(),
+                            height: self.height()
+                        },
+                        div = $('<div style="position: absolute; bottom: 0; left:'+ dim.width/2 +'px"></div>');
+
+                    self.append(div);
+                    div.popover({placement: 'bottom', content: 'right', animation: false});
+                    div.popover('show');
+                    prev_popover = div;
+                } else {
+                    cl.removeClass('active');
+                }
             });
 
         })();
