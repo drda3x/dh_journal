@@ -52,6 +52,8 @@ def group_detail_view(request):
         datetime.datetime(2015, 6, 30)
     ]
 
+    context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
+
     context['passes_color_classes'] = [
         {'name': key, 'val': val} for key, val in get_color_classes()
     ]

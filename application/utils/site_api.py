@@ -80,4 +80,4 @@ def add_pass(request):
 
             lesson.save()
 
-    return HttpResponse()
+    return group_detail_view(request)
