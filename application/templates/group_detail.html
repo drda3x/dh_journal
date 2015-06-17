@@ -20,7 +20,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.3);
+            background-color: rgba(0,0,0,0.1);
             content: "";
         }
     {% for color_class in passes_color_classes %}
@@ -45,9 +45,9 @@
         </tr>
         {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-            <td class="student_name">{{ student.person.first_name }} {{ student.person.last_name }}</td>
+            <td class="student_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td class="calendar {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                <td class="student_cell {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
                     <strong>{{ date.sign }}</strong>
                 {% else %}
@@ -70,15 +70,15 @@
             <input type="hidden" name="id" value="{{ group_detail.id }}" />
             <div class="modal-body">
                     <div class="control-group">
-                        <label class="control-label" for="first_name">Имя</label>
-                        <div class="controls">
-                            <input type="text" name="first_name" id="first_name" value="test" />
-                        </div>
-                    </div>
-                    <div class="control-group">
                         <label class="control-label" for="last_name">Фамилия</label>
                         <div class="controls">
                             <input type="text" name="last_name" id="last_name" value="test" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="first_name">Имя</label>
+                        <div class="controls">
+                            <input type="text" name="first_name" id="first_name" value="test" />
                         </div>
                     </div>
                     <div class="control-group">
@@ -137,14 +137,37 @@
               $('#pass_start_date').val(date)
             });
 
-            var cl = $('.calendar');
+            var cl = $('.student_cell');
 
             cl.mouseenter(function() {
-                $(this).addClass('hover')
+                $(this).addClass('hover');
             });
 
             cl.mouseleave(function() {
-                $(this).removeClass('hover')
+                $(this).removeClass('hover');
+            });
+
+            var prev_popover;
+
+            cl.click(function(event) {
+
+                try {
+                    prev_popover.popover('destroy');
+                } catch (e) {}
+
+                target = $(event.target);
+
+                if(!target.is('td')) {
+                    var parents = target.parentsUntil('tr').reverse();
+                    target = $(parents.pop());
+                }
+
+                popover_target = $(target.children()[0]);
+
+                popover_target.popover({placement: 'bottom', content:'right'});
+                popover_target.popover('show');
+
+                prev_popover = popover_target;
             });
 
         })();
