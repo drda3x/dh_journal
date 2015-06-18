@@ -1,22 +1,34 @@
 {% extends "base.html" %}
+
 {% block head %}
+
     <style>
-        table td, table th {
+
+        .table td, .table th {
             cursor: pointer;
         }
+
+        .table td {
+            line-height: 10px;
+        }
+
         .form-horizontal{
             margin: 0;
         }
+
         .modal-backdrop{
             background-color: inherit;
             opacity: 1;
         }
+
         #pass_form_html_body {
             padding: 15px 0 0 0;
         }
+
         .hover {
             position: relative;
         }
+
         .hover:after {
             position: absolute;
             top: 0;
@@ -26,31 +38,39 @@
             background-color: rgba(0,0,0,0.1);
             content: "";
         }
+
     {% for color_class in passes_color_classes %}
+
         .{{ color_class.name }} {
             background-color: {{ color_class.val }};
         }
+
     {% endfor %}
+
     </style>
+
 {% endblock %}
+
 {% block body %}
+
     {{ group_detail.name }}
     <br>
     {{ group_detail.start_date }}
+
     <table class="table table-bordered">
         <tr>
             <th>
                 Фамилия Имя
             </th>
             {% for date in group_detail.calendar %}
-                <th>{{ date }}</th>
+                <th class="hover-able">{{ date }}</th>
             {% endfor %}
         </tr>
         {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-            <td class="student_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
+            <td class="hover-able student_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td class="student_cell {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                <td class="hover-able student_cell {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
                     <strong>{{ date.sign }}</strong>
                 {% else %}
@@ -159,7 +179,7 @@
     <script type="text/javascript">
         (function() {
 
-            var cl = $('.student_cell');
+            var cl = $('.hover-able');
 
             cl.mouseenter(function() {
                 if(!$(this).hasClass('active')) $(this).addClass('hover');
@@ -169,77 +189,53 @@
                 if(!$(this).hasClass('active')) $(this).removeClass('hover');
             });
 
-            var prev_popover;
+            function getCells(index) {
 
-            function cleanScreen() {
+              var result = [];
 
-                try {
-                    prev_popover.popover('destroy');
-                    prev_popover.remove();
-                } catch(e) {
-                }
+              $('.table tr').each(function() {
 
-                cl.removeClass('hover');
+                var elem = $(this).children().toArray()[index];
+                result.push($(elem));
+
+              });
+
+              return result;
             }
 
-            function getPopoverContent(elem) {
-                var hasPass = elem.data('pass') ? elem.data('pass') : 'False',
-                    contents = {
-                        True: $('<button class="btn">Отметить присутствие</button>'),
-                        False: $($('#single_pass_form').html()+'<a href="#pass_form_html" role="button" class="btn add-pass" data-toggle="modal">Абонемент</a>')
-                    };
 
-                return contents[hasPass]
+
+            function unSelectColumns() {
+
+              $('.table .active').each(function() {
+
+                $(this).removeClass('hover');
+                $(this).removeClass('active');
+
+              });
+
             }
 
-            cl.click(function(event) {
+            $('.table tr').click(function(event) {
 
-                cleanScreen();
+              var target = $(event.target);
 
-                var target = $(event.target),
-                    self = $(this);
+              if(target.is('th') && target.hasClass('hover-able')) {
 
-                if(target.hasClass('add-pass')) {
+                unSelectColumns();
+                var siblings = $(this).children().toArray(),
+                    cellIndex = siblings.indexOf(event.target),
+                    elements = getCells(cellIndex);
 
-                    var name = (function() {
-                        var parent = $(self.parent()),
-                            first_sb = $(parent.children()[0]);
+                for(var i= elements.length - 1; i >= 0; i--) {
 
-                        return first_sb.text()
-                    })();
+                  elements[i].addClass('active');
+                  elements[i].addClass('hover');
 
-                    var date = self.data('date'),
-                        studentId = $(self.parent()).data('stid');
-
-                    $('#student_id').val(studentId);
-                    $('#student_name').val(name);
-                    $('#date_start').val(date);
-                    $('#pass_start_date').val(date);
-
-                } else {
-                    if(!$(this).hasClass('active')) {
-                        cl.removeClass('active');
-                        $(this).addClass('active');
-                        $(this).addClass('hover');
-
-                        var pos = self.position(),
-                            dim = {
-                                width: self.width(),
-                                height: self.height()
-                            },
-                            div = $('<div style="position: absolute; bottom: 0; left:'+ dim.width/2 +'px"></div>');
-
-                        self.append(div);
-                        div.popover({placement: 'bottom', content: ' ', animation: false});
-
-                        div.popover('show');
-                        $('.popover-content').html(getPopoverContent(self));
-
-                        prev_popover = div;
-                    } else {
-                        cl.removeClass('active');
-                    }
                 }
+
+              }
+
             });
 
         })();
