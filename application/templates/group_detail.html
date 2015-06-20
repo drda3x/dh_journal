@@ -73,9 +73,9 @@
         </tr>
         {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-            <td class="hover-able student_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
+            <td class="hover-able fio_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td class="hover-able student_cell {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
                     <strong>{{ date.sign }}</strong>
                 {% else %}
@@ -291,12 +291,29 @@
 
             // Add DOM events
             var cl = $('.hover-able');
-            cl.mouseenter(function() {
-                if(!$(this).hasClass('active')) matrix.highlightColumn($(this));
+
+            cl.mouseenter(function(event) {
+
+                var $this = $(this);
+
+                if($this.hasClass('fio_cell')) {
+                    if(!$(this).hasClass('active')) $this.addClass('highlight');
+                } else {
+                    if(!$(this).hasClass('active')) matrix.highlightColumn($(this));
+                }
+
             });
 
             cl.mouseleave(function() {
-                if(!$(this).hasClass('active')) matrix.unHighlightColumn($(this));
+
+                var $this = $(this);
+
+                if($this.hasClass('fio_cell')) {
+                    if(!$(this).hasClass('active')) $this.removeClass('highlight');
+                } else {
+                    if(!$(this).hasClass('active')) matrix.unHighlightColumn($(this));
+                }
+
             });
 
             $('.table tr').click(function(event) {
