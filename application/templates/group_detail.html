@@ -4,8 +4,13 @@
 
     <style>
 
+        .table {
+            border-color: #000000;
+        }
+
         .table td, .table th {
             cursor: pointer;
+            border-color: #000000;
         }
 
         .table td {
@@ -25,11 +30,11 @@
             padding: 15px 0 0 0;
         }
 
-        .hover {
+        .highlight {
             position: relative;
         }
 
-        .hover:after {
+        .highlight:after {
             position: absolute;
             top: 0;
             left: 0;
@@ -179,62 +184,125 @@
     <script type="text/javascript">
         (function() {
 
-            var cl = $('.hover-able');
+            /**
+             * Класс 'Матрица'
+             */
+            function Matrix() {
+                this.current_column_num = null;
+                this.content = [];
 
+                var rows = $('.table tbody').children();
+
+                for(var i= 0, j=rows.length; i<j; i++) {
+                    var row=rows[i],
+                            cells = $(row).children();
+
+                    for(var k= 0, m= cells.length; k<m; k++) {
+                        if (i == 0) this.content[k] = [];
+                        var cell = $(cells[k]);
+
+                        cell.column_index = k;
+                        cell.attr('data-column', k);
+
+                        this.content[k].push(cell);
+                    }
+                }
+            }
+
+            /**
+             * Получить всю колонку в которую входит переданный элемент
+             * @param element
+             * @returns {*}
+             */
+            Matrix.prototype.getColumn = function(element) {
+                var $element = $(element),
+                    column_num = $element.data('column');
+
+                return this.content[column_num];
+            };
+
+            /**
+             * Добавить класс для колонки
+             * @param element
+             * @param cl
+             */
+            Matrix.prototype.addClassToColumn = function(element, cl) {
+
+                var column = this.getColumn(element);
+
+                for(var i= 0, j= column.length; i<j; i++) {
+                    column[i].addClass(cl);
+                }
+            };
+
+            /**
+             * Удалить класс для колонки
+             * @param element
+             * @param cl
+             */
+            Matrix.prototype.removeClassFromColumn = function(element, cl) {
+                var column = this.getColumn(element);
+
+                for(var i= 0, j= column.length; i<j; i++) {
+                    column[i].removeClass(cl);
+                }
+            };
+
+            /**
+             * Подсветить колонку
+             * @param element
+             */
+            Matrix.prototype.highlightColumn = function(element) {
+                this.addClassToColumn(element, 'highlight')
+            };
+
+            /**
+             * Убрать подсветку колонки
+             * @param element
+             */
+            Matrix.prototype.unHighlightColumn = function(element) {
+                this.removeClassFromColumn(element, 'highlight')
+            };
+
+            /**
+             * Сделать колонку активной
+             * @param element
+             */
+            Matrix.prototype.makeActive = function(element) {
+                this.highlightColumn(element);
+                this.addClassToColumn(element, 'active')
+            };
+
+            /**
+             * Сделать все колонки не активными
+             */
+            Matrix.prototype.deactivateAll = function() {
+                for(var i= this.content.length - 1; i >= 0; i--) {
+
+                    var elem = this.content[i][0];
+
+                    this.unHighlightColumn(elem);
+                    this.removeClassFromColumn(elem, 'active')
+                }
+            };
+
+            var matrix = new Matrix();
+
+
+            // Add DOM events
+            var cl = $('.hover-able');
             cl.mouseenter(function() {
-                if(!$(this).hasClass('active')) $(this).addClass('hover');
+                if(!$(this).hasClass('active')) matrix.highlightColumn($(this));
             });
 
             cl.mouseleave(function() {
-                if(!$(this).hasClass('active')) $(this).removeClass('hover');
+                if(!$(this).hasClass('active')) matrix.unHighlightColumn($(this));
             });
-
-            function getCells(index) {
-
-              var result = [];
-
-              $('.table tr').each(function() {
-
-                var elem = $(this).children().toArray()[index];
-                result.push($(elem));
-
-              });
-
-              return result;
-            }
-
-
-
-            function unSelectColumns() {
-
-              $('.table .active').each(function() {
-
-                $(this).removeClass('hover');
-                $(this).removeClass('active');
-
-              });
-
-            }
 
             $('.table tr').click(function(event) {
 
-              var target = $(event.target);
-
-              if(target.is('th') && target.hasClass('hover-able')) {
-
-                unSelectColumns();
-                var siblings = $(this).children().toArray(),
-                    cellIndex = siblings.indexOf(event.target),
-                    elements = getCells(cellIndex);
-
-                for(var i= elements.length - 1; i >= 0; i--) {
-
-                  elements[i].addClass('active');
-                  elements[i].addClass('hover');
-
-                }
-
-              }
+                matrix.deactivateAll();
+                matrix.makeActive(event.target);
 
             });
 
