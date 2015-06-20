@@ -175,7 +175,6 @@
 
                 container.empty();
                 $date.text(getDateFromColumn(context));
-
                 container.append('<tr><th>Фамилия Имя</th><th>Присутствие</th></tr>');
 
                 for(var i= 1, j= names.length; i<j; i++) {
@@ -185,21 +184,21 @@
 
                     state.attr('class', lesson[i].attr('class'));
 
+                    // Удаляем следы hover-эффекта от родительской таблицы
                     state.removeClass('active');
                     state.removeClass('highlight');
 
+                    // В зависимости от наличия абонемента подставляется разный контент
                     if(lesson[i].data('pass') === 'True') {
                         state.append(
                             $('<input type="checkbox" style="margin: 0" />')
                         );
 
                         state.click(function(event) {
-
                             var $target = $(event.target);
 
                             if(!$target.is('input')) {
-
-                                var cb = $($(this).children().first());
+                                var cb = $(this).children().first();
 
                                 if(cb.prop('checked')) {
                                     cb.removeAttr('checked');
@@ -208,16 +207,11 @@
                                 }
                             }
                         });
+
                     } else {
-
                         var left, right;
-
-                        right = $('<div class="non-pass-row add-pass">&nbsp</div>');
-                        left = $('<div class="non-pass-row single-lesson"><strong>1...</strong></div>');
-
-                        state.append(left);
-                        state.append(right);
-
+                        left = $('<div class="non-pass-row single-lesson"><strong>1...</strong></div>').appendTo(state);
+                        right = $('<div class="non-pass-row add-pass">&nbsp</div>').appendTo(state);
                         state.css('padding', 0)
                     }
 
