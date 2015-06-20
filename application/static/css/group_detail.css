@@ -1,0 +1,75 @@
+.table {
+    border-color: #000000;
+}
+
+.table td, .table th {
+    cursor: pointer;
+    border-color: #000000;
+}
+
+.table td {
+    line-height: 10px;
+}
+
+.form-horizontal{
+    margin: 0;
+}
+
+.modal-backdrop{
+    background-color: inherit;
+    opacity: 1;
+}
+
+#pass_form_html_body {
+    padding: 15px 0 0 0;
+}
+
+.highlight {
+    position: relative;
+}
+
+.highlight:after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.1);
+    content: "";
+}
+
+#lesson_content {
+    width: 80%;
+    margin: 10px 10%;
+}
+
+#lesson_content tr th:nth-child(even), #lesson_content tr td:nth-child(even){
+    width: 150px;
+}
+
+.non-pass-row {
+    display: inline-block;
+    width: 50%;
+    height: 24px;
+}
+
+.add-pass {
+    margin:1px 0 0;
+    background: url(../img/abon_m.gif) no-repeat;
+    background-position: center;
+}
+
+.add-pass:hover {
+    background: url(../img/abon.gif) no-repeat;
+    background-position: center;
+}
+
+.single-lesson strong {
+    position: relative;
+    top: 7px;
+    left: 40%;
+}
+
+.single-lesson:hover {
+    color: #5ECB31;
+}
