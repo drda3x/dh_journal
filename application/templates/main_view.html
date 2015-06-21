@@ -15,20 +15,20 @@
 {% endblock %}
 {% block body %}
     <div class="row">
-        <div class="span2">Привет!!! {{ user }}</div>
+        <div class="span2"><strong>{{ user }}</strong></div>
     </div>
     <div class="container-fluid">
         <div class="row-fluid">
             {% if groups %}
-                <div class="span1">
-                    <div>Вот список твоих групп:</div>
+                <div class="span2">
+                    <div>Группы:</div>
                 <ul>
                     {% for group in groups %}
                         <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }}</a></li>
                     {% endfor %}
                 </ul>
                 </div>
-                <div class="span11">
+                <div class="span10">
                     <iframe frameborder="0" width="100%px" height="900px"></iframe>
                 </div>
             {% else %}
