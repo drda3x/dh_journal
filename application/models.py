@@ -4,19 +4,7 @@ import datetime, math
 from django.db import models
 from django.contrib.auth.models import User
 
-from application.utils.date_api import get_week_offsets_from_start_date, WEEK
-
-
-class Days(models.Model):
-    name = models.CharField(max_length=2)
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        app_label = u'application'
-        verbose_name = u'День недели'
-        verbose_name_plural = u'Дни недели'
+from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
 
 
 class Groups(models.Model):
@@ -29,19 +17,23 @@ class Groups(models.Model):
     start_date = models.DateField(verbose_name=u'Дата начала группы')
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
-    days = models.ManyToManyField(Days, verbose_name=u'Дни проведения')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
+    _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
+
+    @property
+    def days(self):
+        return get_week_days_names(self._days.split(','))
 
     def get_calendar(self, count, date_from=None):
 
         start_date = date_from if date_from else self.start_date
 
-        week_offsets = get_week_offsets_from_start_date(start_date, [i.name for i in self.days.all()])
+        week_offsets = get_week_offsets_from_start_date(start_date, self.days)
 
         first_offset = week_offsets.pop(0)
 
-        if WEEK[start_date.weekday()] in self.days.all().values_list('name', flat=True):
+        if WEEK[start_date.weekday()] in self.days:
             current_date = start_date
 
         else:
@@ -73,7 +65,7 @@ class Groups(models.Model):
 
         leader = self.teacher_leader.last_name if self.teacher_leader else ''
         follower = self.teacher_follower.last_name if self.teacher_follower else ''
-        days = ' '.join(map(lambda x: x.name, self.days.all()))
+        days = '-'.join(self.days)
         return u'%s - %s %s - %s' % (self.name, leader, follower, days)
 
     class Meta:

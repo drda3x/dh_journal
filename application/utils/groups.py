@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
 from application.models import Groups, Students, Passes, Lessons, GroupList
-from application.utils.date_api import get_count_of_weekdays_per_interval
+from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
 
 
 def get_groups_list(user):
@@ -34,7 +34,7 @@ def get_group_detail(group_id, date_from, date_to):
     date = datetime.date(2015, 6, 1)
 
     dates_count = get_count_of_weekdays_per_interval(
-        group.days.all().values_list('name', flat=True),
+        group.days,
         date_from,
         date_to
     )

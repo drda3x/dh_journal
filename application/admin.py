@@ -2,7 +2,11 @@
 
 from django.contrib import admin
 from models import *
+from forms import GroupsForm
 
-admin.site.register(Days)
-admin.site.register(Groups)
+
+class GroupAdmin(admin.ModelAdmin):
+    form = GroupsForm
+
+admin.site.register(Groups, GroupAdmin)
 admin.site.register(PassTypes)
