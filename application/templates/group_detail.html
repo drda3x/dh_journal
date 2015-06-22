@@ -53,6 +53,8 @@
 
     <a href="#addStudent" role="button" class="btn" data-toggle="modal">Добавить ученика</a>
 
+    <!-- Форма добавления ученика в группу -->
+
     <div id="addStudent" class="modal hide fade">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -93,6 +95,8 @@
         </form>
     </div>
 
+
+    <!-- Форма редактирования занятия -->
     <div id="lesson_window" class="modal hide fade">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -107,7 +111,8 @@
         </div>
     </div>
 
-    <div id="pass_menu" class="modal hide fade">
+    <!-- Форма выбора абонемента -->
+    <div id="pass_menu" class="modal hide">
         <div>
             {% for p in pass_detail %}
                 <div class="control-group">
@@ -119,7 +124,7 @@
             {% endfor %}
             <div class="control-group">
                 <label class="radio">
-                    <input id="not_self_pay" type="radio" name="select_pass_type" value="2">
+                    <input id="not_self_pay" type="radio" name="select_pass_type" value="1000">
                     Списать с другого абонемента
                 </label>
             </div>
@@ -128,6 +133,7 @@
 
 
     <script type="text/javascript">
+
         (function() {
 
             var matrix = new window.View.Matrix();
@@ -189,14 +195,41 @@
                         });
 
                     } else {
+
+                        var self_state;
+
+                        function hideAllPopovers(_timeout) {
+                            var timeout = _timeout ? _timeout : 0;
+
+                            $popovers = $('.popover');
+                            $popovers.fadeOut(timeout);
+                            setTimeout($popovers.remove, timeout);
+                        }
+
+                        function getPopoverVal() {
+                            var popval = $('.popover').find('input:checked').val();
+                            self_state.attr('data-popval', popval);
+                        }
+
+                        function setPopoverVal() {
+                            var $popover = $('.popover:visible');
+                            $popover.find('input[value='+self_state.data('popval')+']').prop('checked', 'checked')
+                        }
+
+                        function addPopoverEvents() {
+                            $('.popover').find('input').click(function() {
+                                getPopoverVal();
+                            })
+                        }
+
                         state.addClass('add-pass');
-                        state.popover({content: $pass_menu.html(), html: true});
+                        state.popover({content: $pass_menu.html(), html: true, trigger: 'manual'});
                         state.click(function() {
-                            if($('.popover-content').is(':visible')) {
-                                $(this).popover('hide')
-                            } else {
-                                $(this).popover('show');
-                            }
+                            hideAllPopovers();
+                            $(this).popover('show');
+                            addPopoverEvents();
+                            self_state = $(this);
+                            setPopoverVal();
                         });
                     }
 
@@ -205,12 +238,6 @@
 
                     tr.appendTo(container);
                 }
-
-                $this.on('hide', function() {
-                    $pass_menu.modal('hide');
-                    $('.modal-backdrop').remove();
-                });
-
             }
 
             // Add DOM events
