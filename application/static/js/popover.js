@@ -11,7 +11,7 @@ window.vidgetsLogic.Popover = (function($) {
      * @constructor
      */
     function Popover() {
-        this.html = $('#pass_menu').html();
+        this.html = $('#pass_menu');
         this.objSelector = '.popover';
         this.activeClass = 'popover-opened';
     }
@@ -21,7 +21,7 @@ window.vidgetsLogic.Popover = (function($) {
      * @param $target
      */
     Popover.prototype.init = function($target) {
-        $target.popover({content: this.html, html: true, trigger: 'manual', animation: false});
+        $target.popover({content: this.html.html(), html: true, trigger: 'manual', animation: false});
     };
 
     /**
@@ -66,10 +66,11 @@ window.vidgetsLogic.Popover = (function($) {
             var value = self.getExistedValue();
             if(value) {
                 this.$object.find('input[value='+value+']').prop('checked', 'checked');
+                self.toggleAdvanced(value);
             }
 
             // Вешаем евенты
-            self.$object.find('input').click(function() {
+            self.$object.find('input[type=radio]').click(function() {
                 var $this = $(this),
                     newValue = $this.val();
 
@@ -80,6 +81,9 @@ window.vidgetsLogic.Popover = (function($) {
                 } else {
                     self.$target.attr('val', newValue);
                 }
+
+                // Возможно нужно открыть доп. окошко
+                self.toggleAdvanced(self.getExistedValue());
             });
 
             // Класс с активным попапом может быть только один, так что сначала удалим все классы,
@@ -91,6 +95,24 @@ window.vidgetsLogic.Popover = (function($) {
             self.$target.addClass(self.activeClass);
         } else {
             self.$target.removeClass(this.activeClass);
+        }
+    };
+
+    /**
+     * Показать или скрыть дополнительное окошко
+     * @param val
+     */
+    Popover.prototype.toggleAdvanced = function(val) {
+
+        var $html = $(this.objSelector + ':visible').find('#pass_menu_advanced');
+
+        if(val == '-1') {
+            var $fio = $html.find('#pass_menu_fio');
+            $html.show();
+
+            $fio.keypress();
+        } else {
+            $html.hide()
         }
     };
 

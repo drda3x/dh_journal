@@ -125,9 +125,12 @@
             {% endfor %}
             <div class="control-group">
                 <label class="radio">
-                    <input id="not_self_pay" type="radio" name="select_pass_type" value="1000">
+                    <input id="not_self_pay" type="radio" name="select_pass_type" value="-1">
                     Списать с другого абонемента
                 </label>
+                <div id="pass_menu_advanced" style="display: none">
+                    <input id="pass_menu_fio" type="text" placeholder="Фамилия Имя">
+                </div>
             </div>
         </div>
     </div>

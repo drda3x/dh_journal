@@ -82,3 +82,7 @@
 .popover-content {
     width: 300px;
 }
+
+.popover.right .arrow {
+    top: 85px;
+}
