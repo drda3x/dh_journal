@@ -158,9 +158,7 @@
                     names = matrix.getColumn(0),
                     lesson = matrix.getColumn(context),
                     container = $('#lesson_content'),
-                    $pass_menu = $('#pass_menu');
-
-                var popoverLogic = new window.vidgetsLogic.Popover();
+                    popoverLogic = new window.vidgetsLogic.Popover();
 
                 container.empty();
                 $date.text(getDateFromColumn(context));
@@ -199,41 +197,15 @@
 
                     } else {
 
-                        var current_popover = {
-                            object: null,
-
-                        };
-
-                        function hideAllPopovers(_timeout) {
-                            var timeout = _timeout || 0;
-
-                            $popovers = $('.popover');
-                            $popovers.fadeOut(timeout);
-                            setTimeout($popovers.remove, timeout);
-                        }
-
-                        function getPopoverVal() {
-                            var popval = $('.popover').find('input:checked').val();
-                            self_state.attr('data-popval', popval);
-                        }
-
-                        function setPopoverVal() {
-                            var $popover = $('.popover:visible');
-                            $popover.find('input[value='+self_state.data('popval')+']').prop('checked', 'checked')
-                        }
-
-                        function addPopoverEvents() {
-                            $('.popover').find('input').click(function() {
-                                getPopoverVal();
-                            })
-                        }
-
                         state.addClass('add-pass');
+
                         popoverLogic.init(state);
+
                         state.click(function() {
                             popoverLogic.hide();
                             popoverLogic.show($(this));
                         });
+
                     }
 
                     tr.append(name);
