@@ -17,6 +17,7 @@
     </style>
 
     <script type="text/javascript" src="/static/js/matrix.js"></script>
+    <script type="text/javascript" src="/static/js/popover.js"></script>
 
 {% endblock %}
 
@@ -159,6 +160,8 @@
                     container = $('#lesson_content'),
                     $pass_menu = $('#pass_menu');
 
+                var popoverLogic = new window.vidgetsLogic.Popover();
+
                 container.empty();
                 $date.text(getDateFromColumn(context));
                 container.append('<tr><th>Фамилия Имя</th><th>Присутствие</th></tr>');
@@ -196,10 +199,13 @@
 
                     } else {
 
-                        var self_state;
+                        var current_popover = {
+                            object: null,
+
+                        };
 
                         function hideAllPopovers(_timeout) {
-                            var timeout = _timeout ? _timeout : 0;
+                            var timeout = _timeout || 0;
 
                             $popovers = $('.popover');
                             $popovers.fadeOut(timeout);
@@ -223,13 +229,10 @@
                         }
 
                         state.addClass('add-pass');
-                        state.popover({content: $pass_menu.html(), html: true, trigger: 'manual'});
+                        popoverLogic.init(state);
                         state.click(function() {
-                            hideAllPopovers();
-                            $(this).popover('show');
-                            addPopoverEvents();
-                            self_state = $(this);
-                            setPopoverVal();
+                            popoverLogic.hide();
+                            popoverLogic.show($(this));
                         });
                     }
 
