@@ -23,9 +23,17 @@
 
 {% block body %}
 
-    {{ group_detail.name }}
-    <br>
-    {{ group_detail.start_date }}
+    <div class="journal-header">
+        <strong>Группа: </strong>{{ group_detail.name }} <strong style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}
+    </div>
+    <div class="journal-header">
+        <strong>Месяц</strong>
+        <div class="btn-group" data-toggle="buttons-radio" style="display: inline-block">
+            <button type="button" class="btn">Left</button>
+            <button type="button" class="btn">Middle</button>
+            <button type="button" class="btn">Right</button>
+        </div>
+    </div>
 
     <table id="journal" class="table table-bordered">
         <tr>
@@ -33,26 +41,27 @@
                 Фамилия Имя
             </th>
             {% for date in group_detail.calendar %}
-                <th class="hover-able">{{ date }}</th>
+            <th class="hover-able">{{ date }}</th>
             {% endfor %}
         </tr>
         {% for student in group_detail.students %}
-            <tr  data-stid="{{ student.person.id }}" class="student_row">
+        <tr  data-stid="{{ student.person.id }}" class="student_row">
             <td class="hover-able fio_cell">{{ student.person.first_name }} {{ student.person.last_name }}</td>
             {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
+            <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
                 {% if date.pass %}
-                    <strong>{{ date.sign }}</strong>
+                <strong>{{ date.sign }}</strong>
                 {% else %}
-                    {{ date.sign }}
+                {{ date.sign }}
                 {% endif %}
-                </td>
+            </td>
             {% endfor %}
-            </tr>
+        </tr>
         {% endfor %}
     </table>
 
     <a href="#addStudent" role="button" class="btn" data-toggle="modal">Добавить ученика</a>
+
 
     <!-- Форма добавления ученика в группу -->
 

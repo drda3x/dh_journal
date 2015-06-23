@@ -86,3 +86,12 @@
 .popover.right .arrow {
     top: 85px;
 }
+
+.journal-header {
+    margin: 10px 0;
+}
+
+.btn-group {
+    padding:
+    0 10px;
+}
