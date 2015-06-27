@@ -24,7 +24,7 @@
                     <div>Группы:</div>
                 <ul>
                     {% for group in groups %}
-                        <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }}</a></li>
+                        <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
                     {% endfor %}
                 </ul>
                 </div>

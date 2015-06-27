@@ -19,9 +19,12 @@ def get_groups_list(user):
     if not isinstance(user, User):
         return None
 
-    return Groups.objects.filter(
-        Q(teacher_leader=user) | Q(teacher_follower=user)
-    ).values()
+    return [
+        {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+        for g in Groups.objects.filter(
+            Q(teacher_leader=user) | Q(teacher_follower=user)
+        )
+    ]
 
 
 def get_group_detail(group_id, date_from, date_to):
@@ -49,6 +52,7 @@ def get_group_detail(group_id, date_from, date_to):
     return {
         'id': group.id,
         'name': group.name,
+        'days': group.days,
         'start_date': group.start_date,
         'students': students,
         'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date, count=dates_count))

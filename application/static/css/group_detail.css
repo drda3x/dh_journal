@@ -87,11 +87,33 @@
     top: 85px;
 }
 
+.fio_cell {
+    padding-right: 0 !important;
+}
+
+.fio_cell .popover.right .arrow {
+    top: 50%;
+}
+
+#journal {}
+
 .journal-header {
-    margin: 10px 0;
+    position: relative;
+    top: 10px;
+    right: 30px;
+    float: right;
 }
 
 .btn-group {
     padding:
     0 10px;
+}
+
+.info-fio {
+    text-align: center !important;
+    padding: 2px !important;
+}
+
+.header-inp{
+    margin-top: 10px !important;
 }
