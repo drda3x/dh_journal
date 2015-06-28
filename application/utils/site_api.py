@@ -2,29 +2,34 @@
 
 import datetime
 
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseNotFound
 
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons
 from application.views import group_detail_view
 
 
-def add_student_to_group(request):
+def add_student(request):
 
     first_name = request.GET['first_name']
     last_name = request.GET['last_name']
     phone = request.GET['phone']
     e_mail = request.GET['e_mail']
-    group_id = request.GET['id']
+    group_id = int(request.GET['id'])
+    is_org = True if 'is_org' in request.GET.iterkeys() else False
 
     try:
         student = Students.objects.get(first_name=first_name, last_name=first_name, phone=phone)
+
+        if GroupList.objects.filter(student=student, group_id=group_id).exists():
+            return group_detail_view(request)
 
     except Students.DoesNotExist:
         student = Students(
             first_name=first_name,
             last_name=last_name,
             phone=phone,
-            e_mail=e_mail
+            e_mail=e_mail,
+            org=is_org
         )
 
         student.save()
@@ -36,11 +41,14 @@ def add_student_to_group(request):
 
     try:
         group_list.save()
-
     except Exception:
         pass
 
     return group_detail_view(request)
+
+
+def edit_student(request):
+    return HttpResponseNotFound('Need to realize back-end for this functionality')
 
 
 def add_pass(request):

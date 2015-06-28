@@ -23,7 +23,8 @@ from django.contrib.auth.views import login, logout
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^group/addstudent', api.add_student_to_group),
+    url(r'^group/addstudent', api.add_student),
+    url(r'^group/editstudent', api.edit_student),
     url(r'^group/addpass', api.add_pass),
     url(r'^group', views.group_detail_view),
     url(r'', views.index_view)

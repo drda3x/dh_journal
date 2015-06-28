@@ -57,14 +57,16 @@
                 {% endfor %}
             </table>
         </div>
+
         <div class="tab-pane" id="info">
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped table-hover">
                 <tr>
-                    <th class="info-fio"><input class="header-inp" type="checkbox" /></th>
+                    <th class="info-fio"><input class="student-selector" type="checkbox" /></th>
                     <th>Фамилия</th>
                     <th>Имя</th>
                     <th>Телефон</th>
                     <th>E-mail</th>
+                    <th>ОРГ-статус</th>
                     <th>Остаток по абонементу</th>
                 </tr>
                 {% for student in group_detail.students %}
@@ -74,11 +76,13 @@
                     <td>{{ student.person.first_name }}</td>
                     <td>+{{ student.person.phone }}</td>
                     <td>{{ student.person.e_mail }}</td>
+                    <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>0</td>
                 </tr>
                 {% endfor %}
             </table>
-            <a href="#addStudent" role="button" class="btn" data-toggle="modal">Добавить ученика</a>
+            <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
+            <a id="editStudentBtn" role="button" class="btn disabled" data-toggle="modal">Удалить</a>
         </div>
     </div>
 
@@ -86,12 +90,12 @@
 
     <!-- Форма добавления ученика в группу -->
 
-    <div id="addStudent" class="modal hide fade">
+    <div id="editStudent" class="modal hide fade">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3>Добавить ученика в группу</h3>
+            <h3>Карточка ученика</h3>
         </div>
-        <form class="form-horizontal" action="/group/addstudent">
+        <form class="form-horizontal" action="/group/editStudent">
             <input type="hidden" name="id" value="{{ group_detail.id }}" />
             <div class="modal-body">
                     <div class="control-group">
@@ -116,6 +120,12 @@
                         <label class="control-label" for="e_mail">E-mail</label>
                         <div class="controls">
                             <input type="email" name="e_mail" id="e_mail" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="is_org">ОРГ</label>
+                        <div class="controls">
+                            <input type="checkbox" name="is_org" id="is_org" />
                         </div>
                     </div>
             </div>
@@ -310,6 +320,44 @@
                 }
 
             });
+
+            var $infoTable = $('#info table'),
+                $studentForm = $('#editStudent'),
+                addUrl = '/group/addstudent',
+                editUrl = '/group/editstudent';
+
+            $infoTable.find('tr').dblclick(function(event) {
+
+                var $target = $(event.target);
+
+                if(!$target.is('input') && !$target.is('.info-fio') && !$target.is('th')) {
+                    var $this = $(this),
+                    $children = $this.children();
+
+                    $('#last_name').val($($children[1]).text());
+                    $('#first_name').val($($children[2]).text());
+                    $('#phone').val($($children[3]).text());
+                    $('#e_mail').val($($children[4]).text());
+                    $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
+
+                    $studentForm.find('form').attr('action', editUrl);
+                    $studentForm.find('.btn.btn-primary').val('Сохранить');
+                    $studentForm.modal('show');
+                }
+            });
+
+            $('#editStudentBtn').click(function() {
+
+                $('#last_name').val('');
+                $('#first_name').val('');
+                $('#phone').val('');
+                $('#e_mail').val('');
+                $('#is_org').prop('checked', false);
+
+                $studentForm.find('form').attr('action', addUrl);
+                $studentForm.find('.btn.btn-primary').val('Добавить');
+                $studentForm.modal('show');
+            })
         })();
     </script>
 
