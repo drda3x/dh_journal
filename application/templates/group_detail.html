@@ -61,7 +61,7 @@
         <div class="tab-pane" id="info">
             <table class="table table-bordered table-striped table-hover">
                 <tr>
-                    <th class="info-fio"><input class="student-selector" type="checkbox" /></th>
+                    <th class="info-fio"><input class="student-selector" type="checkbox" value="-1" /></th>
                     <th>Фамилия</th>
                     <th>Имя</th>
                     <th>Телефон</th>
@@ -71,7 +71,7 @@
                 </tr>
                 {% for student in group_detail.students %}
                 <tr>
-                    <td class="info-fio"><input type="checkbox" /></td>
+                    <td class="info-fio"><input type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ student.person.last_name }}</td>
                     <td>{{ student.person.first_name }}</td>
                     <td>+{{ student.person.phone }}</td>
@@ -321,6 +321,11 @@
 
             });
 
+            /**
+             * Заполнение таблицы редактирования
+             * @type {*|jQuery|HTMLElement}
+             */
+
             var $infoTable = $('#info table'),
                 $studentForm = $('#editStudent'),
                 addUrl = '/group/addstudent',
@@ -357,7 +362,41 @@
                 $studentForm.find('form').attr('action', addUrl);
                 $studentForm.find('.btn.btn-primary').val('Добавить');
                 $studentForm.modal('show');
-            })
+            });
+
+            /**
+             * checkbox
+             */
+            var $inputs = $('.info-fio input'),
+                checkAllValue = -1;
+
+            $inputs.click(function() {
+                var $this = $(this),
+                    $val = $this.val();
+
+                if($val == checkAllValue) {
+
+                    if($this.prop('checked')) {
+                        $inputs.each(function() {
+                            $(this).prop('checked', 'checked');
+                        });
+                    } else {
+                        $inputs.each(function() {
+                            $(this).prop('checked', false);
+                        });
+                    }
+                } else {
+                    var $checked = $inputs.filter(':checked'),
+                        $target = $inputs.filter('[value='+checkAllValue+']');
+                    if($checked.length == $inputs.length-1 && !($target.prop('checked'))) {
+                        $target.prop('checked','checked')
+                    } else {
+                        $target.prop('checked',false)
+                    }
+                }
+            });
+
+            // todo вынести все независимые блоки в свои области видимости
         })();
     </script>
 
