@@ -23,7 +23,7 @@
 {% block body %}
 
     <div class="journal-header">
-        <strong>Группа: </strong>{{ group_detail.name }} <strong style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}
+        <strong class="text-info">Группа: </strong>{{ group_detail.name }} <strong class="text-info" style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}
     </div>
     <ul class="nav nav-tabs" id="navTab">
         <li class="active"><a href="#journal-tc" data-toggle="tab">Ведомость</a></li>
@@ -82,7 +82,7 @@
                 {% endfor %}
             </table>
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
-            <a id="editStudentBtn" role="button" class="btn disabled" data-toggle="modal">Удалить</a>
+            <a id="deleteStudentBtn" role="button" class="btn disabled" data-toggle="modal">Удалить</a>
         </div>
     </div>
 
@@ -332,7 +332,6 @@
                 editUrl = '/group/editstudent';
 
             $infoTable.find('tr').dblclick(function(event) {
-
                 var $target = $(event.target);
 
                 if(!$target.is('input') && !$target.is('.info-fio') && !$target.is('th')) {
@@ -379,6 +378,7 @@
                     if($this.prop('checked')) {
                         $inputs.each(function() {
                             $(this).prop('checked', 'checked');
+                            $('#deleteStudentBtn').removeClass('disabled');
                         });
                     } else {
                         $inputs.each(function() {
@@ -393,6 +393,12 @@
                     } else {
                         $target.prop('checked',false)
                     }
+                }
+
+                if($inputs.filter(':checked').length > 0) {
+                    $('#deleteStudentBtn').removeClass('disabled');
+                } else {
+                    $('#deleteStudentBtn').addClass('disabled');
                 }
             });
 

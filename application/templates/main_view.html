@@ -14,19 +14,19 @@
     </script>
 {% endblock %}
 {% block body %}
-    <div class="row">
-        <div class="span2"><strong>{{ user }}</strong></div>
-    </div>
-    <div class="container-fluid">
+    <div style="padding-top: 10px;" class="container-fluid">
         <div class="row-fluid">
             {% if groups %}
                 <div class="span2">
-                    <div>Группы:</div>
-                <ul>
-                    {% for group in groups %}
-                        <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
-                    {% endfor %}
-                </ul>
+                    <strong>
+                        {{ user.last_name }} {{ user.first_name }}
+                    </strong>
+                    <ul class="nav nav nav-list">
+                        <li class="nav-header">Группы:</li>
+                        {% for group in groups %}
+                            <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
+                        {% endfor %}
+                    </ul>
                 </div>
                 <div class="span10">
                     <iframe frameborder="0" width="100%px" height="900px"></iframe>
