@@ -23,11 +23,13 @@
 {% block body %}
 
     <div class="journal-header">
-        <strong class="text-info">Группа: </strong>{{ group_detail.name }} <strong class="text-info" style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}
+        <strong class="text-info">Группа: </strong>{{ group_detail.name }}
+        <span id="infoLastLesson"><strong class="text-info" style="margin: 0 0 0 10px;">Последнее занятие: </strong>01.06.2015</span>
+        <span id="infoStartDate" style="display: none;"><strong  class="text-info" style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}</span>
     </div>
     <ul class="nav nav-tabs" id="navTab">
-        <li class="active"><a href="#journal-tc" data-toggle="tab">Ведомость</a></li>
-        <li><a href="#info" data-toggle="tab">Группа</a></li>
+        <li class="active"><a id="journalNav" href="#journal-tc" data-toggle="tab">Ведомость</a></li>
+        <li><a id="infoNav" href="#info" data-toggle="tab">Группа</a></li>
     </ul>
 
     <div class="tab-content">
@@ -400,6 +402,16 @@
                 } else {
                     $('#deleteStudentBtn').addClass('disabled');
                 }
+            });
+
+            $('#journalNav').click(function() {
+                $('#infoLastLesson').show();
+                $('#infoStartDate').hide();
+            });
+
+            $('#infoNav').click(function() {
+                $('#infoLastLesson').hide();
+                $('#infoStartDate').show();
             });
 
             // todo вынести все независимые блоки в свои области видимости

@@ -117,3 +117,8 @@
 .header-inp{
     margin-top: 10px !important;
 }
+
+.left-header {
+    width: 100%;
+    height: 30px;
+}
