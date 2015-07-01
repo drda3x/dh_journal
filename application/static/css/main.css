@@ -1,0 +1,14 @@
+
+body {
+    /*background-color: #F5F5F5;*/
+}
+
+.caret {
+    position: relative;
+    top: 19px;
+    left: 2px;
+}
+
+.dropdown-menu.usr {
+    margin: 33px -16px;
+}

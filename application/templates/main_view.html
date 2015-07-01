@@ -14,15 +14,34 @@
     </script>
 {% endblock %}
 {% block body %}
-    <div style="padding-top: 10px;" class="container-fluid">
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
+
+                <div class="nav-collapse collapse">
+                    <div class="navbar-text pull-right">
+                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown">{{ user.last_name }} {{ user.first_name }}<span class="caret"></span></a>
+                        <ul class="dropdown-menu usr">
+                            <li><a tabindex="-1" href="#">Выход</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div style="padding-top: 20px; margin: 35px" class="container-fluid">
         <div class="row-fluid">
             {% if groups %}
                 <div class="span2">
-                    <div style="padding-top: 10px;">
-                        <p><strong>{{ user.last_name }} {{ user.first_name }}</strong></p>
-                    </div>
-                    <ul style="padding: 13px 0 0 0" class="nav nav nav-list">
-                        <li class="nav-header">Группы:</li>
+                    <ul class="nav nav nav-list">
+                        <li class="nav-header"><h5 style="margin: 0">Группы:</h5></li>
                         {% for group in groups %}
                             <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
                         {% endfor %}
