@@ -143,6 +143,10 @@
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h4><span id="lesson_window_date"></span> - {{ group_detail.name }}</h4>
+            <label id="cancel_lesson" class="checkbox">
+                <input type="checkbox">
+                Отменено
+            </label>
         </div>
         <div>
             <table id="lesson_content" class="table table-bordered table-striped"></table>
@@ -415,6 +419,8 @@
             });
 
             // todo вынести все независимые блоки в свои области видимости
+            // todo проработать механизм хранения отмененных занятий (походу для этого нужен рефакторинг)
+            // todo проработать выбор ведомостей за разные промежутки времени
         })();
     </script>
 

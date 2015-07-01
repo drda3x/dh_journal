@@ -1,10 +1,9 @@
 # -*- coding:utf-8 -*-
 import datetime
-from django.shortcuts import render_to_response
-from auth import check_auth
+from django.shortcuts import render_to_response, redirect
+from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
-from django.db.models import Q
 
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail
@@ -38,6 +37,11 @@ def index_view(request):
         args = {}
         args.update(csrf(request))
         return render_to_response(login_template, args, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def user_log_out(request):
+    log_out(request)
+    return redirect('/')
 
 
 def group_detail_view(request):

@@ -27,5 +27,6 @@ urlpatterns = [
     url(r'^group/editstudent', api.edit_student),
     url(r'^group/addpass', api.add_pass),
     url(r'^group', views.group_detail_view),
+    url(r'^logout', views.user_log_out),
     url(r'', views.index_view)
 ]

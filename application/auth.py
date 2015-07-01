@@ -19,3 +19,7 @@ def check_auth(request):
 
     else:
         return None
+
+
+def log_out(request):
+    auth.logout(request)
