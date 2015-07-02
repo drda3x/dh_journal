@@ -59,6 +59,13 @@
     background-position: center;
 }
 
+.add-pass-non-hover {
+    margin:1px 0 0;
+    background: url(../img/abon_m.gif) no-repeat;
+    background-position: center;
+    width: 100%;
+}
+
 .single-lesson strong {
     position: relative;
     top: 7px;
@@ -125,4 +132,8 @@
 
 #cancel_lesson {
     width: 100px;
+}
+
+.my_disabled {
+    opacity: 0.2;
 }
