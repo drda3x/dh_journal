@@ -57,12 +57,22 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4><span id="lesson_window_date"></span> - {{ group_detail.name }}</h4>
                 <label id="cancel_lesson" class="checkbox">
-                    <input type="checkbox">
+                    <input id="cancel_lesson_inp" type="checkbox">
                     Отменено
                 </label>
             </div>
-            <div>
-                <table id="lesson_content" class="table table-bordered table-striped"></table>
+            <div style="position: relative">
+                <table id="lesson_content" class="table table-bordered table-striped">
+                    <tr><th>Фамилия Имя</th><th>Присутствие</th></tr>
+                    {% for student in group_detail.students %}
+                        <tr>
+                            <td>{{ student.person.last_name }} {{ student.person.first_name }}</td>
+                            <td class="lesson_data"></td>
+                        </tr>
+
+                    {% endfor %}
+                </table>
+                <div id="block_table"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn" style="float: left">Печать</button>
@@ -93,34 +103,27 @@
                  * @param context
                  */
                 function fillLessonsForm(context) {
-                    var $this = $('#lesson_window'),
-                        $date = $('#lesson_window_date'),
-                        names = matrix.getColumn(0),
-                        lesson = matrix.getColumn(context),
-                        container = $('#lesson_content');
+                    var $date = $('#lesson_window_date'),
+                        data = matrix.getColumn(context),
+                        $targets = $('.lesson_data');
 
-                    container.empty();
+                    $targets.empty();
                     $date.text(getDateFromColumn(context));
-                    container.append('<tr><th>Фамилия Имя</th><th>Присутствие</th></tr>');
 
-                    for(var i= 1, j= names.length; i<j; i++) {
-                        var tr = $('<tr>'),
-                            name = $('<td>').append(names[i].html()),
-                            state = $('<td>&nbsp;</td>');
+                    $targets.each(function() {
+                        var $this = $(this),
+                            $i = $this.index();
 
-                        state.attr('class', lesson[i].attr('class'));
+                        $this.attr('class', data[$i].attr('class'));
 
                         // Удаляем следы hover-эффекта от родительской таблицы
-                        state.removeClass('active');
-                        state.removeClass('highlight');
+                        $this.removeClass('active');
+                        $this.removeClass('highlight');
 
-                        // В зависимости от наличия абонемента подставляется разный контент
-                        if(lesson[i].data('pass') === 'True') {
-                            state.append(
-                                $('<input type="checkbox" style="margin: 0" />')
-                            );
+                        if(data[$i].data('pass') === 'True') {
+                            $this.append($('<input type="checkbox" style="margin: 0" />'));
 
-                            state.click(function(event) {
+                            $this.click(function(event) {
                                 var $target = $(event.target);
 
                                 if(!$target.is('input')) {
@@ -133,72 +136,35 @@
                                     }
                                 }
                             });
-
                         } else {
+                            $this.addClass('add-pass');
+                            popoverLogic.init($this);
 
-                            state.addClass('add-pass');
-
-                            popoverLogic.init(state);
-
-                            state.click(function() {
+                            $this.click(function() {
                                 popoverLogic.hide();
                                 popoverLogic.show($(this));
                             });
                         }
+                    });
 
-                        tr.append(name);
-                        tr.append(state);
-
-                        tr.appendTo(container);
-                    }
+                    var $blockTable = $('#block_table'),
+                        $inp = $('#cancel_lesson_inp');
 
                     // Если стоит галочка в поле "Отменено"
-                    if($this.find('.modal-header').find('input').prop('checked')) {
-                        blockTable();
+                    if($inp.prop('checked')) {
+                        $blockTable.show();
                     }
+
+                    $inp.click(function() {
+                        if($(this).prop('checked')) {
+                            popoverLogic.hide();
+                            $blockTable.show();
+                        } else {
+                            $blockTable.hide();
+                            $('.popover-opened').removeClass('popover-opened');
+                        }
+                    });
                 }
-
-                function blockTable() {
-                    var $container = $('#lesson_content'),
-                        $td = $container.find('td'),
-                        $th = $container.find('th'),
-                        $addPassCells = $td.filter('.add-pass');
-
-                    $container.addClass('my_disabled');
-                    $td.removeClass('hover-able');
-                    $th.removeClass('hover-able');
-                    $td.css('cursor','default');
-                    $th.css('cursor','default');
-
-                    $addPassCells.addClass('add-pass-non-hover');
-                    $addPassCells.removeClass('add-pass');
-                    popoverLogic.hide();
-                }
-
-                function unBlockTable() {
-                    var $container = $('#lesson_content'),
-                        $td = $container.find('td'),
-                        $th = $container.find('th'),
-                        $addPassCells = $td.filter('.add-pass-non-hover');
-
-                    $container.removeClass('my_disabled');
-                    $td.addClass('hover-able');
-                    $th.addClass('hover-able');
-                    $container.find('td').css('cursor','pointer');
-                    $container.find('th').css('cursor','pointer');
-
-                    $addPassCells.removeClass('add-pass-non-hover');
-                    $addPassCells.addClass('add-pass');
-                }
-
-
-                $('#lesson_window').find('.modal-header').find('input').click(function() {
-                    if($(this).prop('checked')) {
-                        blockTable()
-                    } else {
-                        unBlockTable()
-                    }
-                });
 
                 // ====================================================================================================
                 // ====================================================================================================
