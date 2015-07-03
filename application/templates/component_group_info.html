@@ -6,7 +6,7 @@
     {% block content %}
 
             <table class="table table-bordered table-striped table-hover">
-                <tr>
+                <tr class="shotcard-disabled">
                     <th class="info-fio"><input class="student-selector" type="checkbox" value="-1" /></th>
                     <th>Фамилия</th>
                     <th>Имя</th>
@@ -17,7 +17,7 @@
                 </tr>
                 {% for student in group_detail.students %}
                 <tr>
-                    <td class="info-fio"><input type="checkbox" value="{{ student.person.id }}" /></td>
+                    <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ student.person.last_name }}</td>
                     <td>{{ student.person.first_name }}</td>
                     <td>+{{ student.person.phone }}</td>
@@ -29,6 +29,7 @@
             </table>
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
             <a id="deleteStudentBtn" role="button" class="btn disabled">Удалить</a>
+            <a id="freezePassBtn" role="button" class="btn disabled">Заморозить абонемент</a>
 
             <!-- Форма "Карточка ученика" -->
             <div id="editStudent" class="modal hide fade">
@@ -76,6 +77,15 @@
                     </div>
                 </form>
             </div>
+
+            <div id="shortCardMenu">
+                <ul>
+                    <li id="changeStudentData">Изменить</li>
+                    <li id="deleteStudent">Удалить</li>
+                    <li id="freezeStudentPass">Заморозить абонемент</li>
+                </ul>
+            </div>
+
     {% endblock %}
 
     {% block script %}
@@ -92,24 +102,69 @@
                     addUrl = '/group/addstudent',
                     editUrl = '/group/editstudent';
 
-                $infoTable.find('tr').dblclick(function(event) {
-                    var $target = $(event.target);
+                var $shortCardMenu_lastIndex,
+                    $row;
 
-                    if(!$target.is('input') && !$target.is('.info-fio') && !$target.is('th')) {
-                        var $this = $(this),
-                        $children = $this.children();
+                $infoTable.find('tr').click(function(event) {
+                    console.log($(event.target).parentsUntil('.shotcard-disabled').last());
+                    if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
+                        event.stopPropagation();
+                        $shortCardMenu = $('#shortCardMenu');
+                        $shortCardMenu.css('top', event.clientY);
+                        $shortCardMenu.css('left', event.clientX);
 
-                        $('#last_name').val($($children[1]).text());
-                        $('#first_name').val($($children[2]).text());
-                        $('#phone').val($($children[3]).text());
-                        $('#e_mail').val($($children[4]).text());
-                        $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
+                        $index = $(this).index();
 
-                        $studentForm.find('form').attr('action', editUrl);
-                        $studentForm.find('.btn.btn-primary').val('Сохранить');
-                        $studentForm.modal('show');
+                        function hide() {
+                            $shortCardMenu.hide();
+                            $shortCardMenu_lastIndex = null;
+                            $('body').off('click', hide);
+                        }
+
+                        function show() {
+                            $shortCardMenu_lastIndex = $index;
+                            $shortCardMenu.show();
+                        }
+
+                        if($shortCardMenu_lastIndex == $index) {
+                            hide();
+                            $row = null;
+                        } else {
+                            show();
+                            $('body').on('click', hide);
+                            $row = $(this);
+                        }
+
+
                     }
                 });
+
+                $('#changeStudentData').click(function() {
+                    showStudentCard();
+                });
+
+                $('#deleteStudent').click(function() {
+                    console.log('delete student');
+                });
+
+                $('#freezeStudentPass').click(function() {
+                   console.log('freeze pass');
+                });
+
+                function showStudentCard(event) {
+                    var $this = $row,
+                    $children = $this.children();
+
+                    $('#last_name').val($($children[1]).text());
+                    $('#first_name').val($($children[2]).text());
+                    $('#phone').val($($children[3]).text());
+                    $('#e_mail').val($($children[4]).text());
+                    $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
+
+                    $studentForm.find('form').attr('action', editUrl);
+                    $studentForm.find('.btn.btn-primary').val('Сохранить');
+                    $studentForm.modal('show');
+                }
 
                 $('#editStudentBtn').click(function() {
 
@@ -158,8 +213,10 @@
 
                     if($inputs.filter(':checked').length > 0) {
                         $('#deleteStudentBtn').removeClass('disabled');
+                        $('#freezePassBtn').removeClass('disabled');
                     } else {
                         $('#deleteStudentBtn').addClass('disabled');
+                        $('#freezePassBtn').addClass('disabled');
                     }
                 });
             })();
