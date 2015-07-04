@@ -4,9 +4,9 @@
         $(document).ready(function() {
 
             $('.group').click(function() {
-
-                $('iframe').attr('src', $(this).attr('href'));
-
+                $frame = $('iframe');
+                $frame.attr('src', $(this).attr('href'));
+                $('#dateControl').show();
                 return false;
             })
 
@@ -25,9 +25,9 @@
                 <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
 
                 <div class="nav-collapse collapse">
-                    <div class="navbar-text pull-right">
-                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown">{{ user.last_name }} {{ user.first_name }}<span class="caret"></span></a>
-                        <ul class="dropdown-menu usr">
+                    <div class="pull-right dropdown header-right" style="position: relative">
+                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{ user.last_name }} {{ user.first_name }}<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
                             <li><a href="logout" tabindex="-1">Выход</a></li>
                         </ul>
                     </div>
@@ -48,6 +48,19 @@
                     </ul>
                 </div>
                 <div class="span10">
+                    <div id="dateControl" class="dropdown">
+                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown">
+                            Июнь 2015
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu usr">
+                            <li><a href="logout" tabindex="-1">Май 2015</a></li>
+                            <li><a href="logout" tabindex="-1">Апрель 2015</a></li>
+                            <li><a href="logout" tabindex="-1">Март 2015</a></li>
+                            <li><a href="logout" tabindex="-1">Февраль 2015</a></li>
+                            <li><a href="logout" tabindex="-1">Январь 2015</a></li>
+                        </ul>
+                    </div>
                     <iframe frameborder="0" width="100%px" height="900px"></iframe>
                 </div>
             {% else %}

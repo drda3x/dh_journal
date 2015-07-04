@@ -108,7 +108,6 @@
                     $row;
 
                 $infoTable.find('tr').click(function(event) {
-                    console.log($(event.target).parentsUntil('.shotcard-disabled').last());
                     if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
                         event.stopPropagation();
                         $shortCardMenu = $('#shortCardMenu');

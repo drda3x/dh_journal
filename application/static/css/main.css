@@ -3,12 +3,17 @@ body {
     /*background-color: #F5F5F5;*/
 }
 
-.caret {
-    position: relative;
-    top: 19px;
-    left: 2px;
+#dateControl {
+    width: 100px;
+    height: 20px;
+    position: absolute;
+    top: 67px;
+    left: 50%;
+    cursor: pointer;
+    display: none;
 }
 
-.dropdown-menu.usr {
-    margin: 33px -16px;
+.header-right {
+    position: relative;
+    margin: 10px;
 }

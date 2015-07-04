@@ -105,9 +105,12 @@
                 function fillLessonsForm(context) {
                     var $date = $('#lesson_window_date'),
                         data = matrix.getColumn(context),
-                        $targets = $('.lesson_data');
+                        $targets = $('.lesson_data'),
+                        $popover = $('.popover');
 
                     $targets.empty();
+                    $popover.remove();
+                    console.log($targets);
                     $date.text(getDateFromColumn(context));
 
                     $targets.each(function() {

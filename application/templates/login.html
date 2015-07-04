@@ -14,7 +14,7 @@
         <form action='.' method='post' class="form-signin">{% csrf_token %}
             <h3 class="form-signin-heading">ТСК "Динамика"</h3>
             <h4 class="form-signin-heading">электронный журнал</h4>
-            <input id="username" name="username" type="text" placeholder="e-mail" class="input-block-level">
+            <input id="username" name="username" type="text" placeholder="username or e-mail" class="input-block-level">
             <input id="password" name="password" type="password" placeholder="password" class="input-block-level">
             <input type="submit" class="btn btn-large btn-primary" value="Войти в систему" />
             <input type="hidden" name="next" value="{{ next|escape }}" />
