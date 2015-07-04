@@ -74,12 +74,24 @@ window.vidgetsLogic.Popover = (function($) {
                 var $this = $(this),
                     newValue = $this.val();
 
-                // Если кликнули по выделленному input'y - нужно снять с него фокус и обнулить контейнер данных
+                function stop(event) {
+                    event.stopPropagation();
+                }
+
+                // Если кликнули по выделленному input'y - нужно снять с него фокус и обнулить контейнер данных и убрать выделение цветом
                 if(newValue == self.getExistedValue()) {
                     $this.prop('checked', false);
                     self.$target.removeAttr('val');
+                    self.$target.removeClass($this.data('color'));
+                    self.$target.find('input').off('click', stop).remove();
                 } else {
                     self.$target.attr('val', newValue);
+                    self.$target.addClass($this.data('color'));
+                    if (self.$target.find('input').length == 0) {
+                        var $inp = $('<input type="checkbox" style="margin: 0; position: absolute;" checked>');
+                        self.$target.append($inp);
+                        $inp.click(stop);
+                    }
                 }
 
                 // Возможно нужно открыть доп. окошко

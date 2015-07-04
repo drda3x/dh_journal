@@ -9,7 +9,7 @@
     {% for color_class in passes_color_classes %}
 
         .{{ color_class.name }} {
-            background-color: {{ color_class.val }};
+            background-color: {{ color_class.val }} !important;
         }
 
     {% endfor %}

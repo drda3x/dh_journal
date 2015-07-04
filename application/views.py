@@ -68,10 +68,17 @@ def group_detail_view(request):
     }
     context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
 
+    html_color_classes = {
+        key: val for val, key in get_color_classes()
+    }
+
     context['passes_color_classes'] = [
-        {'name': key, 'val': val} for key, val in get_color_classes()
+        {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
     ]
     context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-    context['pass_detail'] = PassTypes.objects.all()
+    context['pass_detail'] = PassTypes.objects.all().values()
+
+    for det in context['pass_detail']:
+        det['html_color_class'] = html_color_classes[det['color']]
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

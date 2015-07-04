@@ -34,7 +34,7 @@
                 {% for p in pass_detail %}
                     <div class="control-group">
                         <label class="radio">
-                            <input type="radio" name="select_pass_type" value="{{ p.id }}">
+                            <input type="radio" name="select_pass_type" value="{{ p.id }}" data-color="{{ p.html_color_class }}">
                             {{ p.name }}
                         </label>
                     </div>
@@ -109,6 +109,9 @@
                         $popover = $('.popover');
 
                     $targets.empty();
+                    $targets.off();
+                    $targets.removeAttr('val');
+
                     $popover.remove();
                     console.log($targets);
                     $date.text(getDateFromColumn(context));
@@ -118,6 +121,7 @@
                             $i = $this.index();
 
                         $this.attr('class', data[$i].attr('class'));
+                        $this.addClass('lesson_data');
 
                         // Удаляем следы hover-эффекта от родительской таблицы
                         $this.removeClass('active');
@@ -127,6 +131,7 @@
                             $this.append($('<input type="checkbox" style="margin: 0" />'));
 
                             $this.click(function(event) {
+
                                 var $target = $(event.target);
 
                                 if(!$target.is('input')) {
