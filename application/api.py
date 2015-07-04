@@ -89,3 +89,4 @@ def add_pass(request):
             lesson.save()
 
     return group_detail_view(request)
+

@@ -180,3 +180,15 @@
     overflow: hidden;
     padding: 0;
 }
+
+#dateControl {
+    width: 100px;
+    height: 20px;
+    cursor: pointer;
+    display: inline;
+    margin-right: 5px;
+}
+
+#dateControl a {
+    color: #000000;
+}

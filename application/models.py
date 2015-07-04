@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import datetime, math
+import datetime, math, calendar as calendar_origin
 from django.db import models
 from django.contrib.auth.models import User
 
 from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
 
+calendar = calendar_origin.Calendar()
 
 class Groups(models.Model):
 
@@ -25,41 +26,17 @@ class Groups(models.Model):
     def days(self):
         return get_week_days_names(self._days.split(','))
 
+    @property
+    def days_nums(self):
+        return map(int,self._days.split(','))
+
     def get_calendar(self, count, date_from=None):
-
         start_date = date_from if date_from else self.start_date
-
-        week_offsets = get_week_offsets_from_start_date(start_date, self.days)
-
-        first_offset = week_offsets.pop(0)
-
-        if WEEK[start_date.weekday()] in self.days:
-            current_date = start_date
-
-        else:
-            current_date = start_date + datetime.timedelta(days=first_offset)
-
-        offset_index = 0
-
-        get_delta = lambda index: datetime.timedelta(days=week_offsets[index])
-
-        while count > 0:
-
-            try:
-                delta = get_delta(offset_index)
-
-            except IndexError:
-                offset_index = 0
-                delta = get_delta(offset_index)
-
-            yield current_date
-
-            current_date = current_date + delta
-
-            count -= 1
-
-            if len(week_offsets) > 1:
-                offset_index += 1
+        days = calendar.itermonthdays2(start_date.year, start_date.month)
+        return map(
+            lambda _d: datetime.datetime(start_date.year, start_date.month, _d[0]),
+            filter(lambda day: day[0] and day[1] in self.days_nums, days)
+        )
 
     def __unicode__(self):
 

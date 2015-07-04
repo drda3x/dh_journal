@@ -7,6 +7,7 @@ from django.template.context_processors import csrf
 
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail
+from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 
 from models import Groups, Students, User, PassTypes
 
@@ -48,20 +49,29 @@ def group_detail_view(request):
 
     context = {}
     template = 'group_detail.html'
+    date_format = '%d%m%Y'
 
     group_id = int(request.GET['id'])
+    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+        else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    date_to = get_last_day_of_month(date_from)
+    now = datetime.datetime.now()
 
-    test = [
-        datetime.datetime(2015, 6, 1),
-        datetime.datetime(2015, 6, 30)
-    ]
-
+    context['control_data'] = {
+        'constant': {
+            'current_date': '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
+        },
+        'date_control': map(
+            lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+            map(lambda x: get_month_offset(now.date().replace(day=1), x), xrange(0, 7))
+        )
+    }
     context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
 
     context['passes_color_classes'] = [
         {'name': key, 'val': val} for key, val in get_color_classes()
     ]
-    context['group_detail'] = get_group_detail(group_id, test[0], test[1])
+    context['group_detail'] = get_group_detail(group_id, date_from, date_to)
     context['pass_detail'] = PassTypes.objects.all()
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

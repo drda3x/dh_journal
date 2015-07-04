@@ -34,7 +34,6 @@ def get_group_detail(group_id, date_from, date_to):
     """
 
     group = Groups.objects.get(pk=group_id)
-    date = datetime.date(2015, 6, 1)
 
     dates_count = get_count_of_weekdays_per_interval(
         group.days,
@@ -45,7 +44,7 @@ def get_group_detail(group_id, date_from, date_to):
     students = [
         {
             'person': s,
-            'calendar': get_student_calendar(s, group, date, dates_count, '%d.%m.%Y')
+            'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y')
         } for s in get_group_students_list(group)
     ]
 
@@ -55,7 +54,7 @@ def get_group_detail(group_id, date_from, date_to):
         'days': group.days,
         'start_date': group.start_date,
         'students': students,
-        'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date, count=dates_count))
+        'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
     }
 
 

@@ -3,16 +3,6 @@ body {
     /*background-color: #F5F5F5;*/
 }
 
-#dateControl {
-    width: 100px;
-    height: 20px;
-    position: absolute;
-    top: 67px;
-    left: 50%;
-    cursor: pointer;
-    display: none;
-}
-
 .header-right {
     position: relative;
     margin: 10px;

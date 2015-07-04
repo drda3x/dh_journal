@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+import datetime
+
 WEEK = (
     (0, u'Пн'),
     (1, u'Вт'),
@@ -9,6 +11,22 @@ WEEK = (
     (5, u'Сб'),
     (6, u'Вс')
 )
+
+MONTH_RUS = [
+    '',
+    'Январь',
+    'Февраль',
+    'Март',
+    'Апрель',
+    'Май',
+    'Июнь',
+    'Июль',
+    'Август',
+    'Сентябрь',
+    'Октябрь',
+    'Ноябрь',
+    'Декабрь'
+]
 
 
 def get_week_days_names(nums):
@@ -54,3 +72,18 @@ def get_week_offsets_from_start_date(start_date, week_days):
     day = WEEK[start_date.weekday()][1]
 
     return get_week_offsets([day, week_days[0]])[:1] + get_week_offsets(week_days)
+
+
+def get_last_day_of_month(any_day):
+    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)
+    return next_month - datetime.timedelta(days=next_month.day)
+
+
+def get_month_offset(date, offset):
+    month = date.month
+    year = date.year
+
+    if month > offset:
+        return datetime.datetime(year, month-offset, 1)
+    else:
+        return datetime.datetime(year-1, 12+(month-offset), 1)
