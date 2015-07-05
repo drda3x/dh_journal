@@ -16,9 +16,9 @@
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}">
-                    {% if date.pass %}
-                    <strong>{{ date.sign }}</strong>
+                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.sign }}">
+                    {% if date.pass and date.sign %}
+                        <strong>{{ date.sign }}</strong>
                     {% else %}
                     {{ date.sign }}
                     {% endif %}
@@ -66,7 +66,7 @@
                     <tr><th>Фамилия Имя</th><th>Присутствие</th></tr>
                     {% for student in group_detail.students %}
                         <tr>
-                            <td>{{ student.person.last_name }} {{ student.person.first_name }}</td>
+                            <td class="student_data" data-stid="{{ student.person.id }}">{{ student.person.last_name }} {{ student.person.first_name }}</td>
                             <td class="lesson_data"></td>
                         </tr>
 
@@ -77,7 +77,7 @@
             <div class="modal-footer">
                 <button class="btn" style="float: left">Печать</button>
                 <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
-                <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Сохранить</button>
+                <button class="btn btn-primary save_data" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Сохранить</button>
             </div>
     </div>
 
@@ -113,22 +113,28 @@
                     $targets.removeAttr('val');
 
                     $popover.remove();
-                    console.log($targets);
+
                     $date.text(getDateFromColumn(context));
 
-                    $targets.each(function() {
-                        var $this = $(this),
-                            $i = $this.index();
+                    var i = 1;
 
-                        $this.attr('class', data[$i].attr('class'));
+                    $targets.each(function() {
+                        var $this = $(this);
+
+                        $this.attr('class', data[i].attr('class'));
                         $this.addClass('lesson_data');
 
                         // Удаляем следы hover-эффекта от родительской таблицы
                         $this.removeClass('active');
                         $this.removeClass('highlight');
 
-                        if(data[$i].data('pass') === 'True') {
-                            $this.append($('<input type="checkbox" style="margin: 0" />'));
+                        if(data[i].data('pass') === 'True') {
+                            var is_empty = data[i].data('sign') == '',
+                                $inp = $('<input type="checkbox" style="margin: 0" />');
+                            $this.append($inp);
+                            if(!is_empty) {
+                                $inp.prop('checked', 'checked');
+                            }
 
                             $this.click(function(event) {
 
@@ -153,6 +159,8 @@
                                 popoverLogic.show($(this));
                             });
                         }
+
+                        i++;
                     });
 
                     var $blockTable = $('#block_table'),
@@ -243,6 +251,54 @@
                 // ====================================================================================================
                 // ====================================================================================================
 
+                var $saveButton = $('.save_data');
+
+                $saveButton.click(function() {
+                    var data_source = $('#lesson_content').find('tr:gt(0)'),
+                        json = {
+                            group_id: {{ group_detail.id }},
+                            date: $('#lesson_window_date').text(),
+                            data: []
+                        };
+
+                    if(!$(this).data('context') === 'lesson_window') {
+                        return;
+                    }
+
+                    data_source.each(function() {
+                        var cont = $(this).children(),
+                            lesson = $(cont[1]),
+                            student_id = $(cont[0]).data('stid');
+
+                        if(lesson.find('input:checked').length > 0) {
+                            if(lesson.hasClass('add-pass')) {
+                                json.data.push({
+                                    student_id: student_id,
+                                    pass_type: lesson.attr('val'),
+                                    presence: true
+                                });
+                            } else {
+                                json.data.push(student_id);
+                            }
+                        } else if(lesson.attr('val') !== undefined) {
+                            json.data.push({
+                                student_id: student_id,
+                                pass_type: lesson.attr('val'),
+                                presence: false
+                            });
+                        }
+                    });
+
+                    $.ajax({
+                        method: 'GET',
+                        url: 'processlesson',
+                        data: {
+                            data: JSON.stringify(json)
+                        }
+                    }).done(function() {
+                        window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
+                    });
+                });
 
             })()
         </script>

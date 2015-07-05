@@ -123,11 +123,19 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
     for c_date in group_calendar:
 
-        if no_lessons or c_lesson.date > c_date:
-            _pass = False
+        buf = {
+            'date': c_date if not form else c_date.strftime(form)
+        }
+
+        if no_lessons or c_lesson.date > c_date.date():
+            buf['pass'] = False
+            buf['color'] = None
+            buf['sign'] = ''
 
         else:
-            _pass = True
+            buf['pass'] = True
+            buf['sign'] = str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign and c_lesson.date == c_date.date() else ''
+            buf['color'] = html_color_classes[c_lesson.group_pass.color]
 
             try:
                 c_lesson = lessons.next()
@@ -135,11 +143,6 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
             except StopIteration:
                 no_lessons = True
 
-        calendar.append({
-            'date': c_date if not form else c_date.strftime(form),
-            'pass': _pass,
-            'sign': str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign else '',
-            'color': html_color_classes[c_lesson.group_pass.color] if _pass else None
-        })
+        calendar.append(buf)
 
     return calendar

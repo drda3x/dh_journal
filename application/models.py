@@ -33,10 +33,22 @@ class Groups(models.Model):
     def get_calendar(self, count, date_from=None):
         start_date = date_from if date_from else self.start_date
         days = calendar.itermonthdays2(start_date.year, start_date.month)
-        return map(
+        cur_month_days = map(
             lambda _d: datetime.datetime(start_date.year, start_date.month, _d[0]),
-            filter(lambda day: day[0] and day[1] in self.days_nums, days)
+            filter(lambda day: day[0] and day[0] >= start_date.day and day[1] in self.days_nums, days)
         )
+
+        if len(cur_month_days) < count:
+            next_month = start_date.month + 1 if start_date.month < 12 else 1
+            next_year = start_date.year if start_date.month < 12 else start_date.year + 1
+
+            days1 = calendar.itermonthdays2(next_year, next_month)
+            cur_month_days += map(
+                lambda _d: datetime.datetime(next_year, next_month, _d[0]),
+                filter(lambda day: day[0] and day[1] in self.days_nums, days1)[:count - len(cur_month_days)]
+            )
+
+        return cur_month_days[:count]
 
     def __unicode__(self):
 

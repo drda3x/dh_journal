@@ -82,11 +82,17 @@ window.vidgetsLogic.Popover = (function($) {
                 if(newValue == self.getExistedValue()) {
                     $this.prop('checked', false);
                     self.$target.removeAttr('val');
-                    self.$target.removeClass($this.data('color'));
+                    self.$target.removeClass(self.$target.passClass);
                     self.$target.find('input').off('click', stop).remove();
                 } else {
                     self.$target.attr('val', newValue);
-                    self.$target.addClass($this.data('color'));
+
+                    if(self.$target.hasOwnProperty('passClass')) {
+                        self.$target.removeClass(self.$target.passClass );
+                    }
+
+                    self.$target.passClass = $this.data('color');
+                    self.$target.addClass(self.$target.passClass );
                     if (self.$target.find('input').length == 0) {
                         var $inp = $('<input type="checkbox" style="margin: 0; position: absolute;" checked>');
                         self.$target.append($inp);

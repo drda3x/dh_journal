@@ -59,7 +59,8 @@ def group_detail_view(request):
 
     context['control_data'] = {
         'constant': {
-            'current_date': '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
+            'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
+            'current_date_numval': date_from.strftime(date_format)
         },
         'date_control': map(
             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
