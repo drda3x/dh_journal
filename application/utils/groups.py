@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from application.utils.passes import get_color_classes
 from application.models import Groups, Students, Passes, Lessons, GroupList
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
+from application.utils.passes import ORG_PASS_HTML_CLASS
 
 
 def get_groups_list(user):
@@ -135,7 +136,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
         else:
             buf['pass'] = True
             buf['sign'] = str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign and c_lesson.date == c_date.date() else ''
-            buf['color'] = html_color_classes[c_lesson.group_pass.color]
+            buf['color'] = html_color_classes[c_lesson.group_pass.color] if not student.org else ORG_PASS_HTML_CLASS
 
             try:
                 c_lesson = lessons.next()

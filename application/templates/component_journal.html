@@ -131,7 +131,9 @@
                         if(data[i].data('pass') === 'True') {
                             var is_empty = data[i].data('sign') == '',
                                 $inp = $('<input type="checkbox" style="margin: 0" />');
+
                             $this.append($inp);
+
                             if(!is_empty) {
                                 $inp.prop('checked', 'checked');
                             }
