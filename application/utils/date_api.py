@@ -37,11 +37,17 @@ def get_week_days_names(nums):
 
 def get_count_of_weekdays_per_interval(wd, int_start, int_stop):
 
+    def _gen(cnt, st_index):
+        index = st_index
+
+        for i in xrange(cnt):
+            yield WEEK[index]
+            index = index + 1 if index < 6 else 0
+
     d_delta = (int_stop - int_start).days
     first_day = int_start.weekday()
-    weeks = int(round(d_delta / 7))
 
-    calendar = (WEEK[first_day:] + WEEK * weeks)[:d_delta + 1]
+    calendar = list(_gen(d_delta, first_day))
 
     return len(
         filter(

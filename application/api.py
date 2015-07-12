@@ -119,5 +119,24 @@ def process_lesson(request):
             except Lessons.DoesNotExist:
                 pass
 
+    process_truants(date, group_id)
 
     return HttpResponse(200)
+
+
+def process_truants(date, group_id):
+
+    u"""
+    Обработка прогулов занятий
+    """
+
+    group = Groups.objects.get(pk=group_id)
+    lessons = Lessons.objects.select_related().filter(date=date, group=group, presence_sign=False, group_pass__skips__gt=0)
+
+    for lesson in lessons:
+        pass_calendar = group.get_calendar(lesson.group_pass.pass_type.lessons + 1, lesson.group_pass.start_date)
+        lesson.date = pass_calendar[-1]
+        lesson.group_pass.skips -= 1
+
+        lesson.save()
+        lesson.group_pass.save()

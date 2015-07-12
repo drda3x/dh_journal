@@ -8,6 +8,7 @@ from application.utils.date_api import get_week_offsets_from_start_date, WEEK, g
 
 calendar = calendar_origin.Calendar()
 
+
 class Groups(models.Model):
 
     u"""
@@ -42,11 +43,7 @@ class Groups(models.Model):
             next_month = start_date.month + 1 if start_date.month < 12 else 1
             next_year = start_date.year if start_date.month < 12 else start_date.year + 1
 
-            days1 = calendar.itermonthdays2(next_year, next_month)
-            cur_month_days += map(
-                lambda _d: datetime.datetime(next_year, next_month, _d[0]),
-                filter(lambda day: day[0] and day[1] in self.days_nums, days1)[:count - len(cur_month_days)]
-            )
+            cur_month_days += self.get_calendar(count - len(cur_month_days), datetime.datetime(next_year, next_month, 1))
 
         return cur_month_days[:count]
 
