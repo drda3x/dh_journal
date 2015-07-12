@@ -9,6 +9,15 @@ from application.models import Students, Passes, Groups, GroupList, PassTypes
 from application.views import group_detail_view
 
 
+# todo Сделать чтобы абонементы не могли пересекаться!!!!!
+# todo Сделать расчет последнего занятия
+# todo Сделать выбор месяца для группы с начала этой группы
+# todo Заменить значок "А" на значок доллара
+# todo Добавить поле "Коментарии"
+# todo Реализовать логику заморозки, передачи и полного списания абонемента
+# todo Реализовать работу списания занятия с дгургого абонемента
+
+
 def add_student(request):
 
     first_name = request.GET['first_name']
