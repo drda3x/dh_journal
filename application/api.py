@@ -82,7 +82,7 @@ def try_to_add_pass(**kwargs):
                     group=group,
                     student_id=student_id,
                     group_pass=new_pass,
-                    status=Lessons.STATUSES['attended'] if presence and date == lessons_date else Lessons.STATUSES['non_precessed']
+                    status=Lessons.STATUSES['attended'] if presence and date == lessons_date else Lessons.STATUSES['not_processed']
                 )
 
                 lesson.save()
@@ -113,7 +113,7 @@ def process_lesson(request):
     if old_passes:
         for _id in old_passes:
             try:
-                lesson = Lessons.objects.get(date=date, group_id=group_id, student_id=_id)
+                lesson = Lessons.objects.get(date=date, group_id=group_id, student_id=_id, status=Lessons.STATUSES['not_processed'])
                 lesson.status = Lessons.STATUSES['attended']
                 lesson.save()
             except Lessons.DoesNotExist:
@@ -131,7 +131,7 @@ def process_truants(date, group_id):
     """
 
     group = Groups.objects.get(pk=group_id)
-    lessons = Lessons.objects.select_related().filter(date=date, group=group, status=Lessons.STATUSES['non_precessed'])
+    lessons = Lessons.objects.select_related().filter(date=date, group=group, status=Lessons.STATUSES['not_processed'])
 
     for lesson in lessons:
         if lesson.group_pass.skips > 0 or lesson.student.org:

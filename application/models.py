@@ -153,20 +153,20 @@ class Lessons(models.Model):
     """
 
     STATUSES = {
-        'non_precessed': 0,
+        'not_processed': 0,
         'attended': 1,
         'not_attended': 2,
         'frozen': 3,
         'moved': 4
     }
     STATUSES_RUS = {
-        'non_precessed': u'не обработано',
+        'not_processed': u'не обработано',
         'attended': u'был(а)',
         'not_attended': u'не был(а)',
         'frozen': u'заморожен',
         'moved': u'пропуск'
     }
-    DEFAULT_STATUS = STATUSES['non_precessed']
+    DEFAULT_STATUS = STATUSES['not_processed']
 
     date = models.DateField(verbose_name=u'Дата занятия')
     group = models.ForeignKey(Groups, verbose_name=u'Группа')
