@@ -5,6 +5,7 @@ import datetime
 from django.db.models import Q
 from django.contrib.auth.models import User
 
+from application.utils.lessons import LessonsFactory, NotProcessedLesson
 from application.utils.passes import get_color_classes
 from application.models import Groups, Students, Passes, Lessons, GroupList
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
@@ -105,13 +106,15 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     }
 
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
-    lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
-    statuses = {Lessons.STATUSES[key]: Lessons.STATUSES_RUS[key] for key in Lessons.STATUSES.iterkeys()}
+    lessons = LessonsFactory.get(student=student, group=group, date__gte=from_date)
+    lessons.sort(key=lambda x: x.date)
+
+    lessons_itr = iter(lessons)
 
     calendar = []
 
     try:
-        c_lesson = lessons.next()
+        c_lesson = lessons_itr.next()
 
     except StopIteration:
         return [
@@ -136,11 +139,11 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
         else:
             buf['pass'] = True
-            buf['sign'] = statuses[c_lesson.status] if c_lesson.status != Lessons.STATUSES['not_processed'] and c_lesson.date == c_date.date() else ''
+            buf['sign'] = c_lesson.rus if not isinstance(c_lesson, NotProcessedLesson) and c_lesson.date == c_date.date() else ''
             buf['color'] = html_color_classes[c_lesson.group_pass.color] if not student.org else ORG_PASS_HTML_CLASS
 
             try:
-                c_lesson = lessons.next()
+                c_lesson = lessons_itr.next()
 
             except StopIteration:
                 no_lessons = True

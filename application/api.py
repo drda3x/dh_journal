@@ -4,7 +4,8 @@ import datetime, json, copy
 
 from django.http.response import HttpResponse, HttpResponseNotFound
 
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons
+from application.utils.lessons import LessonsFactory
+from application.models import Students, Passes, Groups, GroupList, PassTypes
 from application.views import group_detail_view
 
 
@@ -77,15 +78,13 @@ def try_to_add_pass(**kwargs):
             new_pass.group.add(group)
 
             for lessons_date in group.get_calendar(date_from=date, count=new_pass.lessons):
-                lesson = Lessons(
+                LessonsFactory.create(
+                    'attended' if presence and date == lessons_date else 'not_processed',
                     date=lessons_date,
                     group=group,
                     student_id=student_id,
                     group_pass=new_pass,
-                    status=Lessons.STATUSES['attended'] if presence and date == lessons_date else Lessons.STATUSES['not_processed']
-                )
-
-                lesson.save()
+                ).save()
 
         return True
 
@@ -111,14 +110,8 @@ def process_lesson(request):
         )
 
     if old_passes:
-        for _id in old_passes:
-            try:
-                lesson = Lessons.objects.get(date=date, group_id=group_id, student_id=_id, status=Lessons.STATUSES['not_processed'])
-                lesson.status = Lessons.STATUSES['attended']
-                lesson.save()
-            except Lessons.DoesNotExist:
-                pass
-
+        for lesson in LessonsFactory.get('not_processed', date=date, group_id=group_id, student_id__in=old_passes):
+            lesson.set_attended()
     process_truants(date, group_id)
 
     return HttpResponse(200)
@@ -131,17 +124,14 @@ def process_truants(date, group_id):
     """
 
     group = Groups.objects.get(pk=group_id)
-    lessons = Lessons.objects.select_related().filter(date=date, group=group, status=Lessons.STATUSES['not_processed'])
 
-    for lesson in lessons:
-        if lesson.group_pass.skips > 0 or lesson.student.org:
-            lesson.status = Lessons.STATUSES['moved']
-            lesson.group_pass.skips -= 1
-            lesson.group_pass.save()
-            lesson.save()
+    for lesson in LessonsFactory.get('not_processed', date=date, group=group):
+        if lesson.can_skip or lesson.student.org:
+            lesson.skip()
 
-            pass_calendar = group.get_calendar(lesson.group_pass.pass_type.lessons + 1, lesson.group_pass.start_date)
-            Lessons(
+            pass_calendar = group.get_calendar(lesson.group_pass.lessons, date)
+            LessonsFactory.create(
+                'not_processed',
                 date=pass_calendar[-1],
                 group=group,
                 student=lesson.student,
@@ -149,5 +139,4 @@ def process_truants(date, group_id):
             ).save()
 
         else:
-            lesson.status = Lessons.STATUSES['not_attended']
-            lesson.save()
+            lesson.set_not_attended()
