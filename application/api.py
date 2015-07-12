@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-import datetime, json
+import datetime, json, copy
 
 from django.http.response import HttpResponse, HttpResponseNotFound
 
@@ -82,7 +82,7 @@ def try_to_add_pass(**kwargs):
                     group=group,
                     student_id=student_id,
                     group_pass=new_pass,
-                    presence_sign=presence and date == lessons_date
+                    status=Lessons.STATUSES['attended'] if presence and date == lessons_date else Lessons.STATUSES['non_precessed']
                 )
 
                 lesson.save()
@@ -114,7 +114,7 @@ def process_lesson(request):
         for _id in old_passes:
             try:
                 lesson = Lessons.objects.get(date=date, group_id=group_id, student_id=_id)
-                lesson.presence_sign = True
+                lesson.status = Lessons.STATUSES['attended']
                 lesson.save()
             except Lessons.DoesNotExist:
                 pass
@@ -131,12 +131,23 @@ def process_truants(date, group_id):
     """
 
     group = Groups.objects.get(pk=group_id)
-    lessons = Lessons.objects.select_related().filter(date=date, group=group, presence_sign=False, group_pass__skips__gt=0)
+    lessons = Lessons.objects.select_related().filter(date=date, group=group, status=Lessons.STATUSES['non_precessed'])
 
     for lesson in lessons:
-        pass_calendar = group.get_calendar(lesson.group_pass.pass_type.lessons + 1, lesson.group_pass.start_date)
-        lesson.date = pass_calendar[-1]
-        lesson.group_pass.skips -= 1
+        if lesson.group_pass.skips > 0 or lesson.student.org:
+            lesson.status = Lessons.STATUSES['moved']
+            lesson.group_pass.skips -= 1
+            lesson.group_pass.save()
+            lesson.save()
 
-        lesson.save()
-        lesson.group_pass.save()
+            pass_calendar = group.get_calendar(lesson.group_pass.pass_type.lessons + 1, lesson.group_pass.start_date)
+            Lessons(
+                date=pass_calendar[-1],
+                group=group,
+                student=lesson.student,
+                group_pass=lesson.group_pass
+            ).save()
+
+        else:
+            lesson.status = Lessons.STATUSES['not_attended']
+            lesson.save()

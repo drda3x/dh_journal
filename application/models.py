@@ -152,11 +152,27 @@ class Lessons(models.Model):
     Посещения занятий
     """
 
+    STATUSES = {
+        'non_precessed': 0,
+        'attended': 1,
+        'not_attended': 2,
+        'frozen': 3,
+        'moved': 4
+    }
+    STATUSES_RUS = {
+        'non_precessed': u'не обработано',
+        'attended': u'был(а)',
+        'not_attended': u'не был(а)',
+        'frozen': u'заморожен',
+        'moved': u'пропуск'
+    }
+    DEFAULT_STATUS = STATUSES['non_precessed']
+
     date = models.DateField(verbose_name=u'Дата занятия')
     group = models.ForeignKey(Groups, verbose_name=u'Группа')
     student = models.ForeignKey(Students, verbose_name=u'Учение')
     group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент', related_name=u'lesson_group_pass')
-    presence_sign = models.BooleanField(verbose_name=u'Отметка о присутствии', default=False)
+    status = models.IntegerField(verbose_name=u'Статус занятия', choices=[(val, key) for key, val in STATUSES.iteritems()], default=DEFAULT_STATUS)
 
     class Meta:
         app_label = u'application'

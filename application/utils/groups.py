@@ -106,6 +106,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
     lessons = iter(Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date'))
+    statuses = {Lessons.STATUSES[key]: Lessons.STATUSES_RUS[key] for key in Lessons.STATUSES.iterkeys()}
 
     calendar = []
 
@@ -135,7 +136,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
         else:
             buf['pass'] = True
-            buf['sign'] = str(c_lesson.group_pass.one_lesson_prise) if c_lesson.presence_sign and c_lesson.date == c_date.date() else ''
+            buf['sign'] = statuses[c_lesson.status] if c_lesson.status != Lessons.STATUSES['non_precessed'] and c_lesson.date == c_date.date() else ''
             buf['color'] = html_color_classes[c_lesson.group_pass.color] if not student.org else ORG_PASS_HTML_CLASS
 
             try:
