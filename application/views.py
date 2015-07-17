@@ -76,6 +76,7 @@ def group_detail_view(request):
     context['passes_color_classes'] = [
         {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
     ]
+
     context['group_detail'] = get_group_detail(group_id, date_from, date_to)
     context['pass_detail'] = PassTypes.objects.all().values()
 

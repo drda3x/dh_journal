@@ -93,6 +93,8 @@ class PassTypes(models.Model):
     lessons = models.PositiveIntegerField(verbose_name=u'Количество занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество пропусков', null=True, blank=True)
     color = models.CharField(verbose_name=u'Цвет', max_length=7, null=True, blank=True)
+    multi_pass = models.BooleanField(verbose_name=u'Одна группа', default=True)
+    deadline = models.PositiveIntegerField(verbose_name=u'Время действия(дни)', null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%dр.)' % (self.name, self.prise)

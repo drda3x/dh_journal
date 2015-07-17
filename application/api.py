@@ -5,6 +5,7 @@ import datetime, json, copy
 from django.http.response import HttpResponse, HttpResponseNotFound
 
 from application.utils.lessons import LessonsFactory
+from application.utils.passes import PassLogic
 from application.models import Students, Passes, Groups, GroupList, PassTypes
 from application.views import group_detail_view
 
