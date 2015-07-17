@@ -33,8 +33,12 @@ class AbstractPass(object):
     def __init__(self, obj):
         self.orm_object = obj
 
-    # Обработать урок
-    def process_lesson(self, date, person=None):
+    # Урок посещен
+    def set_lesson_attended(self, date, person=None):
+        pass
+
+    # Урок не посещен
+    def set_lesson_not_attended(self, date):
         pass
 
     # Заморозить
@@ -116,12 +120,12 @@ class PassLogic(object):
                 raise TypeError('Wrong arguments')
 
             try:
-                obj = Passes.objects.filter(student__id=student, group__id=group_id, start_date=date.date())
+                obj = Passes.objects.get(student__id=student, group__id=group_id, start_date=date.date())
                 return cls.wrap(obj)
 
             except Passes.DoesNotExist:
 
-                pt = PassTypes.objects.get(pk=kwargs['pass_type_id'])
+                pt = PassTypes.objects.get(pk=kwargs['pass_type'])
                 group = Groups.objects.get(pk=group_id)
 
                 obj = Passes(

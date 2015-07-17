@@ -113,40 +113,26 @@ def process_lesson(request):
     new_passes = filter(lambda p: isinstance(p, dict), data)
     old_passes = filter(lambda p: isinstance(p, int), data)
 
+    attended_passes = []
+    attended_passes_ids = []
+
     if new_passes:
-        map(
-            lambda np: try_to_add_pass(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], pass_start_date=date, presence=np['presence']),
+        attended_passes += map(
+            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], date=date),
             new_passes
         )
 
     if old_passes:
-        for lesson in LessonsFactory.get('not_processed', date=date, group_id=group_id, student_id__in=old_passes):
-            lesson.set_attended()
-    process_truants(date, group_id)
+        attended_passes += map(
+            lambda p: PassLogic.get_or_create(id=p),
+            old_passes
+        )
+
+    for _pass in attended_passes:
+        _pass.set_lesson_attended(date)
+        attended_passes_ids.append(_pass.orm_object.id)
+
+    for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group__id=group_id).exclude(pk__in=attended_passes_ids)):
+        _pass.set_lesson_not_attended(date)
 
     return HttpResponse(200)
-
-
-def process_truants(date, group_id):
-
-    u"""
-    Обработка прогулов занятий
-    """
-
-    group = Groups.objects.get(pk=group_id)
-
-    for lesson in LessonsFactory.get('not_processed', date=date, group=group):
-        if lesson.can_skip or lesson.student.org:
-            lesson.skip()
-
-            pass_calendar = group.get_calendar(lesson.group_pass.lessons, date)
-            LessonsFactory.create(
-                'not_processed',
-                date=pass_calendar[-1],
-                group=group,
-                student=lesson.student,
-                group_pass=lesson.group_pass
-            ).save()
-
-        else:
-            lesson.set_not_attended()
