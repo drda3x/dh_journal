@@ -62,46 +62,6 @@ def edit_student(request):
     return HttpResponseNotFound('Need to realize back-end for this functionality')
 
 
-def try_to_add_pass(**kwargs):
-    try:
-        student_id = int(kwargs['student_id'])
-        group_id = int(kwargs['group_id'])
-        date = kwargs['pass_start_date']
-        pass_type_id = int(kwargs['pass_type'])
-        presence = kwargs.get('presence', False)
-
-        if not Passes.objects.filter(student__id=student_id, group__id=group_id, start_date=date.date()).exists():
-
-            pass_type = PassTypes.objects.get(pk=pass_type_id)
-            group = Groups.objects.get(pk=group_id)
-
-            new_pass = Passes(
-                student_id=student_id,
-                start_date=date,
-                pass_type=pass_type,
-                lessons=pass_type.lessons,
-                skips=pass_type.skips
-            )
-
-            new_pass.save()
-
-            new_pass.group.add(group)
-
-            for lessons_date in group.get_calendar(date_from=date, count=new_pass.lessons):
-                LessonsFactory.create(
-                    'attended' if presence and date == lessons_date else 'not_processed',
-                    date=lessons_date,
-                    group=group,
-                    student_id=student_id,
-                    group_pass=new_pass,
-                ).save()
-
-        return True
-
-    except Exception:
-        return False
-
-
 def process_lesson(request):
 
     json_data = json.loads(request.GET['data'])

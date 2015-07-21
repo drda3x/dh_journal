@@ -115,6 +115,11 @@ class LessonsFactory(object):
             return []
 
     @classmethod
+    def get_phantom_lesson(cls, t='not_processed', **kwargs):
+        lesson = Lessons(kwargs)
+        return cls.lessons_types[t](lesson)
+
+    @classmethod
     def create(cls, _type, **kwargs):
         if _type in cls.lessons_types.itervalues():
             return _type(**kwargs)

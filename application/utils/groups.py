@@ -107,8 +107,20 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
     lessons = LessonsFactory.get(student=student, group=group, date__gte=from_date)
-    lessons.sort(key=lambda x: x.date)
 
+    multi_passes = Passes.objects.select_related().filter(
+        Q(student=student),
+        Q(lessons__gt=0),
+        Q(pass_type__multi_pass=True),
+        Q(Q(start_date__range=[group_calendar[0], group_calendar[-1]]) | Q(end_date__range=[group_calendar[0], group_calendar[-1]]))
+    )
+
+    for p in multi_passes:
+        d = p.start_date if p.start_date > from_date else from_date
+        for l in group.get_calendar(date_from=d, count=p.lessons):
+            lessons.append(LessonsFactory.get_phantom_lesson(student=student, group=group, date=l, group_pass=p))
+
+    lessons.sort(key=lambda x: x.date)
     lessons_itr = iter(lessons)
 
     calendar = []

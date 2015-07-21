@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import datetime
+import datetime, copy
 from application.models import PassTypes, Passes, Groups, Lessons
 from application.utils.lessons import LessonsFactory
 
@@ -41,9 +41,22 @@ class AbstractPass(object):
         lesson.status = status
         lesson.save()
 
+        if status == Lessons.STATUSES['moved']:
+            new_date = self.orm_object.group.get_calendar(self.orm_object.lessons+1, date)[-1]
+            new_lesson = Lessons(
+                date=new_date,
+                group=self.orm_object.group,
+                student=self.orm_object.student,
+                group_pass=self.orm_object,
+                status=Lessons.STATUSES['not_processed']
+            )
+            new_lesson.save()
+
     # Урок посещен
     def set_lesson_attended(self, date, person=None):
         self.__process_lesson(date, Lessons.STATUSES['attended'])
+        self.orm_object.lessons -= 1
+        self.orm_object.save()
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
@@ -64,6 +77,19 @@ class AbstractPass(object):
     # Получить календарь
     def get_calendar(self):
         pass
+
+    def create_lessons(self, date):
+
+        for _date in self.orm_object.group.get_calendar(date_from=date, count=self.orm_object.lessons):
+            lesson = Lessons(
+                date=_date,
+                group=self.orm_object.group,
+                student=self.orm_object.student,
+                group_pass=self.orm_object,
+                presence=Lessons.STATUSES['not_processed']
+            )
+
+            lesson.save()
 
 
 class RegularPass(AbstractPass):
@@ -92,13 +118,33 @@ class OrgPass(AbstractPass):
     HTML_VAL = '#1e90ff'
 
     def set_lesson_not_attended(self, date):
+        self.__process_lesson(date, Lessons.STATUSES['moved'])
 
 
 class MultiPass(AbstractPass):
     u"""
     Мультикарта
     """
-    pass
+
+    def set_lesson_attended(self, date, person=None):
+
+        if date > self.orm_object.start_date + datetime.timedelta(days=self.orm_object.pass_type.deadline):
+            return
+
+        lesson = Lessons(
+            date=date,
+            group=self.orm_object.group,
+            student=self.orm_object.student,
+            group_pass=self.orm_object,
+            presence=Lessons.STATUSES['attended']
+        )
+
+        lesson.save()
+        self.orm_object.lessons -= 1
+        self.orm_object.save()
+
+    def create_lessons(self, date):
+        pass
 
 
 class PassLogic(object):
@@ -115,7 +161,7 @@ class PassLogic(object):
         pass_type = obj.pass_type
 
         # Определяем и возвращаем тип абонемента
-        if pass_type.multi_pass and not pass_type.skips and pass_type.deadline:
+        if pass_type.multi_pass and pass_type.end_date:
             return MultiPass(obj)
 
         elif obj.student.org:
@@ -153,20 +199,13 @@ class PassLogic(object):
                     start_date=date,
                     pass_type=pt,
                     lessons=pt.lessons,
-                    skips=pt.skips
+                    skips=pt.skips,
+                    end_date=kwargs.get('date', None)
                 )
-
                 obj.save()
-
                 obj.group.add(group)
 
-                for lessons_date in group.get_calendar(date_from=date, count=obj.lessons):
-                    LessonsFactory.create(
-                        'not_processed',
-                        date=lessons_date,
-                        group=group,
-                        student_id=student,
-                        group_pass=pt,
-                    ).save()
+                wraped = cls.wrap(obj)
+                wraped.create_lessons(date)
 
-                return cls.wrap(obj)
+                return wraped
