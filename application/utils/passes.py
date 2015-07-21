@@ -26,14 +26,12 @@ def get_color_classes():
 
 class AbstractPass(object):
 
-    abstract = True
-
     orm_object = None
 
     def __init__(self, obj):
         self.orm_object = obj
 
-    def __process_lesson(self, date, status):
+    def process_lesson(self, date, status):
         lesson = Lessons.objects.get(
             date=date,
             group_pass=self.orm_object
@@ -54,7 +52,7 @@ class AbstractPass(object):
 
     # Урок посещен
     def set_lesson_attended(self, date, person=None):
-        self.__process_lesson(date, Lessons.STATUSES['attended'])
+        self.process_lesson(date, Lessons.STATUSES['attended'])
         self.orm_object.lessons -= 1
         self.orm_object.save()
 
@@ -86,7 +84,7 @@ class AbstractPass(object):
                 group=self.orm_object.group,
                 student=self.orm_object.student,
                 group_pass=self.orm_object,
-                presence=Lessons.STATUSES['not_processed']
+                status=Lessons.STATUSES['not_processed']
             )
 
             lesson.save()
@@ -99,12 +97,12 @@ class RegularPass(AbstractPass):
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
-        if self.orm_object.skips > 0:
-            self.__process_lesson(date, Lessons.STATUSES['moved'])
+        if self.orm_object.skips and self.orm_object.skips > 0:
+            self.process_lesson(date, Lessons.STATUSES['moved'])
             self.orm_object.skips -= 1
             self.orm_object.save()
         else:
-            self.__process_lesson(date, Lessons.STATUSES['not_attended'])
+            self.process_lesson(date, Lessons.STATUSES['not_attended'])
             self.orm_object.lessons -= 1
             self.orm_object.save()
 
@@ -118,7 +116,7 @@ class OrgPass(AbstractPass):
     HTML_VAL = '#1e90ff'
 
     def set_lesson_not_attended(self, date):
-        self.__process_lesson(date, Lessons.STATUSES['moved'])
+        self.process_lesson(date, Lessons.STATUSES['moved'])
 
 
 class MultiPass(AbstractPass):
@@ -136,7 +134,7 @@ class MultiPass(AbstractPass):
             group=self.orm_object.group,
             student=self.orm_object.student,
             group_pass=self.orm_object,
-            presence=Lessons.STATUSES['attended']
+            status=Lessons.STATUSES['attended']
         )
 
         lesson.save()
@@ -161,7 +159,9 @@ class PassLogic(object):
         pass_type = obj.pass_type
 
         # Определяем и возвращаем тип абонемента
-        if pass_type.multi_pass and pass_type.end_date:
+        if not pass_type.one_group_pass and obj.end_date:
+            obj.group = None
+            obj.save()
             return MultiPass(obj)
 
         elif obj.student.org:
@@ -180,15 +180,15 @@ class PassLogic(object):
         else:
             student = kwargs.get('student_id', None)
             group_id = kwargs.get('group_id', None)
-            date = kwargs.get('date', None)
+            date = kwargs.get('start_date', None)
 
             if not any([student, group_id, date]):
                 raise TypeError('Wrong arguments')
 
             try:
-                obj = Passes.objects.get(student__id=student, group__id=group_id, start_date=date.date())
-                return cls.wrap(obj)
-
+                obj = Passes.objects.get(**kwargs)
+                wraped = cls.wrap(obj)
+#student__id=student, group__id=group_id, start_date=date.date()
             except Passes.DoesNotExist:
 
                 pt = PassTypes.objects.get(pk=kwargs['pass_type'])
@@ -200,12 +200,12 @@ class PassLogic(object):
                     pass_type=pt,
                     lessons=pt.lessons,
                     skips=pt.skips,
-                    end_date=kwargs.get('date', None)
+                    end_date=kwargs.get('date', None),
+                    group=group
                 )
                 obj.save()
-                obj.group.add(group)
 
                 wraped = cls.wrap(obj)
                 wraped.create_lessons(date)
 
-                return wraped
+            return wraped

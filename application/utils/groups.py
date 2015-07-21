@@ -111,7 +111,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     multi_passes = Passes.objects.select_related().filter(
         Q(student=student),
         Q(lessons__gt=0),
-        Q(pass_type__multi_pass=True),
+        Q(pass_type__one_group_pass=False),
         Q(Q(start_date__range=[group_calendar[0], group_calendar[-1]]) | Q(end_date__range=[group_calendar[0], group_calendar[-1]]))
     )
 

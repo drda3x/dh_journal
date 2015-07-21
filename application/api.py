@@ -78,13 +78,13 @@ def process_lesson(request):
 
     if new_passes:
         attended_passes += map(
-            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], date=date),
+            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], start_date=date),
             new_passes
         )
 
     if old_passes:
         attended_passes += map(
-            lambda p: PassLogic.get_or_create(id=p),
+            lambda p: PassLogic.get_or_create(student_id=p, group_id=group_id, lessons__gt=0),
             old_passes
         )
 
