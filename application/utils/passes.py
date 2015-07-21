@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from application.models import PassTypes, Passes, Groups
+from application.models import PassTypes, Passes, Groups, Lessons
 from application.utils.lessons import LessonsFactory
 
 
@@ -33,9 +33,17 @@ class AbstractPass(object):
     def __init__(self, obj):
         self.orm_object = obj
 
+    def __process_lesson(self, date, status):
+        lesson = Lessons.objects.get(
+            date=date,
+            group_pass=self.orm_object
+        )
+        lesson.status = status
+        lesson.save()
+
     # Урок посещен
     def set_lesson_attended(self, date, person=None):
-        pass
+        self.__process_lesson(date, Lessons.STATUSES['attended'])
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
@@ -62,7 +70,17 @@ class RegularPass(AbstractPass):
     u"""
     Обычный абонемент
     """
-    pass
+
+    # Урок не посещен
+    def set_lesson_not_attended(self, date):
+        if self.orm_object.skips > 0:
+            self.__process_lesson(date, Lessons.STATUSES['moved'])
+            self.orm_object.skips -= 1
+            self.orm_object.save()
+        else:
+            self.__process_lesson(date, Lessons.STATUSES['not_attended'])
+            self.orm_object.lessons -= 1
+            self.orm_object.save()
 
 
 class OrgPass(AbstractPass):
@@ -72,6 +90,8 @@ class OrgPass(AbstractPass):
 
     HTML_CLASS = ORG_PASS_HTML_CLASS
     HTML_VAL = '#1e90ff'
+
+    def set_lesson_not_attended(self, date):
 
 
 class MultiPass(AbstractPass):
