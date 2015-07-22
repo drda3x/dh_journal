@@ -116,7 +116,7 @@ class LessonsFactory(object):
 
     @classmethod
     def get_phantom_lesson(cls, t='not_processed', **kwargs):
-        lesson = Lessons(kwargs)
+        lesson = Lessons(**kwargs)
         return cls.lessons_types[t](lesson)
 
     @classmethod

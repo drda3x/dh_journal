@@ -27,20 +27,33 @@ def get_color_classes():
 class AbstractPass(object):
 
     orm_object = None
+    new_pass = False
 
     def __init__(self, obj):
         self.orm_object = obj
+
+    def check_moved_lessons(self):
+        count = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object))
+        moved = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object, status=Lessons.STATUSES['moved']))
+        if self.orm_object.pass_type.lessons < count - moved:
+            Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date').last().delete()
+            self.orm_object.skips += 1
+            self.orm_object.save()
 
     def process_lesson(self, date, status):
         lesson = Lessons.objects.get(
             date=date,
             group_pass=self.orm_object
         )
+
+        checker = lambda _x: _x in (Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended'])
+        prev_status = lesson.status
         lesson.status = status
         lesson.save()
 
         if status == Lessons.STATUSES['moved']:
-            new_date = self.orm_object.group.get_calendar(self.orm_object.lessons+1, date)[-1]
+            pt = self.orm_object.pass_type
+            new_date = self.orm_object.group.get_calendar(pt.lessons + pt.skips - self.orm_object.skips + 1, self.orm_object.start_date)[-1]
             new_lesson = Lessons(
                 date=new_date,
                 group=self.orm_object.group,
@@ -49,12 +62,17 @@ class AbstractPass(object):
                 status=Lessons.STATUSES['not_processed']
             )
             new_lesson.save()
+            self.orm_object.skips -= 1
+            self.orm_object.save()
+
+        elif not all([checker(x) for x in [prev_status, status]]):
+            self.orm_object.lessons -= 1
+            self.orm_object.save()
 
     # Урок посещен
-    def set_lesson_attended(self, date, person=None):
+    def set_lesson_attended(self, date, person=None, **kwargs):
         self.process_lesson(date, Lessons.STATUSES['attended'])
-        self.orm_object.lessons -= 1
-        self.orm_object.save()
+        self.check_moved_lessons()
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
@@ -97,14 +115,8 @@ class RegularPass(AbstractPass):
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
-        if self.orm_object.skips and self.orm_object.skips > 0:
-            self.process_lesson(date, Lessons.STATUSES['moved'])
-            self.orm_object.skips -= 1
-            self.orm_object.save()
-        else:
-            self.process_lesson(date, Lessons.STATUSES['not_attended'])
-            self.orm_object.lessons -= 1
-            self.orm_object.save()
+        status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
+        self.process_lesson(date, status)
 
 
 class OrgPass(AbstractPass):
@@ -124,14 +136,14 @@ class MultiPass(AbstractPass):
     Мультикарта
     """
 
-    def set_lesson_attended(self, date, person=None):
+    def set_lesson_attended(self, date, person=None, **kwargs):
 
-        if date > self.orm_object.start_date + datetime.timedelta(days=self.orm_object.pass_type.deadline):
+        if not self.orm_object.start_date <= date.date() <= self.orm_object.end_date:
             return
 
         lesson = Lessons(
             date=date,
-            group=self.orm_object.group,
+            group_id=kwargs['group'],
             student=self.orm_object.student,
             group_pass=self.orm_object,
             status=Lessons.STATUSES['attended']
@@ -159,9 +171,14 @@ class PassLogic(object):
         pass_type = obj.pass_type
 
         # Определяем и возвращаем тип абонемента
-        if not pass_type.one_group_pass and obj.end_date:
+        if not pass_type.one_group_pass:
             obj.group = None
             obj.save()
+            obj.end_date = datetime.date(
+                obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
+                obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
+                obj.start_date.day
+            )
             return MultiPass(obj)
 
         elif obj.student.org:
@@ -185,27 +202,47 @@ class PassLogic(object):
             if not any([student, group_id, date]):
                 raise TypeError('Wrong arguments')
 
+            if 'presence' in kwargs.iterkeys():
+                presence = kwargs['presence']
+                kwargs.__delitem__('presence')
+
+            else:
+                presence = None
+
             try:
                 obj = Passes.objects.get(**kwargs)
                 wraped = cls.wrap(obj)
-#student__id=student, group__id=group_id, start_date=date.date()
+
             except Passes.DoesNotExist:
+                try:
+                    kwargs['pass_type__one_group_pass'] = False
+                    kwargs.__delitem__('group_id')
 
-                pt = PassTypes.objects.get(pk=kwargs['pass_type'])
-                group = Groups.objects.get(pk=group_id)
+                    obj = Passes.objects.get(**kwargs)
+                    wraped = cls.wrap(obj)
 
-                obj = Passes(
-                    student_id=student,
-                    start_date=date,
-                    pass_type=pt,
-                    lessons=pt.lessons,
-                    skips=pt.skips,
-                    end_date=kwargs.get('date', None),
-                    group=group
-                )
-                obj.save()
+                except Passes.DoesNotExist:
+                    pt = PassTypes.objects.get(pk=kwargs['pass_type'])
+                    group = Groups.objects.get(pk=group_id)
 
-                wraped = cls.wrap(obj)
-                wraped.create_lessons(date)
+
+                    obj = Passes(
+                        student_id=student,
+                        start_date=date.date(),
+                        pass_type=pt,
+                        lessons=pt.lessons,
+                        skips=pt.skips,
+                        end_date=kwargs.get('date', None),
+                        group=group
+                    )
+                    obj.save()
+
+                    wraped = cls.wrap(obj)
+                    if presence:
+                        wraped.presence = presence
+
+                    wraped.new_pass = True
+
+                    wraped.create_lessons(date)
 
             return wraped

@@ -78,7 +78,7 @@ def process_lesson(request):
 
     if new_passes:
         attended_passes += map(
-            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], start_date=date),
+            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], start_date=date, presence=np['presence']),
             new_passes
         )
 
@@ -89,10 +89,11 @@ def process_lesson(request):
         )
 
     for _pass in attended_passes:
-        _pass.set_lesson_attended(date)
+        if not _pass.new_pass or hasattr(_pass, 'presence') and _pass.presence:
+            _pass.set_lesson_attended(date, group=group_id)
         attended_passes_ids.append(_pass.orm_object.id)
 
-    for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group__id=group_id).exclude(pk__in=attended_passes_ids)):
+    for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group__id=group_id, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
         _pass.set_lesson_not_attended(date)
 
     return HttpResponse(200)

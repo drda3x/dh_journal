@@ -50,12 +50,17 @@ def get_group_detail(group_id, date_from, date_to):
         } for s in get_group_students_list(group)
     ]
 
+    now = datetime.datetime.now()
+    week_ago = now - datetime.timedelta(days=7)
+    last_lesson = filter(lambda x: x <= now, group.get_calendar(date_from=week_ago, count=4))[-1].date()
+
     return {
         'id': group.id,
         'name': group.name,
         'days': group.days,
         'start_date': group.start_date,
         'students': students,
+        'last_lesson': last_lesson,
         'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
     }
 
@@ -116,9 +121,9 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     )
 
     for p in multi_passes:
-        d = p.start_date if p.start_date > from_date else from_date
-        for l in group.get_calendar(date_from=d, count=p.lessons):
-            lessons.append(LessonsFactory.get_phantom_lesson(student=student, group=group, date=l, group_pass=p))
+        last_lesson = Lessons.objects.filter(group=group, group_pass=p).order_by('date').last()
+        for l in group.get_calendar(date_from=last_lesson.date if last_lesson else from_date, count=p.lessons):
+            lessons.append(LessonsFactory.get_phantom_lesson(student=student, group=group, date=l.date(), group_pass=p))
 
     lessons.sort(key=lambda x: x.date)
     lessons_itr = iter(lessons)
