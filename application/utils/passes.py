@@ -222,27 +222,31 @@ class PassLogic(object):
                     wraped = cls.wrap(obj)
 
                 except Passes.DoesNotExist:
-                    pt = PassTypes.objects.get(pk=kwargs['pass_type'])
-                    group = Groups.objects.get(pk=group_id)
 
+                    try:
+                        pt = PassTypes.objects.get(pk=kwargs['pass_type'])
+                        group = Groups.objects.get(pk=group_id)
 
-                    obj = Passes(
-                        student_id=student,
-                        start_date=date.date(),
-                        pass_type=pt,
-                        lessons=pt.lessons,
-                        skips=pt.skips,
-                        end_date=kwargs.get('date', None),
-                        group=group
-                    )
-                    obj.save()
+                        obj = Passes(
+                            student_id=student,
+                            start_date=date.date(),
+                            pass_type=pt,
+                            lessons=pt.lessons,
+                            skips=pt.skips,
+                            end_date=kwargs.get('date', None),
+                            group=group
+                        )
+                        obj.save()
 
-                    wraped = cls.wrap(obj)
-                    if presence:
-                        wraped.presence = presence
+                        wraped = cls.wrap(obj)
+                        if presence:
+                            wraped.presence = presence
 
-                    wraped.new_pass = True
+                        wraped.new_pass = True
 
-                    wraped.create_lessons(date)
+                        wraped.create_lessons(date)
+
+                    except Exception:
+                        return None
 
             return wraped
