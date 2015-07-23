@@ -77,16 +77,23 @@ def process_lesson(request):
     attended_passes_ids = []
 
     if new_passes:
-        attended_passes += map(
-            lambda np: PassLogic.get_or_create(student_id=np['student_id'], group_id=group_id, pass_type=np['pass_type'], start_date=date, presence=np['presence']),
-            new_passes
-        )
+        for p in new_passes:
+            ptid = np['pass_type']
+            if not Passes.objects.get(student_id=student_id, group_id=group_id, pass_type_id=ptid, start_date=date).exists():
+                pass_orm_object = Passes(
+                    student_id=student_id,
+                    group_id=group_id,
+                    pass_type_id=ptid,
+                    start_date=date
+                )
+                pass_orm_object.save()
+                wraped = PassLogic.wrap(pass_orm_object)
+                wraped.create_lessons()
+                attended_passes.append(wraped)
 
     if old_passes:
-        attended_passes += map(
-            lambda p: PassLogic.get_or_create(student_id=p, group_id=group_id, lessons__gt=0),
-            old_passes
-        )
+        for p in old_passes:
+            # Выбираем последний абонемент, который начался до даты текущего урока + проверяем что он актуален
 
     for _pass in attended_passes:
         if _pass:
