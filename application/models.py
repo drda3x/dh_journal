@@ -135,6 +135,13 @@ class Passes(models.Model):
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков', null=True, blank=True)
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.lessons is None:
+            self.lessons = self.pass_type.lessons
+        if self.skips is None:
+            self.skips = self.pass_type.skips
+        super(Passes, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+
     @property
     def color(self):
         return self.pass_type.color

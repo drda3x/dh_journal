@@ -32,12 +32,16 @@ class AbstractPass(object):
     def __init__(self, obj):
         self.orm_object = obj
 
+    def check_lessons_count(self):
+        self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))
+        self.orm_object.save()
+
     def check_moved_lessons(self):
         count = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object))
         moved = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object, status=Lessons.STATUSES['moved']))
         if self.orm_object.pass_type.lessons < count - moved:
-            Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date').last().delete()
-            self.orm_object.skips += 1
+            map(lambda l: l.delete(), Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date')[:count - self.orm_object.pass_type.lessons + moved].reverse())
+            self.orm_object.skips = self.orm_object.pass_type.skips - moved
             self.orm_object.save()
 
     def process_lesson(self, date, status):
@@ -46,12 +50,23 @@ class AbstractPass(object):
             group_pass=self.orm_object
         )
 
-        checker = lambda _x: _x in (Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended'])
+        checker = lambda _x: _x in (Lessons.STATUSES['moved'], Lessons.STATUSES['not_attended'])
         prev_status = lesson.status
+
+        if prev_status == status or all([checker(x) for x in [prev_status, status]]):
+            return
+
         lesson.status = status
         lesson.save()
 
-        if status == Lessons.STATUSES['moved']:
+        if prev_status == Lessons.STATUSES['moved'] and status == Lessons.STATUSES['attended']:
+            try:
+                lesson = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_attended']).order_by('date')[0]
+                lesson.status = Lessons.STATUSES['moved']
+                lesson.save()
+            except Lessons.DoesNotExist:
+                pass
+        elif status == Lessons.STATUSES['moved']:
             pt = self.orm_object.pass_type
             new_date = self.orm_object.group.get_calendar(pt.lessons + pt.skips - self.orm_object.skips + 1, self.orm_object.start_date)[-1]
             new_lesson = Lessons(
@@ -63,16 +78,16 @@ class AbstractPass(object):
             )
             new_lesson.save()
             self.orm_object.skips -= 1
-            self.orm_object.save()
 
-        elif not all([checker(x) for x in [prev_status, status]]):
-            self.orm_object.lessons -= 1
-            self.orm_object.save()
+        # elif not all([checker(x) for x in [prev_status, status]]):
+        #     self.orm_object.lessons -= 1
+        #     self.orm_object.save()
 
     # Урок посещен
     def set_lesson_attended(self, date, person=None, **kwargs):
         self.process_lesson(date, Lessons.STATUSES['attended'])
         self.check_moved_lessons()
+        self.check_lessons_count()
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):
@@ -117,6 +132,7 @@ class RegularPass(AbstractPass):
     def set_lesson_not_attended(self, date):
         status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
         self.process_lesson(date, status)
+        self.check_lessons_count()
 
 
 class OrgPass(AbstractPass):
@@ -129,6 +145,7 @@ class OrgPass(AbstractPass):
 
     def set_lesson_not_attended(self, date):
         self.process_lesson(date, Lessons.STATUSES['moved'])
+        self.check_lessons_count()
 
 
 class MultiPass(AbstractPass):

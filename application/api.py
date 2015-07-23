@@ -66,7 +66,7 @@ def process_lesson(request):
 
     json_data = json.loads(request.GET['data'])
 
-    group_id = json_data['group_id']
+    group = Groups.objects.get(pk=json_data['group_id'])
     date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
     data = json_data['data']
 
@@ -78,30 +78,42 @@ def process_lesson(request):
 
     if new_passes:
         for p in new_passes:
-            ptid = np['pass_type']
-            if not Passes.objects.get(student_id=student_id, group_id=group_id, pass_type_id=ptid, start_date=date).exists():
+            pt = PassTypes.objects.get(pk=p['pass_type'])
+            st_id = p['student_id']
+            if not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
                 pass_orm_object = Passes(
-                    student_id=student_id,
-                    group_id=group_id,
-                    pass_type_id=ptid,
+                    student_id=st_id,
+                    group=group,
+                    pass_type=pt,
                     start_date=date
                 )
                 pass_orm_object.save()
-                wraped = PassLogic.wrap(pass_orm_object)
-                wraped.create_lessons()
-                attended_passes.append(wraped)
+
+                wrapped = PassLogic.wrap(pass_orm_object)
+                wrapped.create_lessons(date)
+
+                wrapped.presence = p.get('presence', False)
+                attended_passes.append(wrapped)
 
     if old_passes:
         for p in old_passes:
-            # Выбираем последний абонемент, который начался до даты текущего урока + проверяем что он актуален
+            pass_orm_object = Passes.objects.select_related().filter(student_id=p, group=group, start_date__lte=date).order_by('start_date').last()
+            l_cnt = pass_orm_object.pass_type.lessons
+            st_dt = pass_orm_object.start_date
+            calendar = group.get_calendar(l_cnt, date_from=st_dt)
+
+            if date in calendar:
+                wrapped = PassLogic.wrap(pass_orm_object)
+                wrapped.new_pass = False
+                attended_passes.append(wrapped)
 
     for _pass in attended_passes:
         if _pass:
-            if not _pass.new_pass or hasattr(_pass, 'presence') and _pass.presence:
-                _pass.set_lesson_attended(date, group=group_id)
+            if not _pass.new_pass or _pass.presence:
+                _pass.set_lesson_attended(date, group=group.id)
             attended_passes_ids.append(_pass.orm_object.id)
 
-    for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group__id=group_id, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
+    for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group=group, start_date__lte=date, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
         if _pass:
             _pass.set_lesson_not_attended(date)
 
