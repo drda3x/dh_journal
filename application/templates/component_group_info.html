@@ -23,7 +23,7 @@
                     <td>+{{ student.person.phone }}</td>
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
-                    <td>0</td>
+                    <td>{{ student.pass_remaining }}</td>
                 </tr>
                 {% endfor %}
             </table>

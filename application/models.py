@@ -72,6 +72,7 @@ class Students(models.Model):
     phone = models.IntegerField(verbose_name=u'Телефон')
     e_mail = models.CharField(max_length=30, verbose_name=u'e-mail')
     org = models.BooleanField(verbose_name=u'Орг', default=False)
+    is_deleted = models.BooleanField(verbose_name=u'Удален', default=False)
 
     def __unicode__(self):
         return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper())

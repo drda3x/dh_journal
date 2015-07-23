@@ -46,7 +46,8 @@ def get_group_detail(group_id, date_from, date_to):
     students = [
         {
             'person': s,
-            'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y')
+            'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+            'pass_remaining': len(get_student_pass_remaining(s, group))
         } for s in get_group_students_list(group)
     ]
 
@@ -65,6 +66,11 @@ def get_group_detail(group_id, date_from, date_to):
     }
 
 
+def get_student_pass_remaining(student, group):
+    passes = Passes.objects.filter(student=student, group=group)
+    return [l for p in passes for l in Lessons.objects.filter(group_pass=p, status=Lessons.STATUSES['not_processed'])]
+
+
 def get_group_students_list(group):
 
     u"""
@@ -75,7 +81,8 @@ def get_group_students_list(group):
         raise TypeError('Expected Groups instance!')
 
     return Students.objects.filter(
-        pk__in=GroupList.objects.filter(group=group).values('student_id')
+        pk__in=GroupList.objects.filter(group=group).values('student_id'),
+        is_deleted=False
     )
 
 

@@ -89,6 +89,12 @@ class AbstractPass(object):
         self.check_moved_lessons()
         self.check_lessons_count()
 
+    def write_off(self):
+        lessons_date = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']).values_list('date', flat=True)
+        for date in lessons_date:
+            self.set_lesson_not_attended(date)
+
+
     # Урок не посещен
     def set_lesson_not_attended(self, date):
         pass
@@ -102,16 +108,38 @@ class AbstractPass(object):
         pass
 
     # Сменить владельца
-    def change_owner(self, new_owner):
-        pass
+    def change_owner(self, new_owner, date=None):
+
+        try:
+            current_owner = self.orm_object.student
+            group = self.orm_object.group
+
+            no_pass = Passes.objects.filter(student=current_owner, lessons__gt=0, group=group).order_by('date').last()
+            if not no_pass:
+                no_pass = Passes(student_id=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=date)
+                no_pass.save()
+                next_lesson_date = no_pass.start_date
+            else:
+                last_lesson_date = Lessons.objects.filter(group_pass=no_pass).order_by('date').last()
+                next_lesson_date = group.get_calendar(last_lesson_date.date, 2)[-1]
+
+            wrapped = PassLogic.wrap(no_pass)
+            wrapped.create_lessons(next_lesson_date, self.orm_object.lessons)
+
+            return True
+
+        except Exception, e:
+            print e
+            return False
 
     # Получить календарь
     def get_calendar(self):
         pass
 
-    def create_lessons(self, date):
+    def create_lessons(self, date, count=None):
+        _count = count if count else self.orm_object.lessons
 
-        for _date in self.orm_object.group.get_calendar(date_from=date, count=self.orm_object.lessons):
+        for _date in self.orm_object.group.get_calendar(date_from=date, count=_count):
             lesson = Lessons(
                 date=_date,
                 group=self.orm_object.group,
@@ -170,7 +198,7 @@ class MultiPass(AbstractPass):
         self.orm_object.lessons -= 1
         self.orm_object.save()
 
-    def create_lessons(self, date):
+    def create_lessons(self, date, count=None):
         pass
 
 
