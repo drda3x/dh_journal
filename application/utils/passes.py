@@ -2,7 +2,6 @@
 
 import datetime, copy
 from application.models import PassTypes, Passes, Groups, Lessons
-from application.utils.lessons import LessonsFactory
 
 
 ORG_PASS_HTML_CLASS = 'pass_type_org'

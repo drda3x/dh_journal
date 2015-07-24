@@ -27,7 +27,9 @@ urlpatterns = [
     # url(r'^group/addpass', api.add_pass),
     url(r'^group', views.group_detail_view),
     url(r'^logout', views.user_log_out),
-    url(r'writeoffpass', api.write_off_the_pass),
+    url(r'^writeoffpass', api.write_off_the_pass),
     url(r'^processlesson', api.process_lesson),
+    url(r'^getpasses', api.get_passes),
+    url(r'^deletepass', api.delete_pass),
     url(r'', views.index_view)
 ]

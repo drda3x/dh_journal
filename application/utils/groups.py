@@ -5,7 +5,6 @@ import datetime
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from application.utils.lessons import LessonsFactory, NotProcessedLesson
 from application.utils.passes import get_color_classes
 from application.models import Groups, Students, Passes, Lessons, GroupList
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
@@ -163,7 +162,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
 
         else:
             buf['pass'] = True
-            buf['sign'] = c_lesson.rus if not isinstance(c_lesson, NotProcessedLesson) and c_lesson.date == c_date.date() else ''
+            buf['sign'] = c_lesson.rus if not c_lesson.status == Lessons.STATUSES['not_processed'] and c_lesson.date == c_date.date() else ''
             buf['color'] = html_color_classes[c_lesson.group_pass.color] if not student.org else ORG_PASS_HTML_CLASS
 
             try:

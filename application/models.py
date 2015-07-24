@@ -99,6 +99,16 @@ class PassTypes(models.Model):
     def __unicode__(self):
         return u'%s (%dр.)' % (self.name, self.prise)
 
+    def __json__(self):
+        return dict(
+            name=self.name,
+            prise=self.prise,
+            lessons=self.lessons,
+            skips=self.skips,
+            color=self.color,
+            oneGroupPass=self.one_group_pass
+        )
+
     class Meta:
         app_label = u'application'
         verbose_name = u'Тип абонемента'
@@ -150,6 +160,18 @@ class Passes(models.Model):
     @property
     def one_lesson_prise(self):
         return self.pass_type.prise / self.pass_type.lessons
+
+    def __json__(self):
+        return dict(
+            student=self.student.id,
+            group=self.group.id,
+            start_date=self.start_date.isoformat(),
+            end_date=self.end_date,
+            pass_type=self.pass_type.__json__(),
+            lessons=self.lessons,
+            skips=self.skips,
+            color=self.color
+        )
 
     class Meta:
         app_label = u'application'

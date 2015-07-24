@@ -6,9 +6,8 @@ from traceback import format_exc
 
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 
-from application.utils.lessons import LessonsFactory, Lessons
 from application.utils.passes import PassLogic
-from application.models import Students, Passes, Groups, GroupList, PassTypes
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons
 from application.views import group_detail_view
 
 
@@ -59,6 +58,18 @@ def add_student(request):
             pass
 
         return group_detail_view(request)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def delete_pass(request):
+    try:
+        ids = request
+        passes = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('start_date')
+
+
 
     except Exception:
         print format_exc()
@@ -126,6 +137,21 @@ def freeze_pass(request):
     try:
         raise SyntaxError()
         return HttpResponse(200)
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def get_passes(request):
+    try:
+        owner = request.GET['owner']
+        group_id = request.GET['group']
+        passes = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('start_date')
+
+        return HttpResponse(
+            json.dumps([p.__json__() for p in passes])
+        )
+
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')

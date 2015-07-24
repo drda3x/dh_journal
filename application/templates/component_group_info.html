@@ -78,6 +78,15 @@
                 </form>
             </div>
 
+            <div id="passList" class="modal hide fade">
+                <div class="modal-header"><h4></h4></div>
+                <ul id="passListContainer"></ul>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                    <input class="btn btn-primary" type="submit" value="Добавить" />
+                </div>
+            </div>
+
             <div id="shortCardMenu">
                 <ul>
                     <li id="changeStudentData">Изменить</li>
@@ -86,6 +95,7 @@
                     <li id="freezeStudentPass">Заморозить абонемент</li>
                     <li id="changePassOwner">Передать абонемент</li>
                     <li id="writeOffPass">Списать абонемент</li>
+                    <li id="deletePass">Удалить абонемент</li>
                 </ul>
             </div>
 
@@ -105,8 +115,8 @@
                     addUrl = '/group/addstudent',
                     editUrl = '/group/editstudent';
 
-                var $shortCardMenu_lastIndex,
-                    $row;
+                var $shortCardMenu_lastIndex, $row, $id, $name, $family;
+                var $groupId = {{ group_detail.id }};
 
                 $infoTable.find('tr').click(function(event) {
                     if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
@@ -114,7 +124,12 @@
                         $shortCardMenu = $('#shortCardMenu');
                         $shortCardMenu.css('top', event.clientY);
                         $shortCardMenu.css('left', event.clientX);
-                        $shortCardMenu.attr('data-id', $(this).data('id'));
+                        $id = $(this).data('id');
+
+                        var chld = $(this).children();
+
+                        $name = $(chld[1]).text();
+                        $family = $(chld[2]).text();
 
                         $index = $(this).index();
 
@@ -154,23 +169,74 @@
                    console.log('freeze pass');
                 });
 
-                $('#writeOffPass').click(function() {
-                    if(confirm('Вы уверены что хотите списать абонемент?')) {
+                var $passList = $('#passList');
+                $passList.modal({show: false});
 
-                        $.ajax({
-                            method: 'GET',
-                            url: 'writeoffpass',
-                            data: {
-                                owner: $('#shortCardMenu').data('id'),
-                                group: {{ group_detail.id }}
-                            }
-                        }).done(function() {
-                            window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
-                        });
-                    } else {
-                        console.log('no');
-                    }
+                var passListHandler;
+
+                $passList.find('.modal-footer .btn-primary').click(passListHandler);
+
+                $('#writeOffPass').click(function() {
+                    $passList.find('.modal-footer .btn-primary').val('Списать');
+                    $passList.find('.modal-header h4').text($family+' '+$name);
+                    processData('getpasses', {owner: $id, group: $groupId}, processPassList, writeOffProcess);
                 });
+
+                $('#deletePass').click(function() {
+                    $passList.find('.modal-footer .btn-primary').val('Удалить');
+                    $passList.find('.modal-header h4').text($family+' '+$name);
+                    processData('getpasses', {owner: $id, group: $groupId}, processPassList, deleteProcess);
+                });
+
+                function processData(url, params, callback) {
+
+                    $.ajax({
+                        method: 'GET',
+                        url: url,
+                        data: params
+                    }).error(function(err) {
+                        callback(err, null)
+                    }).done(function(data) {
+                        callback(null, JSON.parse(data))
+                    });
+                }
+
+                function processPassList(err, passes, buttonHandler) {
+                    if(!err) {
+                        var $pl = $('#passListContainer');
+                        $pl.empty();
+
+                        for(var i= 0, j= passes.length; i<j; i++) {
+                            pass = passes[i];
+                            $('<li><label class="checkbox"><input type="checkbox" data-val="'+pass.id+'">'+pass.pass_type.name+' c '+pass.start_date+'</label></li>').appendTo($pl);
+                        }
+                        $passList.modal('show');
+
+                        passListHandler = buttonHandler;
+                    }
+                }
+
+                function writeOffProcess() {
+
+                    // todo собрать ID-шники и передать их для обработки
+
+                    if(confirm('Списать абонемент(ы)')) {
+                        processData('writeoffpass', {owner: $id, group: $groupId}, function() {
+                            $passList.modal('hide');
+                        });
+                    }
+                }
+
+                function deleteProcess() {
+
+                    // todo собрать ID-шники и передать их для обработки
+
+                    if(confirm('Удалить абонемент(ы)')) {
+                        processData('deletepass', {owner: $id, group: $groupId}, function() {
+                            $passList.modal('hide');
+                        });
+                    }
+                }
 
                 function showStudentCard(event) {
                     var $this = $row,
