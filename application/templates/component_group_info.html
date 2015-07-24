@@ -16,7 +16,7 @@
                     <th>Остаток по абонементу</th>
                 </tr>
                 {% for student in group_detail.students %}
-                <tr>
+                <tr data-id="{{ student.person.id }}">
                     <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ student.person.last_name }}</td>
                     <td>{{ student.person.first_name }}</td>
@@ -84,8 +84,8 @@
                     <li id="deleteStudent">Удалить</li>
                     <li class="divider"></li>
                     <li id="freezeStudentPass">Заморозить абонемент</li>
-                    <li id="freezeStudentPass">Передать абонемент</li>
-                    <li id="freezeStudentPass">Списать абонемент</li>
+                    <li id="changePassOwner">Передать абонемент</li>
+                    <li id="writeOffPass">Списать абонемент</li>
                 </ul>
             </div>
 
@@ -114,6 +114,7 @@
                         $shortCardMenu = $('#shortCardMenu');
                         $shortCardMenu.css('top', event.clientY);
                         $shortCardMenu.css('left', event.clientX);
+                        $shortCardMenu.attr('data-id', $(this).data('id'));
 
                         $index = $(this).index();
 
@@ -151,6 +152,24 @@
 
                 $('#freezeStudentPass').click(function() {
                    console.log('freeze pass');
+                });
+
+                $('#writeOffPass').click(function() {
+                    if(confirm('Вы уверены что хотите списать абонемент?')) {
+
+                        $.ajax({
+                            method: 'GET',
+                            url: 'writeoffpass',
+                            data: {
+                                owner: $('#shortCardMenu').data('id'),
+                                group: {{ group_detail.id }}
+                            }
+                        }).done(function() {
+                            window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
+                        });
+                    } else {
+                        console.log('no');
+                    }
                 });
 
                 function showStudentCard(event) {

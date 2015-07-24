@@ -111,7 +111,7 @@ def write_off_the_pass(request):
     try:
         owner = request.GET['owner']
         group_id = request.GET['group']
-        _pass = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('date').last()
+        _pass = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('start_date').last()
         wrapped = PassLogic.wrap(_pass)
         wrapped.write_off()
 

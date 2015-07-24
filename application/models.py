@@ -168,14 +168,16 @@ class Lessons(models.Model):
         'attended': 1,
         'not_attended': 2,
         'frozen': 3,
-        'moved': 4
+        'moved': 4,
+        'written_off': 5
     }
     STATUSES_RUS = {
         'not_processed': u'не обработано',
         'attended': u'был(а)',
         'not_attended': u'не был(а)',
         'frozen': u'заморожен',
-        'moved': u'пропуск'
+        'moved': u'пропуск',
+        'written_off': u'списан'
     }
     DEFAULT_STATUS = STATUSES['not_processed']
 
@@ -184,6 +186,11 @@ class Lessons(models.Model):
     student = models.ForeignKey(Students, verbose_name=u'Учение')
     group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент', related_name=u'lesson_group_pass')
     status = models.IntegerField(verbose_name=u'Статус занятия', choices=[(val, key) for key, val in STATUSES.iteritems()], default=DEFAULT_STATUS)
+
+    @property
+    def rus(self):
+        rev_status = {val: key for key, val in self.STATUSES.iteritems()}
+        return self.STATUSES_RUS[rev_status[self.status]]
 
     class Meta:
         app_label = u'application'

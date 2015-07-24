@@ -86,44 +86,44 @@ class FrozenLesson(Lesson):
 
 
 class LessonsFactory(object):
-
-    lessons_types = {
-        'not_processed': NotProcessedLesson,
-        'attended': AttendedLesson,
-        'not_attended': NotAttendedLesson,
-        'moved': MovedLesson,
-        'frozen': FrozenLesson
-    }
-
-    @classmethod
-    def get(cls, t=None, **kwargs):
-
-        if t:
-            kwargs['status'] = cls.lessons_types[t].status if isinstance(t, str) else t.status
-
-        qs = Lessons.objects.filter(**kwargs)
-        types = {val: key for key, val in Lessons.STATUSES.iteritems()}
-        try:
-            result = []
-            for i in qs:
-                t = types[i.status]
-                result.append(cls.lessons_types[t](i))
-
-            return result
-
-        except Lessons.DoesNotExist:
-            return []
-
-    @classmethod
-    def get_phantom_lesson(cls, t='not_processed', **kwargs):
-        lesson = Lessons(**kwargs)
-        return cls.lessons_types[t](lesson)
-
-    @classmethod
-    def create(cls, _type, **kwargs):
-        if _type in cls.lessons_types.itervalues():
-            return _type(**kwargs)
-        try:
-            return cls.lessons_types[_type](**kwargs)
-        except KeyError:
-            raise TypeError('Wrong type of the lesson class')
+    pass
+    # lessons_types = {
+    #     'not_processed': NotProcessedLesson,
+    #     'attended': AttendedLesson,
+    #     'not_attended': NotAttendedLesson,
+    #     'moved': MovedLesson,
+    #     'frozen': FrozenLesson
+    # }
+    #
+    # @classmethod
+    # def get(cls, t=None, **kwargs):
+    #
+    #     if t:
+    #         kwargs['status'] = cls.lessons_types[t].status if isinstance(t, str) else t.status
+    #
+    #     qs = Lessons.objects.filter(**kwargs)
+    #     types = {val: key for key, val in Lessons.STATUSES.iteritems()}
+    #     try:
+    #         result = []
+    #         for i in qs:
+    #             t = types[i.status]
+    #             result.append(cls.lessons_types[t](i))
+    #
+    #         return result
+    #
+    #     except Lessons.DoesNotExist:
+    #         return []
+    #
+    # @classmethod
+    # def get_phantom_lesson(cls, t='not_processed', **kwargs):
+    #     lesson = Lessons(**kwargs)
+    #     return cls.lessons_types[t](lesson)
+    #
+    # @classmethod
+    # def create(cls, _type, **kwargs):
+    #     if _type in cls.lessons_types.itervalues():
+    #         return _type(**kwargs)
+    #     try:
+    #         return cls.lessons_types[_type](**kwargs)
+    #     except KeyError:
+    #         raise TypeError('Wrong type of the lesson class')
