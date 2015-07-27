@@ -93,20 +93,20 @@ def change_pass_owner(request):
 
     current_owner = request.GET['cur_owner']
     new_owner = request.GET['new_owner']
-    group = Groups.objects.get(pk=request['group_id'])
-    date = request.GET.get('date', None)
-
-    co_pass = Passes.objects.filter(student_id=current_owner, lessons__gt=0, group=group).order_by('date').last()
+    ids = json.loads(request.GET['ids'])
+    co_pass = Passes.objects.filter(pk__in=ids)
 
     if not co_pass:
         return HttpResponseServerError('failed')
 
-    wrapped = PassLogic.wrap(co_pass)
+    changed = map((p.id, PassLogic.wrap(p).change_owner(new_owner, date)) for p in co_pass)
 
-    if wrapped.change_owner(new_owner, date):
+    if all([changed(1)]):
         return HttpResponse(200)
 
-    return HttpResponseServerError('failed')
+    errors = filter(lambda x: not x[1], changed)
+
+    return HttpResponseServerError(json.dumps(errors))
 
 
 def write_off_the_pass(request):
