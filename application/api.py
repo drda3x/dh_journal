@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+к# -*- coding:utf-8 -*-
 
 import datetime, json, copy
 
@@ -64,18 +64,6 @@ def add_student(request):
         return HttpResponseServerError('failed')
 
 
-def delete_pass(request):
-    try:
-        ids = request
-        passes = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('start_date')
-
-
-
-    except Exception:
-        print format_exc()
-        return HttpResponseServerError('failed')
-
-
 def delete_student(request):
     student = Students.objects.get(pk=request.GET['student'])
     student.is_deleted = True
@@ -84,6 +72,16 @@ def delete_student(request):
 
 def edit_student(request):
     return HttpResponseNotFound('Need to realize back-end for this functionality')
+
+
+def delete_pass(request):
+    try:
+        ids = json.loads(request.GET['ids'])
+        passes = Passes.objects.filter(pk__in=ids).delete()
+        return HttpResponse(200)
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
 
 
 def change_pass_owner(request):
