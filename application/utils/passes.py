@@ -89,15 +89,20 @@ class AbstractPass(object):
         self.check_lessons_count()
 
     def write_off(self):
-        lessons = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed'])
+        try:
+            lessons = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed'])
 
-        for lesson in lessons:
-            lesson.status = Lessons.STATUSES['written_off']
-            lesson.save()
+            for lesson in lessons:
+                lesson.status = Lessons.STATUSES['written_off']
+                lesson.save()
 
-        self.orm_object.lessons = 0
-        self.orm_object.skips = 0
-        self.orm_object.save()
+            self.orm_object.lessons = 0
+            self.orm_object.skips = 0
+            self.orm_object.save()
+            return True
+
+        except Exception:
+            return False
 
     # Урок не посещен
     def set_lesson_not_attended(self, date):

@@ -118,13 +118,16 @@ def write_off_the_pass(request):
     """
 
     try:
-        owner = request.GET['owner']
-        group_id = request.GET['group']
-        _pass = Passes.objects.filter(student_id=owner, group_id=group_id, lessons__gt=0).order_by('start_date').last()
-        wrapped = PassLogic.wrap(_pass)
-        wrapped.write_off()
+        ids=json.loads(request.GET['ids'])
+        passes = Passes.objects.filter(pk__in=ids)
+        processed = map((p.id, PassLogic.wrap(p).write_off()) for p in passes)
 
-        return HttpResponse(200)
+        if all(p[1] for p in processed):
+            return HttpResponse(200)
+
+        errors = filter(lambda x: not x[1], processed)
+
+        return HttpResponseServerError(json.dumps(errors))
 
     except Exception:
         print format_exc()
