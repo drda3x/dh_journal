@@ -228,7 +228,7 @@ def process_lesson(request):
                 for p in old_passes:
                     pass_orm_object = Passes.objects.select_related().filter(student_id=p, group=group, start_date__lte=date).order_by('start_date').last()
                     l_cnt = pass_orm_object.pass_type.lessons
-                    st_dt = pass_orm_object.start_date
+                    st_dt = pass_orm_object.date
                     calendar = group.get_calendar(l_cnt, date_from=st_dt)
 
                     if date in calendar:
