@@ -80,7 +80,7 @@
 
             <div id="passList" class="modal hide fade">
                 <div class="modal-header"><h4></h4></div>
-                <ul id="passListContainer"></ul>
+                <ul id="passListContainer" class="modal-ul"></ul>
                 <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                     <input class="btn btn-primary" type="submit" value="Добавить" />
@@ -89,7 +89,7 @@
 
             <div id="changePassOwnerModal" class="modal hide fade">
                 <div class="modal-header"><h4>Передача остатка по абонементу</h4></div>
-                <ul class="owners"></ul>
+                <ul class="owners modal-ul"></ul>
                 <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                     <input class="btn btn-primary" type="submit" value="Передать" />
@@ -301,23 +301,48 @@
                     processData('getpasses', {owner: $id, group: $groupId}, processPassList);
                 });
 
+                var $changePassOwnerModal = $('#changePassOwnerModal');
+                $changePassOwnerModal.modal({show: false});
+
                 $('#changePassOwner').click(function() {
 
                     var $container = $('#changePassOwnerModal .owners');
 
                     $container.empty();
 
-                    $infoTable.find('tr').each(function() {
-                        var chld= $(this).children();
-                        var name, family, id;
+                    $infoTable.find('tr:gt(0)').each(function() {
+                        if($(this).index() != $index) {
+                            var chld= $(this).children();
+                            var name, family, id;
 
-                        id = $(this).data('id');
-                        name = $(chld[1]).text();
-                        family = $(chld[2]).text();
+                            id = $(this).data('id');
+                            name = $(chld[1]).text();
+                            family = $(chld[2]).text();
 
-                        $container.append()
-
+                            $container.append($('<li><label class="radio"><input type="radio" name="owhers" data-id="'+id+'">'+family+' '+name+'</label></li>'));
+                        }
                     });
+
+                    $changePassOwnerModal.modal('show');
+                });
+
+                $changePassOwnerModal.find('.btn.btn-primary').click(function() {
+                    var new_owner = $changePassOwnerModal.find('input:checked').data('id');
+                    processData(
+                        'changeowner',
+                        {
+                            cur_owner: $id,
+                            new_owner: new_owner,
+                            group: {{ group_detail.id }}
+                        },
+                        function(err, data) {
+                            if(!err) {
+                                reload()
+                            } else {
+                                console.log(err);
+                            }
+                        }
+                    );
                 });
 
                 function processData(url, params, callback) {

@@ -193,8 +193,8 @@
     color: #000000;
 }
 
-#passListContainer {
-    margin: 10px 25%;
+.modal-ul {
+    padding: 10px 25%;
     width: 100%;
     list-style: none;
 }

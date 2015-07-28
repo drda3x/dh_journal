@@ -137,14 +137,14 @@ class AbstractPass(object):
             current_owner = self.orm_object.student
             group = self.orm_object.group
 
-            no_pass = Passes.objects.filter(student=current_owner, lessons__gt=0, group=group).order_by('date').last()
+            no_pass = Passes.objects.filter(student=current_owner, lessons__gt=0, group=group).order_by('start_date').last()
             if not no_pass:
                 no_pass = Passes(student_id=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=date)
                 no_pass.save()
                 next_lesson_date = no_pass.start_date
             else:
                 last_lesson_date = Lessons.objects.filter(group_pass=no_pass).order_by('date').last()
-                next_lesson_date = group.get_calendar(last_lesson_date.date, 2)[-1]
+                next_lesson_date = group.get_calendar(2, last_lesson_date.date)[-1]
 
             wrapped = PassLogic.wrap(no_pass)
             wrapped.create_lessons(next_lesson_date, self.orm_object.lessons)
@@ -152,7 +152,8 @@ class AbstractPass(object):
             return True
 
         except Exception, e:
-            print e
+            from traceback import format_exc
+            print format_exc()
             return False
 
     # Получить календарь

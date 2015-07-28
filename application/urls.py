@@ -32,5 +32,6 @@ urlpatterns = [
     url(r'^getpasses', api.get_passes),
     url(r'^deletepass', api.delete_pass),
     url(r'^freezepass', api.freeze_pass),
+    url(r'^changeowner', api.change_pass_owner),
     url(r'', views.index_view)
 ]
