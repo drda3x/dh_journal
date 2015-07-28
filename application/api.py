@@ -192,6 +192,7 @@ def process_lesson(request):
         group = Groups.objects.get(pk=json_data['group_id'])
         date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
         data = json_data['data']
+        canceled = json_data['canceled']
 
         new_passes = filter(lambda p: isinstance(p, dict), data)
         old_passes = filter(lambda p: isinstance(p, int), data)
@@ -199,49 +200,51 @@ def process_lesson(request):
         attended_passes = []
         attended_passes_ids = []
         error = []
+        next_date = group.get_calendar(2, date)[-1]
 
-        if new_passes:
-            for p in new_passes:
-                pt = PassTypes.objects.get(pk=p['pass_type'])
-                st_id = p['student_id']
-                if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
-                    error.append(st_id)
-                elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
-                    pass_orm_object = Passes(
-                        student_id=st_id,
-                        group=group,
-                        pass_type=pt,
-                        start_date=date
-                    )
-                    pass_orm_object.save()
+        if not canceled:
+            if new_passes:
+                for p in new_passes:
+                    pt = PassTypes.objects.get(pk=p['pass_type'])
+                    st_id = p['student_id']
+                    if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
+                        error.append(st_id)
+                    elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
+                        pass_orm_object = Passes(
+                            student_id=st_id,
+                            group=group,
+                            pass_type=pt,
+                            start_date=date
+                        )
+                        pass_orm_object.save()
 
-                    wrapped = PassLogic.wrap(pass_orm_object)
-                    wrapped.create_lessons(date)
+                        wrapped = PassLogic.wrap(pass_orm_object)
+                        wrapped.create_lessons(date)
 
-                    wrapped.presence = p.get('presence', False)
-                    attended_passes.append(wrapped)
+                        wrapped.presence = p.get('presence', False)
+                        attended_passes.append(wrapped)
 
-        if old_passes:
-            for p in old_passes:
-                pass_orm_object = Passes.objects.select_related().filter(student_id=p, group=group, start_date__lte=date).order_by('start_date').last()
-                l_cnt = pass_orm_object.pass_type.lessons
-                st_dt = pass_orm_object.start_date
-                calendar = group.get_calendar(l_cnt, date_from=st_dt)
+            if old_passes:
+                for p in old_passes:
+                    pass_orm_object = Passes.objects.select_related().filter(student_id=p, group=group, start_date__lte=date).order_by('start_date').last()
+                    l_cnt = pass_orm_object.pass_type.lessons
+                    st_dt = pass_orm_object.start_date
+                    calendar = group.get_calendar(l_cnt, date_from=st_dt)
 
-                if date in calendar:
-                    wrapped = PassLogic.wrap(pass_orm_object)
-                    wrapped.new_pass = False
-                    attended_passes.append(wrapped)
+                    if date in calendar:
+                        wrapped = PassLogic.wrap(pass_orm_object)
+                        wrapped.new_pass = False
+                        attended_passes.append(wrapped)
 
-        for _pass in attended_passes:
-            if _pass:
-                if not _pass.new_pass or _pass.presence:
-                    _pass.set_lesson_attended(date, group=group.id)
-                attended_passes_ids.append(_pass.orm_object.id)
+            for _pass in attended_passes:
+                if _pass:
+                    if not _pass.new_pass or _pass.presence:
+                        _pass.set_lesson_attended(date, group=group.id)
+                    attended_passes_ids.append(_pass.orm_object.id)
 
         for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group=group, start_date__lte=date, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
             if _pass and _pass.check_date(date):
-                _pass.set_lesson_not_attended(date)
+                _pass.set_lesson_not_attended(date) if not canceled else _pass.freeze(next_date)
 
         if error:
             return HttpResponseServerError(json.dumps(error))

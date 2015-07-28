@@ -260,36 +260,41 @@
                         json = {
                             group_id: {{ group_detail.id }},
                             date: $('#lesson_window_date').text(),
-                            data: []
+                            data: [],
+                            canceled: false
                         };
 
                     if(!$(this).data('context') === 'lesson_window') {
                         return;
                     }
 
-                    data_source.each(function() {
-                        var cont = $(this).children(),
-                            lesson = $(cont[1]),
-                            student_id = $(cont[0]).data('stid');
+                    if(!$('#cancel_lesson_inp').prop('checked')) {
+                        data_source.each(function() {
+                            var cont = $(this).children(),
+                                lesson = $(cont[1]),
+                                student_id = $(cont[0]).data('stid');
 
-                        if(lesson.find('input:checked').length > 0) {
-                            if(lesson.hasClass('add-pass')) {
+                            if(lesson.find('input:checked').length > 0) {
+                                if(lesson.hasClass('add-pass')) {
+                                    json.data.push({
+                                        student_id: student_id,
+                                        pass_type: lesson.attr('val'),
+                                        presence: true
+                                    });
+                                } else {
+                                    json.data.push(student_id);
+                                }
+                            } else if(lesson.attr('val') !== undefined) {
                                 json.data.push({
                                     student_id: student_id,
                                     pass_type: lesson.attr('val'),
-                                    presence: true
+                                    presence: false
                                 });
-                            } else {
-                                json.data.push(student_id);
                             }
-                        } else if(lesson.attr('val') !== undefined) {
-                            json.data.push({
-                                student_id: student_id,
-                                pass_type: lesson.attr('val'),
-                                presence: false
-                            });
-                        }
-                    });
+                        });
+                    } else {
+                        json.canceled = true
+                    }
 
                     $.ajax({
                         method: 'GET',
