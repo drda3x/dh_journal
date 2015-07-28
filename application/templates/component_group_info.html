@@ -87,6 +87,24 @@
                 </div>
             </div>
 
+            <div id="changePassOwnerModal" class="modal hide fade">
+                <div class="modal-header"><h4>Передача остатка по абонементу</h4></div>
+                <ul class="owners"></ul>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                    <input class="btn btn-primary" type="submit" value="Передать" />
+                </div>
+            </div>
+
+            <div id="freezePassModal" class="modal hide fade">
+                <div class="modal-header"><h4></h4></div>
+                <div class="content">Заморозить абонемент до <input type="text" class="datepicker" name="calendar"></div>
+                <div class="modal-footer">
+                    <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                    <input class="btn btn-primary" type="submit" value="Заморозить" />
+                </div>
+            </div>
+
             <div id="shortCardMenu">
                 <ul>
                     <li id="changeStudentData">Изменить</li>
@@ -104,24 +122,24 @@
     {% block script %}
 
         <script type="text/javascript">
+
             (function() {
                 /**
                  * Заполнение таблицы редактирования
                  * @type {*|jQuery|HTMLElement}
                  */
-
                 var $infoTable = $('#info table'),
                     $studentForm = $('#editStudent'),
                     addUrl = '/group/addstudent',
                     editUrl = '/group/editstudent';
 
-                var $shortCardMenu_lastIndex, $row, $id, $name, $family;
+                var $shortCardMenu_lastIndex, $row, $id, $name, $family, $index;
                 var $groupId = {{ group_detail.id }};
 
                 $infoTable.find('tr').click(function(event) {
                     if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
                         event.stopPropagation();
-                        $shortCardMenu = $('#shortCardMenu');
+                        var $shortCardMenu = $('#shortCardMenu');
                         $shortCardMenu.css('top', event.clientY);
                         $shortCardMenu.css('left', event.clientX);
                         $id = $(this).data('id');
@@ -130,7 +148,6 @@
 
                         $name = $(chld[1]).text();
                         $family = $(chld[2]).text();
-
                         $index = $(this).index();
 
                         function hide() {
@@ -165,27 +182,130 @@
                     console.log('delete student');
                 });
 
-                $('#freezeStudentPass').click(function() {
-                   console.log('freeze pass');
+                var $freezePass = $('#freezePassModal');
+                var $datepicker = $('.datepicker');
+                var now = new Date();
+                var freezeData = [];
+
+                $datepicker.datepicker({
+                    format: 'dd.mm.yyyy',
+                    weekStart: 1
                 });
+
+                $freezePass.modal({show: false});
+
+                $('#freezeStudentPass').click(function() {
+                    freezeData = [$id];
+                    $datepicker.datepicker('setValue', now);
+                    $freezePass.find('.modal-header h4').text($family+' '+$name+' - заморозка абонемента');
+                    $freezePass.modal('show');
+                });
+
+                $('#freezePassBtn').click(function() {
+
+                    $infoTable.find('tr:gt(0)').each(function() {
+                        if($(this).find('input:checked')) {
+                            freezeData.push($(this).data('id'));
+                        }
+                    });
+
+                    $datepicker.datepicker('setValue', now);
+                    $freezePass.find('.modal-header h4').text('{{ group_detail.name }} - заморозка абонементов');
+                    $freezePass.modal('show');
+                });
+
+                function freezePass() {
+                    processData('freezepass', {ids: JSON.stringify(freezeData)}, function(err, data) {
+                        if(!err) {
+                            clearFreeze();
+                            $freezePass.modal('hide');
+                        } else {
+                            console.log(err);
+                        }
+                    });
+                }
+
+                function clearFreeze() {
+                    freezeData = [];
+                }
+
+                $freezePass.find('.modal-footer .cancel').click(clearFreeze);
+                $freezePass.find('.modal-footer .btn-primary').click(freezePass);
 
                 var $passList = $('#passList');
                 $passList.modal({show: false});
 
-                var passListHandler;
-
-                $passList.find('.modal-footer .btn-primary').click(passListHandler);
-
                 $('#writeOffPass').click(function() {
-                    $passList.find('.modal-footer .btn-primary').val('Списать');
-                    $passList.find('.modal-header h4').text($family+' '+$name);
-                    processData('getpasses', {owner: $id, group: $groupId}, processPassList, writeOffProcess);
+                    var $btn = $passList.find('.modal-footer .btn-primary');
+                    $btn.val('Списать');
+
+                    $btn.off('click');
+                    $btn.click(function() {
+
+                        var ids = getPassListData(),
+                            msg = (ids.length > 1) ?  'Списать абонементы' : 'Списать абонемент';
+
+                        if(confirm(msg)) {
+                            processData('writeoffpass', {ids: JSON.stringify(ids)}, function(err, data) {
+                                if(!err) {
+                                    $passList.modal('hide');
+                                    reload()
+                                } else {
+                                    $passList.modal('hide');
+                                    alert('Что-то пошло не так, пожалуйста попробуйте еще раз.')
+                                }
+                            });
+                        }
+                    });
+
+                    $passList.find('.modal-header h4').text($family+' '+$name+' - списание остатка');
+                    processData('getpasses', {owner: $id, group: $groupId}, processPassList);
                 });
 
                 $('#deletePass').click(function() {
-                    $passList.find('.modal-footer .btn-primary').val('Удалить');
-                    $passList.find('.modal-header h4').text($family+' '+$name);
-                    processData('getpasses', {owner: $id, group: $groupId}, processPassList, deleteProcess);
+                    var $btn = $passList.find('.modal-footer .btn-primary');
+                    $btn.val('Удалить');
+
+                    $btn.off('click');
+                    $btn.click(function() {
+
+                        var ids = getPassListData(),
+                            msg = (ids.length > 1) ?  'Удалить абонементы' : 'Удалить абонемент';
+
+                        if(confirm(msg)) {
+                            processData('deletepass', {ids: JSON.stringify(ids)}, function(err, data) {
+                                if(!err) {
+                                    $passList.modal('hide');
+                                    reload()
+                                } else {
+                                    $passList.modal('hide');
+                                    alert('Что-то пошло не так, пожалуйста попробуйте еще раз.')
+                                }
+                            });
+                        }
+                    });
+
+                    $passList.find('.modal-header h4').text($family+' '+$name+' - удаление абонемента');
+                    processData('getpasses', {owner: $id, group: $groupId}, processPassList);
+                });
+
+                $('#changePassOwner').click(function() {
+
+                    var $container = $('#changePassOwnerModal .owners');
+
+                    $container.empty();
+
+                    $infoTable.find('tr').each(function() {
+                        var chld= $(this).children();
+                        var name, family, id;
+
+                        id = $(this).data('id');
+                        name = $(chld[1]).text();
+                        family = $(chld[2]).text();
+
+                        $container.append()
+
+                    });
                 });
 
                 function processData(url, params, callback) {
@@ -201,41 +321,31 @@
                     });
                 }
 
-                function processPassList(err, passes, buttonHandler) {
+                function processPassList(err, passes) {
                     if(!err) {
                         var $pl = $('#passListContainer');
                         $pl.empty();
+                        if(passes.length > 0) {
+                            for(var i= 0, j= passes.length; i<j; i++) {
+                                var pass = passes[i];
+                                console.log(pass);
+                                $('<li><label class="checkbox"><input type="checkbox" data-val="'+pass.id+'">'+pass.pass_type.name+' c '+pass.start_date+'</label></li>').appendTo($pl);
+                            }
+                            $passList.modal('show');
 
-                        for(var i= 0, j= passes.length; i<j; i++) {
-                            pass = passes[i];
-                            $('<li><label class="checkbox"><input type="checkbox" data-val="'+pass.id+'">'+pass.pass_type.name+' c '+pass.start_date+'</label></li>').appendTo($pl);
+                        } else {
+                            alert('У ученика нету ни одного открытого абонемента.')
                         }
-                        $passList.modal('show');
-
-                        passListHandler = buttonHandler;
                     }
                 }
 
-                function writeOffProcess() {
+                function getPassListData() {
+                    var ids = [];
+                    $('#passListContainer').children().find('input:checked').each(function() {
+                        ids.push($(this).data('val'));
+                    });
 
-                    // todo собрать ID-шники и передать их для обработки
-
-                    if(confirm('Списать абонемент(ы)')) {
-                        processData('writeoffpass', {owner: $id, group: $groupId}, function() {
-                            $passList.modal('hide');
-                        });
-                    }
-                }
-
-                function deleteProcess() {
-
-                    // todo собрать ID-шники и передать их для обработки
-
-                    if(confirm('Удалить абонемент(ы)')) {
-                        processData('deletepass', {owner: $id, group: $groupId}, function() {
-                            $passList.modal('hide');
-                        });
-                    }
+                    return ids;
                 }
 
                 function showStudentCard(event) {
@@ -306,6 +416,10 @@
                         $('#freezePassBtn').addClass('disabled');
                     }
                 });
+
+                function reload() {
+                    window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}';
+                }
             })();
         </script>
 

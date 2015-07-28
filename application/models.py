@@ -163,6 +163,7 @@ class Passes(models.Model):
 
     def __json__(self):
         return dict(
+            id=self.id,
             student=self.student.id,
             group=self.group.id,
             start_date=self.start_date.isoformat(),

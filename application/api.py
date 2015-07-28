@@ -1,4 +1,4 @@
-к# -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
 import datetime, json, copy
 
@@ -77,8 +77,16 @@ def edit_student(request):
 def delete_pass(request):
     try:
         ids = json.loads(request.GET['ids'])
-        passes = Passes.objects.filter(pk__in=ids).delete()
-        return HttpResponse(200)
+        passes = Passes.objects.filter(pk__in=ids)
+
+        processed = ((p.id, PassLogic.wrap(p).delete()) for p in passes)
+
+        if all([p1[1] for p1 in processed]):
+            return HttpResponse(200)
+
+        errors = filter(lambda x: not x[1], processed)
+        return HttpResponseServerError(json.dumps(errors))
+
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')
@@ -120,13 +128,12 @@ def write_off_the_pass(request):
     try:
         ids=json.loads(request.GET['ids'])
         passes = Passes.objects.filter(pk__in=ids)
-        processed = map((p.id, PassLogic.wrap(p).write_off()) for p in passes)
+        processed = ((p.id, PassLogic.wrap(p).write_off()) for p in passes)
 
         if all(p[1] for p in processed):
             return HttpResponse(200)
 
         errors = filter(lambda x: not x[1], processed)
-
         return HttpResponseServerError(json.dumps(errors))
 
     except Exception:
@@ -178,12 +185,15 @@ def process_lesson(request):
 
         attended_passes = []
         attended_passes_ids = []
+        error = []
 
         if new_passes:
             for p in new_passes:
                 pt = PassTypes.objects.get(pk=p['pass_type'])
                 st_id = p['student_id']
-                if not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
+                if pt.lessons > 1 and Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True, start_date__gt=date).exists():
+                    error.append(st_id)
+                elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
                     pass_orm_object = Passes(
                         student_id=st_id,
                         group=group,
@@ -217,8 +227,11 @@ def process_lesson(request):
                 attended_passes_ids.append(_pass.orm_object.id)
 
         for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group=group, start_date__lte=date, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
-            if _pass:
+            if _pass and _pass.check_date(date):
                 _pass.set_lesson_not_attended(date)
+
+        if error:
+            return HttpResponseServerError(json.dumps(error))
 
         return HttpResponse(200)
 

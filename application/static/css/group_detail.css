@@ -198,3 +198,12 @@
     width: 100%;
     list-style: none;
 }
+
+#freezePassModal .content {
+    padding: 10px 25%
+}
+
+#freezePassModal .content .datepicker {
+    width: 73px;
+    margin: 3px;
+}

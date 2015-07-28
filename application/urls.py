@@ -31,5 +31,6 @@ urlpatterns = [
     url(r'^processlesson', api.process_lesson),
     url(r'^getpasses', api.get_passes),
     url(r'^deletepass', api.delete_pass),
+    url(r'^freezepass', api.freeze_pass),
     url(r'', views.index_view)
 ]

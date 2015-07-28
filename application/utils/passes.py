@@ -31,6 +31,9 @@ class AbstractPass(object):
     def __init__(self, obj):
         self.orm_object = obj
 
+    def check_date(self, date):
+        return Lessons.objects.filter(group_pass=self.orm_object, date=date).exists()
+
     def check_lessons_count(self):
         self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))
         self.orm_object.save()
@@ -158,6 +161,22 @@ class AbstractPass(object):
             )
 
             lesson.save()
+
+    def delete(self):
+        try:
+            for l in Lessons.objects.filter(group_pass=self.orm_object):
+                l.delete()
+
+            self.orm_object.delete()
+            return True
+
+        except Lessons.DoesNotExist:
+
+            self.orm_object.delete()
+            return True
+
+        except Exception:
+            return False
 
 
 class RegularPass(AbstractPass):

@@ -299,6 +299,8 @@
                         }
                     }).done(function() {
                         window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
+                    }).error(function(err) {
+                        console.log(err);
                     });
                 });
 
