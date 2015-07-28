@@ -119,6 +119,13 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
     lessons = list(Lessons.objects.filter(student=student, group=group, date__gte=from_date))
 
+    passes = []
+    for lesson in lessons:
+        if lesson.group_pass not in passes:
+            passes.append(lesson.group_pass)
+
+
+
     multi_passes = Passes.objects.select_related().filter(
         Q(student=student),
         Q(lessons__gt=0),

@@ -145,6 +145,11 @@ class Passes(models.Model):
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков', null=True, blank=True)
+    frozen_date = models.DateField(verbose_name=u'Дата окончания заморозки', null=True, blank=True)
+
+    @property
+    def date(self):
+        return self.frozen_date or self.start_date
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.lessons is None:

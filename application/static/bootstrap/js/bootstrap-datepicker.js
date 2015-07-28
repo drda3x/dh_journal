@@ -137,7 +137,11 @@
 				this.element.prop('value', formated);
 			}
 		},
-		
+
+        getDate: function() {
+            return this.date
+        },
+
 		setValue: function(newDate) {
 			if (typeof newDate === 'string') {
 				this.date = DPGlobal.parseDate(newDate, this.format);

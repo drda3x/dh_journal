@@ -143,7 +143,20 @@ def write_off_the_pass(request):
 
 def freeze_pass(request):
     try:
-        raise SyntaxError()
+        ids = json.loads(request.GET['ids'])
+        group = Groups.objects.get(pk=request.GET['group'])
+        date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
+        students = Students.objects.filter(pk__in=ids)
+
+        for student in students:
+            p = Passes.objects.filter(student=student, group=group).order_by('start_date').last()
+
+            if p.lessons > 0:
+                wrapped = PassLogic.wrap(p)
+                wrapped.freeze(date)
+            else:
+                pass
+
         return HttpResponse(200)
     except Exception:
         print format_exc()
@@ -191,7 +204,7 @@ def process_lesson(request):
             for p in new_passes:
                 pt = PassTypes.objects.get(pk=p['pass_type'])
                 st_id = p['student_id']
-                if pt.lessons > 1 and Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True, start_date__gt=date).exists():
+                if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
                     error.append(st_id)
                 elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
                     pass_orm_object = Passes(

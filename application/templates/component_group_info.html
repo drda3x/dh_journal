@@ -29,7 +29,7 @@
             </table>
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
             <a id="deleteStudentBtn" role="button" class="btn disabled">Удалить</a>
-            <a id="freezePassBtn" role="button" class="btn disabled">Заморозить абонемент</a>
+            <a id="freezePassBtn" role="button" class="btn disabled">Перенести абонемент(ы)</a>
 
             <!-- Форма "Карточка ученика" -->
             <div id="editStudent" class="modal hide fade">
@@ -98,10 +98,10 @@
 
             <div id="freezePassModal" class="modal hide fade">
                 <div class="modal-header"><h4></h4></div>
-                <div class="content">Заморозить абонемент до <input type="text" class="datepicker" name="calendar"></div>
+                <div class="content">Перенести на: <input type="text" class="datepicker" name="calendar"></div>
                 <div class="modal-footer">
                     <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
-                    <input class="btn btn-primary" type="submit" value="Заморозить" />
+                    <input class="btn btn-primary" type="submit" value="Перенести" />
                 </div>
             </div>
 
@@ -110,7 +110,7 @@
                     <li id="changeStudentData">Изменить</li>
                     <li id="deleteStudent">Удалить</li>
                     <li class="divider"></li>
-                    <li id="freezeStudentPass">Заморозить абонемент</li>
+                    <li id="freezeStudentPass">Перенести абонемент</li>
                     <li id="changePassOwner">Передать абонемент</li>
                     <li id="writeOffPass">Списать абонемент</li>
                     <li id="deletePass">Удалить абонемент</li>
@@ -190,6 +190,8 @@
                 $datepicker.datepicker({
                     format: 'dd.mm.yyyy',
                     weekStart: 1
+                }).on('changeDate', function(ev) {
+                    $datepicker.datepicker('hide');
                 });
 
                 $freezePass.modal({show: false});
@@ -197,28 +199,38 @@
                 $('#freezeStudentPass').click(function() {
                     freezeData = [$id];
                     $datepicker.datepicker('setValue', now);
+                    $datepicker.attr('data-date', now.valueOf());
                     $freezePass.find('.modal-header h4').text($family+' '+$name+' - заморозка абонемента');
                     $freezePass.modal('show');
                 });
 
                 $('#freezePassBtn').click(function() {
-
+                    clearFreeze();
                     $infoTable.find('tr:gt(0)').each(function() {
-                        if($(this).find('input:checked')) {
+                        if($(this).find('input:checked').length > 0) {
                             freezeData.push($(this).data('id'));
                         }
                     });
 
-                    $datepicker.datepicker('setValue', now);
-                    $freezePass.find('.modal-header h4').text('{{ group_detail.name }} - заморозка абонементов');
-                    $freezePass.modal('show');
+                    if(freezeData.length > 0) {
+                        $datepicker.datepicker('setValue', now);
+                        $datepicker.attr('data-date', now.valueOf());
+                        $freezePass.find('.modal-header h4').text('{{ group_detail.name }} - заморозка абонементов (выбрано: '+freezeData.length+')');
+                        $freezePass.modal('show');
+                    }
                 });
 
                 function freezePass() {
-                    processData('freezepass', {ids: JSON.stringify(freezeData)}, function(err, data) {
+                    processData('freezepass',
+                            {
+                                ids: JSON.stringify(freezeData),
+                                group: {{ group_detail.id }},
+                                date: $datepicker.val()
+                            }, function(err, data) {
                         if(!err) {
                             clearFreeze();
                             $freezePass.modal('hide');
+                            reload();
                         } else {
                             console.log(err);
                         }

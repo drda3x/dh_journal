@@ -66,11 +66,11 @@ class AbstractPass(object):
                 lesson = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_attended']).order_by('date')[0]
                 lesson.status = Lessons.STATUSES['moved']
                 lesson.save()
-            except Lessons.DoesNotExist:
+            except IndexError:
                 pass
         elif status == Lessons.STATUSES['moved']:
-            pt = self.orm_object.pass_type
-            new_date = self.orm_object.group.get_calendar(pt.lessons + pt.skips - self.orm_object.skips + 1, self.orm_object.start_date)[-1]
+            last_lesson = Lessons.objects.filter(group_pass=self.orm_object).order_by('date').last()
+            new_date = self.orm_object.group.get_calendar(2, last_lesson.date)[-1]
             new_lesson = Lessons(
                 date=new_date,
                 group=self.orm_object.group,
@@ -80,6 +80,7 @@ class AbstractPass(object):
             )
             new_lesson.save()
             self.orm_object.skips -= 1
+            self.orm_object.save()
 
         # elif not all([checker(x) for x in [prev_status, status]]):
         #     self.orm_object.lessons -= 1
@@ -112,8 +113,18 @@ class AbstractPass(object):
         pass
 
     # Заморозить
-    def freeze(self, start_date, stop_date):
-        pass
+    def freeze(self, date):
+
+        def move_lesson(lesson, new_date):
+            lesson.date = new_date
+            lesson.save()
+
+        self.orm_object.frozen_date = date
+        cal = self.orm_object.group.get_calendar(self.orm_object.lessons, date)
+        lessons = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']).order_by('date')
+        map(move_lesson, lessons, cal)
+
+        self.orm_object.save()
 
     # Разморозить
     def unfreeze(self, date):
