@@ -37,8 +37,8 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h3>Карточка ученика</h3>
                 </div>
-                <form class="form-horizontal" action="/group/editStudent">
-                    <input type="hidden" name="id" value="{{ group_detail.id }}" />
+                <div class="form-horizontal" id="editStudentContent">
+                    <input type="hidden" name="id" id="stid" />
                     <div class="modal-body">
                             <div class="control-group">
                                 <label class="control-label" for="last_name">Фамилия</label>
@@ -75,7 +75,7 @@
                         <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                         <input class="btn btn-primary" type="submit" value="Добавить" />
                     </div>
-                </form>
+                </div>
             </div>
 
             <div id="passList" class="modal hide fade">
@@ -173,13 +173,44 @@
 
                     }
                 });
-
+                
+                function getIdFromSelectedRows() {
+                    var result = [];
+                    
+                    $infoTable.find('tr:gt(0)').each(function() {
+                        if($(this).find('input:checked').length > 0) {
+                            result.push($(this).data('id'));
+                        }
+                    });
+                    
+                    return result;
+                }
+                
                 $('#changeStudentData').click(function() {
                     showStudentCard();
                 });
 
                 $('#deleteStudent').click(function() {
-                    console.log('delete student');
+                    processData('deletestudent', {ids: JSON.stringify([$id])}, function(err, data) {
+                        if(!err) {
+                            reload()
+                        } else {
+                            console.log(err);
+                        }
+                    })
+                });
+                
+                $('#deleteStudentBtn').click(function() {
+                    var toDelete = getIdFromSelectedRows();
+                    if(toDelete.length > 0) {
+                        processData('deletestudent', {ids: JSON.stringify(toDelete)}, function(err, data) {
+                        if(!err) {
+                            reload()
+                        } else {
+                            console.log(err);
+                        }
+                    })
+                    }
                 });
 
                 var $freezePass = $('#freezePassModal');
@@ -206,11 +237,7 @@
 
                 $('#freezePassBtn').click(function() {
                     clearFreeze();
-                    $infoTable.find('tr:gt(0)').each(function() {
-                        if($(this).find('input:checked').length > 0) {
-                            freezeData.push($(this).data('id'));
-                        }
-                    });
+                    freezeData = getIdFromSelectedRows();
 
                     if(freezeData.length > 0) {
                         $datepicker.datepicker('setValue', now);
@@ -389,14 +416,26 @@
                     var $this = $row,
                     $children = $this.children();
 
+                    $('#stid').val($id);
                     $('#last_name').val($($children[1]).text());
                     $('#first_name').val($($children[2]).text());
                     $('#phone').val($($children[3]).text());
                     $('#e_mail').val($($children[4]).text());
                     $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
 
-                    $studentForm.find('form').attr('action', editUrl);
-                    $studentForm.find('.btn.btn-primary').val('Сохранить');
+                    var $submit = $studentForm.find('.btn.btn-primary');
+                    $submit.off('click');
+                    $submit.click(function() {
+                        processData(editUrl, getStudentFormParams(), function(err, data) {
+                            if(!err) {
+                                reload()
+                            } else {
+                                console.log(err);
+                            }
+                        })
+                    });
+
+                    $submit.val('Сохранить');
                     $studentForm.modal('show');
                 }
 
@@ -408,10 +447,34 @@
                     $('#e_mail').val('');
                     $('#is_org').prop('checked', false);
 
-                    $studentForm.find('form').attr('action', addUrl);
-                    $studentForm.find('.btn.btn-primary').val('Добавить');
+                    var $submit = $studentForm.find('.btn.btn-primary');
+
+                    $submit.off('click');
+                    $submit.click(function() {
+                        processData(addUrl, getStudentFormParams(), function(err, data) {
+                            if(!err) {
+                                reload()
+                            } else {
+                                console.log(err);
+                            }
+                        })
+                    });
+
+                    $submit.val('Добавить');
                     $studentForm.modal('show');
                 });
+
+                function getStudentFormParams() {
+                    return {
+                        id: {{ group_detail.id }},
+                        stid: $id,
+                        last_name: $('#last_name').val(),
+                        first_name: $('#first_name').val(),
+                        phone: $('#phone').val(),
+                        e_mail: $('#e_mail').val(),
+                        is_org: $('#is_org').prop('checked')
+                    }
+                }
 
                 /**
                  * checkbox

@@ -31,6 +31,12 @@ class Groups(models.Model):
     def days_nums(self):
         return map(int,self._days.split(','))
 
+    @property
+    def last_lesson(self):
+        now = datetime.datetime.now()
+        week_ago = now - datetime.timedelta(days=7)
+        return filter(lambda x: x <= now, self.get_calendar(date_from=week_ago, count=4))[-1].date()
+
     def get_calendar(self, count, date_from=None):
         start_date = date_from if date_from else self.start_date
         days = calendar.itermonthdays2(start_date.year, start_date.month)

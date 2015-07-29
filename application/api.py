@@ -5,8 +5,10 @@ import datetime, json, copy
 from traceback import format_exc
 
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.db.models import Q
 
 from application.utils.passes import PassLogic
+from application.utils.groups import get_group_students_list
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons
 from application.views import group_detail_view
 
@@ -65,13 +67,39 @@ def add_student(request):
 
 
 def delete_student(request):
-    student = Students.objects.get(pk=request.GET['student'])
-    student.is_deleted = True
-    student.save()
+    try:
+        ids = json.loads(request.GET['ids'])
+        students = Students.objects.filter(pk__in=ids)
+        errors = []
+        for student in students:
+            try:
+                student.is_deleted = True
+                student.save()
+
+            except Exception:
+                errors.append(student.id)
+
+        return HttpResponse(200) if not errors else HttpResponseServerError(json.dumps(errors))
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
 
 
 def edit_student(request):
-    return HttpResponseNotFound('Need to realize back-end for this functionality')
+    try:
+        student = Students.objects.get(pk=request.GET['stid'])
+        student.first_name = request.GET['first_name']
+        student.last_name = request.GET['last_name']
+        student.phone = request.GET['phone']
+        student.e_mail = request.GET.get('e_mail', None)
+        student.org = request.GET['is_org'] == u'true'
+        student.save()
+
+        return HttpResponse(200)
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
 
 
 def delete_pass(request):
@@ -167,6 +195,33 @@ def freeze_pass(request):
         return HttpResponseServerError('failed')
 
 
+def get_pass_by_owner(request):
+    try:
+        pid = request.GET.get('pid', None)
+        if not pid:
+            sign = request.GET['str'].lower()
+            group = Groups.objects.get(pk=request.GET['group'])
+            students = filter(lambda x: sign in x.first_name.lower() or sign in x.last_name.lower(), get_group_students_list(group))
+            passes = Passes.objects.filter(group=group, student__in=students, lessons__gt=0, pass_type__one_group_pass=True)
+        else:
+            passes = Passes.objects.filter(pk=pid)
+
+        result = [
+            {
+                'pass_id': p.id,
+                'st_name': p.student.last_name,
+                'st_fam': p.student.first_name,
+                'lessons': p.lessons
+            }
+            for p in passes
+        ]
+        return HttpResponse(json.dumps(result))
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
 def get_passes(request):
     try:
         owner = request.GET['owner']
@@ -209,28 +264,55 @@ def process_lesson(request):
         if not canceled:
             if new_passes:
                 for p in new_passes:
-                    pt = PassTypes.objects.get(pk=p['pass_type'])
-                    st_id = p['student_id']
-                    if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
-                        error.append(st_id)
-                    elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
-                        pass_orm_object = Passes(
-                            student_id=st_id,
-                            group=group,
-                            pass_type=pt,
-                            start_date=date
-                        )
-                        pass_orm_object.save()
+                    _pt = int(p['pass_type'])
+                    if _pt == -1:
 
+                        another_person_pass = Passes.objects.get(pk=p['from_another'])
+                        pass_orm_object = Passes(
+                            student_id=p['student_id'],
+                            group=group,
+                            pass_type=another_person_pass.pass_type,
+                            start_date=date,
+                            lessons=1,
+                            skips=0
+                        )
+
+                        pass_orm_object.save()
                         wrapped = PassLogic.wrap(pass_orm_object)
                         wrapped.create_lessons(date)
 
-                        wrapped.presence = p.get('presence', False)
+                        another_person_pass.lessons -= 1
+                        another_person_pass.save()
+                        Lessons.objects.filter(group_pass=another_person_pass).order_by('date').last().delete()
                         attended_passes.append(wrapped)
+
+                    else:
+                        pt = PassTypes.objects.get(pk=_pt)
+                        st_id = p['student_id']
+                        if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
+                            error.append(st_id)
+                        elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
+                            pass_orm_object = Passes(
+                                student_id=st_id,
+                                group=group,
+                                pass_type=pt,
+                                start_date=date
+                            )
+                            pass_orm_object.save()
+
+                            wrapped = PassLogic.wrap(pass_orm_object)
+                            wrapped.create_lessons(date)
+
+                            wrapped.presence = p.get('presence', False)
+                            attended_passes.append(wrapped)
 
             if old_passes:
                 for p in old_passes:
-                    pass_orm_object = Passes.objects.select_related().filter(student_id=p, group=group, start_date__lte=date).order_by('start_date').last()
+                    pass_orm_object = Passes.objects.select_related().filter(
+                        Q(student_id=p),
+                        Q(group=group),
+                        Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
+                    ).order_by('start_date').last()
                     l_cnt = pass_orm_object.pass_type.lessons
                     st_dt = pass_orm_object.date
                     calendar = group.get_calendar(l_cnt, date_from=st_dt)
@@ -246,7 +328,11 @@ def process_lesson(request):
                         _pass.set_lesson_attended(date, group=group.id)
                     attended_passes_ids.append(_pass.orm_object.id)
 
-        for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(group=group, start_date__lte=date, lessons__gt=0).exclude(pk__in=attended_passes_ids)):
+        for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
+                Q(group=group),
+                Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
+                Q(lessons__gt=0)
+        ).exclude(pk__in=attended_passes_ids)):
             if _pass and _pass.check_date(date):
                 _pass.set_lesson_not_attended(date) if not canceled else _pass.freeze(next_date)
 

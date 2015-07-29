@@ -10,10 +10,12 @@ window.vidgetsLogic.Popover = (function($) {
      * Класс определяющий поведение popover'a
      * @constructor
      */
-    function Popover() {
+    function Popover(group) {
         this.html = $('#pass_menu');
         this.objSelector = '.popover';
         this.activeClass = 'popover-opened';
+        this.group = group;
+        this.timer = undefined;
     }
 
     /**
@@ -41,6 +43,7 @@ window.vidgetsLogic.Popover = (function($) {
             this.$object.hide(timeout || 0);
             setTimeout(this.$object.remove, timeout || 0);
         }
+        this.stopIntervals();
     };
 
     /**
@@ -67,6 +70,8 @@ window.vidgetsLogic.Popover = (function($) {
             if(value) {
                 this.$object.find('input[value='+value+']').prop('checked', 'checked');
                 self.toggleAdvanced(value);
+            } else {
+                self.$target.removeAttr('subval');
             }
 
             // Вешаем евенты
@@ -122,16 +127,89 @@ window.vidgetsLogic.Popover = (function($) {
      */
     Popover.prototype.toggleAdvanced = function(val) {
 
-        var $html = $(this.objSelector + ':visible').find('#pass_menu_advanced');
+        function responseProcessor(err, data) {
+            if(err) {
+                console.log(err);
+            } else {
+                $contentHtml.empty();
+                var json = JSON.parse(data);
+                for(var i= 0, j= json.length; i<j; i++) {
+                    var elem = $('<li class="popover-pass_menu-content" data-id="'+json[i].pass_id+'">'+json[i].st_fam+' '+json[i].st_name+' ('+json[i].lessons+')</li>');
+
+                    elem.click(function() {
+                        self.$target.attr('subval', $(this).data('id'));
+                        $(this).siblings().removeClass('popover-pass_menu-content-active');
+                        $(this).addClass('popover-pass_menu-content-active');
+                    });
+
+                    if(subval) {
+                        elem.addClass('popover-pass_menu-content-active');
+                        subval = null;
+                    }
+
+                    $contentHtml.append(elem);
+                }
+            }
+        }
+
+        var $html = $(this.objSelector + ':visible').find('#pass_menu_advanced'),
+            $contentHtml = $('.popover-content').find('#pass_menu_advanced_content'),
+            self = this,
+            $fio = $html.find('#pass_menu_fio');
+
+        $fio.off('keypress');
 
         if(val == '-1') {
-            var $fio = $html.find('#pass_menu_fio');
-            $html.show();
 
-            $fio.keypress();
+            $html.show();
+            var kp = false;
+
+            var subval = self.$target.attr('subval');
+
+            if(subval) {
+                self.get_passes({pid: subval}, responseProcessor);
+            }
+
+            self.timer = setInterval(function() {
+                if(kp) {
+                    var val = $fio.val();
+                    if(val.length >= 3) {
+                        self.get_passes({str: val, group: self.group}, responseProcessor);
+                    } else {
+                        $contentHtml.empty();
+                    }
+                    kp = false;
+                }
+            },500);
+
+            $fio.keypress(function() {
+                kp = true;
+            });
+
         } else {
-            $html.hide()
+            $html.hide();
+            self.stopIntervals();
+            $fio.off('keypress');
+            $contentHtml.empty();
+            $('.popover-content').find('#pass_menu_fio').val('');
+            self.$target.removeAttr('subval');
         }
+    };
+
+    Popover.prototype.get_passes = function(params, callback) {
+        $.ajax({
+            method: 'GET',
+            url: 'getavailiablepasses',
+            data: params
+        }).error(function(err) {
+            callback(err, null)
+        }).done(function(data) {
+            callback(null, data)
+        })
+    };
+
+    Popover.prototype.stopIntervals = function() {
+        if(this.timer) clearInterval(this.timer)
     };
 
     return Popover

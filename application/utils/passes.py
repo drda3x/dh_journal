@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime, copy
-from application.models import PassTypes, Passes, Groups, Lessons
+from application.models import PassTypes, Passes, Groups, Lessons, Students
 
 
 ORG_PASS_HTML_CLASS = 'pass_type_org'
@@ -32,7 +32,7 @@ class AbstractPass(object):
         self.orm_object = obj
 
     def check_date(self, date):
-        return Lessons.objects.filter(group_pass=self.orm_object, date=date).exists()
+        return Lessons.objects.filter(group_pass=self.orm_object, date=date.date()).exists()
 
     def check_lessons_count(self):
         self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))
@@ -134,20 +134,23 @@ class AbstractPass(object):
     def change_owner(self, new_owner, date=None):
 
         try:
-            current_owner = self.orm_object.student
+            new_owner = Students.objects.get(pk=new_owner)
             group = self.orm_object.group
 
-            no_pass = Passes.objects.filter(student=current_owner, lessons__gt=0, group=group).order_by('start_date').last()
-            if not no_pass:
-                no_pass = Passes(student_id=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=date)
-                no_pass.save()
-                next_lesson_date = no_pass.start_date
+            new_pass = Passes.objects.filter(student=new_owner, lessons__gt=0, group=group).order_by('start_date').last()
+            if not new_pass:
+                new_pass = Passes(student=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=group.last_lesson)
+                new_pass.save()
+                next_lesson_date = new_pass.start_date
             else:
-                last_lesson_date = Lessons.objects.filter(group_pass=no_pass).order_by('date').last()
+                last_lesson_date = Lessons.objects.filter(group_pass=new_pass).order_by('date').last()
                 next_lesson_date = group.get_calendar(2, last_lesson_date.date)[-1]
 
-            wrapped = PassLogic.wrap(no_pass)
+            wrapped = PassLogic.wrap(new_pass)
             wrapped.create_lessons(next_lesson_date, self.orm_object.lessons)
+
+            for lesson in Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']):
+                lesson.delete()
 
             return True
 

@@ -46,6 +46,7 @@
                     </label>
                     <div id="pass_menu_advanced" style="display: none">
                         <input id="pass_menu_fio" type="text" placeholder="Фамилия Имя">
+                        <ul id="pass_menu_advanced_content"></ul>
                     </div>
                 </div>
             </div>
@@ -87,7 +88,7 @@
         <script type="text/javascript">
             (function() {
                 var matrix = new window.View.Matrix(),
-                    popoverLogic = new window.vidgetsLogic.Popover();
+                    popoverLogic = new window.vidgetsLogic.Popover({{ group_detail.id }});
 
                 /**
                  * Получить дату из колонки
@@ -250,6 +251,10 @@
                     }
                 });
 
+                $('#lesson_window').on('hidden', function(){
+                    popoverLogic.stopIntervals();
+                });
+
                 // ====================================================================================================
                 // ====================================================================================================
 
@@ -276,9 +281,11 @@
 
                             if(lesson.find('input:checked').length > 0) {
                                 if(lesson.hasClass('add-pass')) {
+                                    values =
                                     json.data.push({
                                         student_id: student_id,
                                         pass_type: lesson.attr('val'),
+                                        from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
                                         presence: true
                                     });
                                 } else {

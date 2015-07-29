@@ -50,17 +50,13 @@ def get_group_detail(group_id, date_from, date_to):
         } for s in get_group_students_list(group)
     ]
 
-    now = datetime.datetime.now()
-    week_ago = now - datetime.timedelta(days=7)
-    last_lesson = filter(lambda x: x <= now, group.get_calendar(date_from=week_ago, count=4))[-1].date()
-
     return {
         'id': group.id,
         'name': group.name,
         'days': group.days,
         'start_date': group.start_date,
         'students': students,
-        'last_lesson': last_lesson,
+        'last_lesson': group.last_lesson,
         'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
     }
 

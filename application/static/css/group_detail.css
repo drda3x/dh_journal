@@ -207,3 +207,23 @@
     width: 73px;
     margin: 3px;
 }
+
+#pass_menu_advanced_content {
+    list-style: none;
+    width: 200px;
+}
+
+.popover-pass_menu-content {
+    cursor: pointer;
+    margin: 3px 0;
+}
+
+.popover-pass_menu-content:hover {
+    color: #ffffff;
+    background-color: #0088CC;
+}
+
+.popover-pass_menu-content-active {
+    color: #ffffff;
+    background-color: #0088CC;
+}
