@@ -453,7 +453,7 @@
                     $submit.click(function() {
                         processData(addUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
-                                reload()
+                                reload();
                                 $studentForm.modal('hide');
                             } else {
                                 console.log(err);

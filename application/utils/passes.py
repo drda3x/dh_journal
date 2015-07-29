@@ -226,7 +226,7 @@ class MultiPass(AbstractPass):
 
     def set_lesson_attended(self, date, person=None, **kwargs):
 
-        if not self.orm_object.start_date <= date.date() <= self.orm_object.end_date:
+        if not self.orm_object.start_date.date() <= date.date() <= self.orm_object.end_date:
             return
 
         lesson = Lessons(
@@ -261,12 +261,12 @@ class PassLogic(object):
         # Определяем и возвращаем тип абонемента
         if not pass_type.one_group_pass:
             obj.group = None
-            obj.save()
             obj.end_date = datetime.date(
                 obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
                 obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
                 obj.start_date.day
             )
+            obj.save()
             return MultiPass(obj)
 
         elif obj.student.org:

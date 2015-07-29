@@ -42,14 +42,14 @@
                     <div class="control-group">
                         <label class="radio">
                             <input type="radio" name="select_pass_type" value="{{ p.id }}" data-color="{{ p.html_color_class }}">
-                            {{ p.name }}
+                            <span>{{ p.name }}</span>
                         </label>
                     </div>
                 {% endfor %}
                 <div class="control-group">
                     <label class="radio">
                         <input id="not_self_pay" type="radio" name="select_pass_type" value="-1">
-                        Списать с другого абонемента
+                        <span>Списать с другого абонемента</span>
                     </label>
                     <div id="pass_menu_advanced" style="display: none">
                         <input id="pass_menu_fio" type="text" placeholder="Фамилия Имя">
@@ -75,7 +75,7 @@
                     {% for student in group_detail.students %}
                         <tr>
                             <td class="student_data" data-stid="{{ student.person.id }}">{{ student.person.last_name }} {{ student.person.first_name }}</td>
-                            <td class="lesson_data"></td>
+                            <td class="lesson_data" data-multypass_id="{{ student.multi_pass.id }}"></td>
                         </tr>
 
                     {% endfor %}
@@ -167,6 +167,14 @@
                             $this.click(function() {
                                 popoverLogic.hide();
                                 popoverLogic.show($(this));
+                                if ($this.data('multypass') != 'None') {
+                                    $('.popover-content').find('.control-group').each(function() {
+                                        var $label = $(this).find('label span');
+                                        if($label.text().toLowerCase().indexOf('мультикарта') >= 0) {
+                                            $label.html('<strong>Мультикарта ('+$this.data('multypass')+')</strong>')
+                                        }
+                                    });
+                                }
                             });
                         }
 

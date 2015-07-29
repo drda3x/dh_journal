@@ -46,12 +46,13 @@ def get_group_detail(group_id, date_from, date_to):
         {
             'person': s,
             'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
-            'pass_remaining': len(get_student_pass_remaining(s, group))
+            'pass_remaining': len(get_student_pass_remaining(s, group)),
+            'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to))
         } for s in get_group_students_list(group)
     ]
 
     calendar = map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
-    convert = lambda x: datetime.datetime.strptime(x, '%d.%m.%Y')
+
     money = dict()
     money['dance_hall'] = group.dance_hall.prise
     money['total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date__range=[date_from, date_to]).exclude(status=Lessons.STATUSES['moved']), 0)
@@ -74,6 +75,21 @@ def get_student_pass_remaining(student, group):
     passes = Passes.objects.filter(student=student, group=group)
     return [l for p in passes for l in Lessons.objects.filter(group_pass=p, status=Lessons.STATUSES['not_processed'])]
 
+
+def get_student_multi_pass(student, date_from, date_to):
+    try:
+        p = Passes.objects.get(
+            pass_type__one_group_pass=False,
+            start_date__lte=date_to,
+            end_date__gte=date_from,
+            student=student,
+            lessons__gt=0
+        )
+
+        return p
+
+    except Passes.DoesNotExist:
+        return None
 
 def get_group_students_list(group):
 
@@ -122,28 +138,7 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
     }
 
     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
-    lessons = list(Lessons.objects.filter(student=student, group=group, date__gte=from_date))
-
-    passes = []
-    for lesson in lessons:
-        if lesson.group_pass not in passes:
-            passes.append(lesson.group_pass)
-
-
-
-    multi_passes = Passes.objects.select_related().filter(
-        Q(student=student),
-        Q(lessons__gt=0),
-        Q(pass_type__one_group_pass=False),
-        Q(Q(start_date__range=[group_calendar[0], group_calendar[-1]]) | Q(end_date__range=[group_calendar[0], group_calendar[-1]]))
-    )
-
-    for p in multi_passes:
-        last_lesson = Lessons.objects.filter(group=group, group_pass=p).order_by('date').last()
-        for l in group.get_calendar(date_from=last_lesson.date if last_lesson else from_date, count=p.lessons):
-            lessons.append(Lessons(student=student, group=group, date=l.date(), group_pass=p))
-
-    lessons.sort(key=lambda x: x.date)
+    lessons = Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date')
     lessons_itr = iter(lessons)
 
     calendar = []
