@@ -454,6 +454,7 @@
                         processData(addUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
                                 reload()
+                                $studentForm.modal('hide');
                             } else {
                                 console.log(err);
                             }

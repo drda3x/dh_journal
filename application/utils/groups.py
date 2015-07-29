@@ -50,6 +50,14 @@ def get_group_detail(group_id, date_from, date_to):
         } for s in get_group_students_list(group)
     ]
 
+    calendar = map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
+    convert = lambda x: datetime.datetime.strptime(x, '%d.%m.%Y')
+    money = dict()
+    money['dance_hall'] = group.dance_hall.prise
+    money['total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date__range=[date_from, date_to]).exclude(status=Lessons.STATUSES['moved']), 0)
+    money['club'] = round((money['total'] - money['dance_hall']) * 0.3, 0)
+    money['balance'] = round(money['total'] - money['dance_hall'] - money['club'], 0)
+
     return {
         'id': group.id,
         'name': group.name,
@@ -57,7 +65,8 @@ def get_group_detail(group_id, date_from, date_to):
         'start_date': group.start_date,
         'students': students,
         'last_lesson': group.last_lesson,
-        'calendar': map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
+        'calendar': calendar,
+        'money': money
     }
 
 

@@ -27,6 +27,13 @@
             </tr>
             {% endfor %}
         </table>
+        <div>
+            <h4>Финансы</h4>
+            <div>Всего: <strong>{{ group_detail.money.total }}</strong></div>
+            <div>Аренда залла: <strong>{{ group_detail.money.dance_hall }}</strong></div>
+            <div>30% клубу: <strong>{{ group_detail.money.club }}</strong></div>
+            <div>Преподавателям: <strong>{{ group_detail.money.balance }}</strong></div>
+        </div>
 
         <!-- Форма выбора абонемента -->
         <div id="pass_menu" class="modal hide">

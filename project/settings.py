@@ -53,6 +53,11 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'application.custom_auth.CustomUserModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 ROOT_URLCONF = 'application.urls'
 
 TEMPLATES = [

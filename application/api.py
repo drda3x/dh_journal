@@ -30,7 +30,7 @@ def add_student(request):
         phone = request.GET['phone']
         e_mail = request.GET['e_mail']
         group_id = int(request.GET['id'])
-        is_org = True if 'is_org' in request.GET.iterkeys() else False
+        is_org = request.GET['is_org'] == u'true'
 
         try:
             student = Students.objects.get(first_name=first_name, last_name=first_name, phone=phone)
@@ -59,7 +59,7 @@ def add_student(request):
         except Exception:
             pass
 
-        return group_detail_view(request)
+        return HttpResponse(200)
 
     except Exception:
         print format_exc()

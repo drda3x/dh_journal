@@ -2,11 +2,35 @@
 
 import datetime, math, calendar as calendar_origin
 from django.db import models
-from django.contrib.auth.models import User
-
+from django.contrib.auth.models import User as UserOrigin, UserManager
 from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
 
 calendar = calendar_origin.Calendar()
+
+
+class User(UserOrigin):
+
+    def __unicode__(self):
+        return '%s %s' % (self.last_name, self.first_name)
+
+    objects = UserManager
+
+
+class DanceHalls(models.Model):
+    """
+    Зал
+    """
+
+    station = models.CharField(max_length=50, verbose_name=u'Станция метро')
+    prise = models.PositiveIntegerField(verbose_name=u'Цена')
+
+    def __unicode__(self):
+        return self.station
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Зал'
+        verbose_name_plural = u'Залы'
 
 
 class Groups(models.Model):
@@ -22,6 +46,7 @@ class Groups(models.Model):
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
+    dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
     @property
     def days(self):
@@ -225,6 +250,9 @@ class Lessons(models.Model):
     def rus(self):
         rev_status = {val: key for key, val in self.STATUSES.iteritems()}
         return self.STATUSES_RUS[rev_status[self.status]]
+
+    def prise(self):
+        return self.group_pass.one_lesson_prise
 
     class Meta:
         app_label = u'application'
