@@ -226,7 +226,8 @@ class MultiPass(AbstractPass):
 
     def set_lesson_attended(self, date, person=None, **kwargs):
 
-        if not self.orm_object.start_date.date() <= date.date() <= self.orm_object.end_date:
+        wright_type = lambda x: x.date() if isinstance(x, datetime.datetime) else x
+        if not wright_type(self.orm_object.start_date) <= wright_type(date) <= wright_type(self.orm_object.end_date):
             return
 
         lesson = Lessons(

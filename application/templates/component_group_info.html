@@ -191,6 +191,9 @@
                 });
 
                 $('#deleteStudent').click(function() {
+                    if (!confirm('Удалить ученика из группы?')) {
+                        return
+                    }
                     processData('deletestudent', {ids: JSON.stringify([$id])}, function(err, data) {
                         if(!err) {
                             reload()
@@ -202,7 +205,13 @@
                 
                 $('#deleteStudentBtn').click(function() {
                     var toDelete = getIdFromSelectedRows();
+
+                    var msg = (toDelete.length > 1) ? 'Удалить учеников из группы' : 'Удалить ученика из группы?';
+
                     if(toDelete.length > 0) {
+                        if (!confirm(msg)) {
+                            return;
+                        }
                         processData('deletestudent', {ids: JSON.stringify(toDelete)}, function(err, data) {
                         if(!err) {
                             reload()
@@ -373,12 +382,13 @@
                 });
 
                 function processData(url, params, callback) {
-
+                    backDrop('show');
                     $.ajax({
                         method: 'GET',
                         url: url,
                         data: params
                     }).error(function(err) {
+                        backDrop('hide');
                         callback(err, null)
                     }).done(function(data) {
                         callback(null, JSON.parse(data))
@@ -451,6 +461,7 @@
 
                     $submit.off('click');
                     $submit.click(function() {
+                        $studentForm.modal('hide');
                         processData(addUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
                                 reload();
@@ -521,6 +532,20 @@
                 function reload() {
                     window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}';
                 }
+
+                function backDrop(param) {
+                    var handlers = {
+                        show: function() {
+                            $('<div class="modal-backdrop">Тут должна быть анимация</div>').appendTo('body')
+                        },
+                        hide: function() {
+                            $('modal-backdrop').remove()
+                        }
+                    };
+
+                    handlers[param]();
+                }
+
             })();
         </script>
 

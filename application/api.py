@@ -286,6 +286,12 @@ def process_lesson(request):
                         Lessons.objects.filter(group_pass=another_person_pass).order_by('date').last().delete()
                         attended_passes.append(wrapped)
 
+                    elif 'pass_id' in p.iterkeys():
+                        pid = p['pass_id']
+                        pass_orm_object = Passes.objects.get(pk=pid)
+                        wrapped = PassLogic.wrap(pass_orm_object)
+                        attended_passes.append(wrapped)
+
                     else:
                         pt = PassTypes.objects.get(pk=_pt)
                         st_id = p['student_id']
@@ -313,14 +319,16 @@ def process_lesson(request):
                         Q(group=group),
                         Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
                     ).order_by('start_date').last()
-                    l_cnt = pass_orm_object.pass_type.lessons
-                    st_dt = pass_orm_object.date
-                    calendar = group.get_calendar(l_cnt, date_from=st_dt)
 
-                    if date in calendar:
-                        wrapped = PassLogic.wrap(pass_orm_object)
-                        wrapped.new_pass = False
-                        attended_passes.append(wrapped)
+                    if pass_orm_object:
+                        l_cnt = pass_orm_object.pass_type.lessons
+                        st_dt = pass_orm_object.date
+                        calendar = group.get_calendar(l_cnt, date_from=st_dt)
+
+                        if date in calendar:
+                            wrapped = PassLogic.wrap(pass_orm_object)
+                            wrapped.new_pass = False
+                            attended_passes.append(wrapped)
 
             for _pass in attended_passes:
                 if _pass:

@@ -75,7 +75,7 @@
                     {% for student in group_detail.students %}
                         <tr>
                             <td class="student_data" data-stid="{{ student.person.id }}">{{ student.person.last_name }} {{ student.person.first_name }}</td>
-                            <td class="lesson_data" data-multypass_id="{{ student.multi_pass.id }}"></td>
+                            <td class="lesson_data" {% if student.multi_pass %} data-multipass_id="{{ student.multi_pass.id }}" data-multipass_lessons="{{ student.multi_pass.lessons }}"{% endif %}></td>
                         </tr>
 
                     {% endfor %}
@@ -96,6 +96,30 @@
             (function() {
                 var matrix = new window.View.Matrix(),
                     popoverLogic = new window.vidgetsLogic.Popover({{ group_detail.id }});
+
+
+                /**
+                 * Костыль для определения мультикарты
+                 */
+                function getPassTypeByName(name) {
+                    var arr = [
+                        {% for p in pass_detail %}
+                            {
+                               name: '{{ p.name }}',
+                                id: {{ p.id }}
+                            },
+                        {% endfor %}
+                    ];
+
+                    for(var i= arr.length-1; i>=0; i++) {
+                        if(name.toLowerCase() == arr[i].name.toLowerCase()) {
+                            return arr[i];
+                        }
+                    }
+
+                    return NaN;
+                }
+
 
                 /**
                  * Получить дату из колонки
@@ -167,11 +191,11 @@
                             $this.click(function() {
                                 popoverLogic.hide();
                                 popoverLogic.show($(this));
-                                if ($this.data('multypass') != 'None') {
+                                if ($this.attr('data-multipass_id')) {
                                     $('.popover-content').find('.control-group').each(function() {
                                         var $label = $(this).find('label span');
                                         if($label.text().toLowerCase().indexOf('мультикарта') >= 0) {
-                                            $label.html('<strong>Мультикарта ('+$this.data('multypass')+')</strong>')
+                                            $label.html('<strong>Мультикарта ('+$this.data('multipass_lessons')+')</strong>')
                                         }
                                     });
                                 }
@@ -276,6 +300,7 @@
                 var $saveButton = $('.save_data');
 
                 $saveButton.click(function() {
+                    backDrop('show');
                     var data_source = $('#lesson_content').find('tr:gt(0)'),
                         json = {
                             group_id: {{ group_detail.id }},
@@ -296,13 +321,18 @@
 
                             if(lesson.find('input:checked').length > 0) {
                                 if(lesson.hasClass('add-pass')) {
-                                    values =
-                                    json.data.push({
+
+                                    var values = {
                                         student_id: student_id,
                                         pass_type: lesson.attr('val'),
                                         from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
                                         presence: true
-                                    });
+                                    };
+
+                                    if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
+                                        values.pass_id = lesson.data('multipass_id');
+                                    }
+                                    json.data.push(values);
                                 } else {
                                     json.data.push(student_id);
                                 }
@@ -330,6 +360,19 @@
                         console.log(err);
                     });
                 });
+
+                function backDrop(param) {
+                    var handlers = {
+                        show: function() {
+                            $('<div class="modal-backdrop"></div>').appendTo('body')
+                        },
+                        hide: function() {
+                            $('modal-backdrop').remove()
+                        }
+                    };
+
+                    handlers[param]();
+                }
 
             })()
         </script>
