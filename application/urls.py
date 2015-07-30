@@ -35,5 +35,6 @@ urlpatterns = [
     url(r'^changeowner', api.change_pass_owner),
     url(r'^deletestudent', api.delete_student),
     url(r'^getavailiablepasses', api.get_pass_by_owner),
+    url(r'^print', views.print_view),
     url(r'', views.index_view)
 ]

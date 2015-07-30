@@ -84,3 +84,23 @@ def group_detail_view(request):
         det['html_color_class'] = html_color_classes[det['color']]
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def print_view(request):
+
+    router = {
+        'full': print_full,
+        'lesson': print_lesson
+    }
+
+    args = (request.GET['id'], request.GET['date'])
+
+    return router[request.GET['type']](*args)
+
+
+def print_full(group_id, date):
+    pass
+
+
+def print_lesson(group_id, date):
+    pass
