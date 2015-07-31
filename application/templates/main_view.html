@@ -8,8 +8,15 @@
                 $frame.attr('src', $(this).attr('href'));
                 $('#dateControl').show();
                 return false;
-            })
+            });
 
+            $('#userProfile').click(function() {
+
+                $frame = $('iframe');
+                $frame.attr('src', $(this).attr('href'));
+                $('.pull-right.dropdown.header-right.open').removeClass('open');
+               return false;
+            });
         });
     </script>
 {% endblock %}
@@ -28,6 +35,7 @@
                     <div class="pull-right dropdown header-right" style="position: relative">
                         <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{ user.last_name }} {{ user.first_name }}<b class="caret"></b></a>
                         <ul class="dropdown-menu">
+                            <li><a href="profile?uid={{ user.id }}" id="userProfile" tabindex="-1">Профиль</a></li>
                             <li><a href="logout" tabindex="-1">Выход</a></li>
                         </ul>
                     </div>

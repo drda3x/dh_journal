@@ -6,8 +6,9 @@ from django.template import RequestContext
 from django.template.context_processors import csrf
 
 from application.utils.passes import get_color_classes
-from application.utils.groups import get_groups_list, get_group_detail
+from application.utils.groups import get_groups_list, get_group_detail, get_student_calendar, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
+from application.models import Lessons, User
 
 from models import Groups, Students, User, PassTypes
 
@@ -86,6 +87,16 @@ def group_detail_view(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def user_profile_view(request):
+    template = 'user_profile.html'
+    uid = request.GET['uid']
+    context = {
+        'user': User.objects.get(pk=uid)
+    }
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
 def print_view(request):
 
     router = {
@@ -93,14 +104,47 @@ def print_view(request):
         'lesson': print_lesson
     }
 
-    args = (request.GET['id'], request.GET['date'])
-
-    return router[request.GET['type']](*args)
+    return router[request.GET['type']](request)
 
 
-def print_full(group_id, date):
-    pass
+def print_full(request):
+    context = {}
+    date_format = '%d%m%Y'
+    template = 'print_full.html'
+    group_id = request.GET['id']
+    date = request.GET.get('date', None)
+
+    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if date\
+        else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    date_to = get_last_day_of_month(date_from)
+    html_color_classes = {
+        key: val for val, key in get_color_classes()
+    }
+
+    context['passes_color_classes'] = [
+        {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
+    ]
+    context['date_str'] = '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
+    context['group_detail'] = get_group_detail(group_id, date_from, date_to)
+
+    context['subtype'] = request.GET.get('subtype', None)
+
+    if not context['subtype']:
+        raise TypeError('wrong subtype')
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def print_lesson(group_id, date):
-    pass
+def print_lesson(request):
+    context = {}
+    template = 'print_lesson.html'
+    date_format = '%d%m%Y'
+
+    date = datetime.datetime.strptime(request.GET['date'], date_format)
+    group = Groups.objects.get(pk=request.GET['id'])
+
+    context['group_name'] = group.name
+    context['date'] = date.strftime('%d.%m.%Y')
+    context['students'] = map(lambda s: dict(data=get_student_calendar(s, group, date, 1), info=s), get_group_students_list(group))
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

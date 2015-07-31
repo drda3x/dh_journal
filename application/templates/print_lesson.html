@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block head %}
+    <style>
+        {% for color_class in passes_color_classes %}
+            .{{ color_class.name }} {
+                background-color: {{ color_class.val }} !important;
+            }
+        {% endfor %}
+    </style>
+{% endblock %}
+{% block body %}
+    {% block content %}
+        <div><strong>{{ group_name }} - {{ date }}</strong></div>
+        <table id="lesson_content" class="table table-bordered table-striped">
+            <tr><th>Фамилия Имя</th><th>Присутствие</th></tr>
+            {% for student in students %}
+                <tr>
+                    <td class="student_data">{{ student.info.last_name }} {{ student.info.first_name }}</td>
+                    <td class="lesson_data"></td>
+                </tr>
+
+            {% endfor %}
+        </table>
+
+    {% endblock %}
+{% endblock %}

@@ -27,14 +27,17 @@
             </tr>
             {% endfor %}
         </table>
-        <div>
+
+        <a href="" class="btn" onclick="window.open('/print?id={{ group_detail.id }}&type=full&subtype=lessons&date={{ control_data.constant.current_date_numval }}', '', 'width=1200, height=768, location=no')">Печать</a>
+
+        <div style="border-top: 1px solid #dddddd; margin-top: 15px; padding-top: 10px;">
             <h4>Финансы</h4>
             <div>Всего: <strong>{{ group_detail.money.total }}</strong></div>
             <div>Аренда залла: <strong>{{ group_detail.money.dance_hall }}</strong></div>
             <div>30% клубу: <strong>{{ group_detail.money.club }}</strong></div>
             <div>Преподавателям: <strong>{{ group_detail.money.balance }}</strong></div>
         </div>
-        <a href="" onclick="window.open('/group?id=1', '', 'width=1200, height=768, location=no')">Печать</a>
+
         <!-- Форма выбора абонемента -->
         <div id="pass_menu" class="modal hide">
             <div>
@@ -83,7 +86,7 @@
                 <div id="block_table"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn" style="float: left">Печать</button>
+                <button id="printBtn" class="btn" style="float: left">Печать</button>
                 <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                 <button class="btn btn-primary save_data" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Сохранить</button>
             </div>
@@ -203,6 +206,7 @@
                         }
 
                         i++;
+
                     });
 
                     var $blockTable = $('#block_table'),
@@ -222,6 +226,12 @@
                             $('.popover-opened').removeClass('popover-opened');
                         }
                     });
+
+                    var printBtn = $('#printBtn');
+                        printBtn.off('click');
+                        printBtn.click(function() {
+                            window.open('/print?id={{ group_detail.id }}&type=lesson&date='+getDateFromColumn(context).replace(/\./g, ''), '', 'width=500, height=800, location=no')
+                        });
                 }
 
                 // ====================================================================================================

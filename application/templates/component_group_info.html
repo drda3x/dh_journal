@@ -20,16 +20,18 @@
                     <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ student.person.last_name }}</td>
                     <td>{{ student.person.first_name }}</td>
-                    <td>+{{ student.person.phone }}</td>
+                    <td>{{ student.person.str_phone }}</td>
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}</td>
                 </tr>
                 {% endfor %}
             </table>
+            <a style="margin-right: 20px;" role="button" class="btn" onclick="window.open('/print?id={{ group_detail.id }}&type=full&subtype=info&date={{ control_data.constant.current_date_numval }}', '', 'width=1200, height=768, location=no')">Печать</a>
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
             <a id="deleteStudentBtn" role="button" class="btn disabled">Удалить</a>
             <a id="freezePassBtn" role="button" class="btn disabled">Перенести абонемент(ы)</a>
+
 
             <!-- Форма "Карточка ученика" -->
             <div id="editStudent" class="modal hide fade">

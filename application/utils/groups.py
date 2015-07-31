@@ -91,6 +91,7 @@ def get_student_multi_pass(student, date_from, date_to):
     except Passes.DoesNotExist:
         return None
 
+
 def get_group_students_list(group):
 
     u"""

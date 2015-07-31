@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block head %}
+    <style>
+        {% for color_class in passes_color_classes %}
+            .{{ color_class.name }} {
+                background-color: {{ color_class.val }} !important;
+            }
+        {% endfor %}
+    </style>
+{% endblock %}
+{% block body %}
+    {% block content %}
+        {% if subtype == 'lessons' %}
+        <p>
+            <strong>{{ group_detail.name }} - {{ date_str }}</strong>
+        </p>
+         <table id="journal" class="table table-bordered table-striped">
+            <tr>
+                <th>
+                    Фамилия Имя
+                </th>
+                {% for date in group_detail.calendar %}
+                <th class="hover-able">{{ date }}</th>
+                {% endfor %}
+            </tr>
+            {% for student in group_detail.students %}
+            <tr  data-stid="{{ student.person.id }}" class="student_row">
+                <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
+                {% for date in student.calendar %}
+                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.sign }}">
+                    {% if date.pass and date.sign %}
+                        <strong>{{ date.sign }}</strong>
+                    {% else %}
+                    {{ date.sign }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+             <table class="table table-bordered table-striped table-hover">
+                <tr class="shotcard-disabled">
+                    <th>Фамилия</th>
+                    <th>Имя</th>
+                    <th>Телефон</th>
+                    <th>E-mail</th>
+                    <th>ОРГ-статус</th>
+                    <th>Остаток по абонементу</th>
+                </tr>
+                {% for student in group_detail.students %}
+                <tr data-id="{{ student.person.id }}">
+                    <td>{{ student.person.last_name }}</td>
+                    <td>{{ student.person.first_name }}</td>
+                    <td>+{{ student.person.phone }}</td>
+                    <td>{{ student.person.e_mail }}</td>
+                    <td>{% if student.person.org %}ОРГ{% endif %}</td>
+                    <td>{{ student.pass_remaining }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+        <a class="btn" onclick="window.print()">Печать</a>
+    {% endblock %}
+{% endblock %}

@@ -4,12 +4,14 @@ import datetime, json, copy
 
 from traceback import format_exc
 
+from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.db.models import Q
 
 from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons
+from application.utils.phones import check_phone
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User
 from application.views import group_detail_view
 
 
@@ -22,18 +24,58 @@ from application.views import group_detail_view
 # todo Реализовать работу списания занятия с дгургого абонемента
 
 
+def edit_user_profile(request):
+
+    try:
+        uid = request.POST['uid']
+        user_name = request.POST['username']
+        first_name = request.POST['firstname']
+        last_name = request.POST['lastname']
+        phone = check_phone(request.POST.get('phone', None))
+        email = request.POST.get('email', None)
+        old_password = request.POST.get('old_pass', None)
+        password = request.POST.get('pass', None)
+        password_confirm = request.POST.get('pass_conf', None)
+
+        user = User.objects.get(pk=uid)
+
+        if password and password_confirm:
+            if not old_password or not user.check_password(old_password):
+                return HttpResponseServerError('Введен неправильный текущий пароль')
+            elif password != password_confirm:
+                return HttpResponseServerError('Новый пароль не совпадает с подтвержением')
+
+        elif (password and not password_confirm) or (password_confirm and not password):
+            return HttpResponseServerError('Новый пароль не совпадает с подтвержением')
+
+        user.username =user_name
+        user.first_name = first_name
+        user.last_name = last_name
+        if email:
+            user.email = email
+        if password:
+            user.set_password(password)
+
+        user.save()
+
+        return HttpResponse(200)
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
 def add_student(request):
 
     try:
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
-        phone = request.GET['phone']
+        phone = check_phone(request.GET['phone'])
         e_mail = request.GET['e_mail']
         group_id = int(request.GET['id'])
         is_org = request.GET['is_org'] == u'true'
 
         try:
-            student = Students.objects.get(first_name=first_name, last_name=first_name, phone=phone)
+            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
 
             if GroupList.objects.filter(student=student, group_id=group_id).exists():
                 return group_detail_view(request)
@@ -91,7 +133,7 @@ def edit_student(request):
         student = Students.objects.get(pk=request.GET['stid'])
         student.first_name = request.GET['first_name']
         student.last_name = request.GET['last_name']
-        student.phone = request.GET['phone']
+        student.phone = check_phone(request.GET['phone'])
         student.e_mail = request.GET.get('e_mail', None)
         student.org = request.GET['is_org'] == u'true'
         student.save()
