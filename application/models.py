@@ -3,6 +3,7 @@
 import datetime, math, calendar as calendar_origin
 from django.db import models
 from django.contrib.auth.models import User as UserOrigin, UserManager
+
 from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
 from application.utils.phones import get_string_val
 

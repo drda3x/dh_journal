@@ -11,7 +11,7 @@ from django.db.models import Q
 from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list
 from application.utils.phones import check_phone
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments
 from application.views import group_detail_view
 
 
@@ -390,6 +390,57 @@ def process_lesson(request):
             return HttpResponseServerError(json.dumps(error))
 
         return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def add_or_edit_comment(request):
+    cid = request.GET.get('cid', None)
+    msg = request.GET.get('msg', None)
+
+    if not msg:
+        return HttpResponseServerError('No message')
+
+    try:
+        if not cid:
+            comment = Comments(
+                student=Students.objects.get(pk=request.GET['stid']),
+                group=Groups.objects.get(pk=request.GET['group_id']),
+                date=datetime.datetime.now(),
+                text=msg
+            )
+            comment.save()
+
+        else:
+            comment = Comments.objects.get(pk=cid)
+            comment.text = msg
+            comment.save()
+
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def get_comments(request):
+
+    try:
+        data = [
+            {
+                'id': g.id,
+                'date': g.date.strftime('%d.%m.%Y %H:%M:%S'),
+                'text': g.text
+            }
+            for g in Comments.objects.filter(group_id=request.GET['group_id'], student_id=request.GET['stid'])
+        ]
+
+        HttpResponse(json.dumps(data))
+
+    except Comments.DoesNotExist:
+        return HttpResponseServerError('no comments yet')
 
     except Exception:
         print format_exc()

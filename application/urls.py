@@ -38,5 +38,7 @@ urlpatterns = [
     url(r'^print', views.print_view),
     url(r'^profile', views.user_profile_view),
     url(r'^save_user_data', api.edit_user_profile),
+    url(r'^get_comments', api.get_comments),
+    url(r'^edit_comment', api.add_or_edit_comment),
     url(r'', views.index_view)
 ]
