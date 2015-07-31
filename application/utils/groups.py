@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
-from application.models import Groups, Students, Passes, Lessons, GroupList
+from application.models import Groups, Students, Passes, Lessons, GroupList, Comments
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
@@ -47,7 +47,8 @@ def get_group_detail(group_id, date_from, date_to):
             'person': s,
             'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
-            'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to))
+            'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to)),
+            'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
         } for s in get_group_students_list(group)
     ]
 

@@ -428,15 +428,7 @@ def add_or_edit_comment(request):
 def get_comments(request):
 
     try:
-        data = [
-            {
-                'id': g.id,
-                'date': g.date.strftime('%d.%m.%Y %H:%M:%S'),
-                'text': g.text
-            }
-            for g in Comments.objects.filter(group_id=request.GET['group_id'], student_id=request.GET['stid'])
-        ]
-
+        data = Comments.objects.filter(group_id=request.GET['group_id'], student_id=request.GET['stid']).order_by('-add_date').values('id', 'add_date', 'text')
         HttpResponse(json.dumps(data))
 
     except Comments.DoesNotExist:

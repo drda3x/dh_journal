@@ -14,6 +14,7 @@
                     <th>E-mail</th>
                     <th>ОРГ-статус</th>
                     <th>Остаток по абонементу</th>
+                    <th>Коментарий</th>
                 </tr>
                 {% for student in group_detail.students %}
                 <tr data-id="{{ student.person.id }}">
@@ -24,6 +25,7 @@
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}</td>
+                    <td>{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -159,6 +161,24 @@
                         }
 
                         function show() {
+                            console.log(event);
+
+
+                            /*if(event.pageX + $shortCardMenu.width() + 30 >  $(window).width()) {
+                                $shortCardMenu.offset({
+                                    top: event.pageY + 5,
+                                    left: event.pageX - $shortCardMenu.width() - 5
+                                });
+                                console.log(1);
+                            } else {
+                                $shortCardMenu.offset({
+                                    top: event.pageY + 5,
+                                    left: event.pageX + 15
+                                });
+                                console.log(2);
+                            }*/
+
+
                             $shortCardMenu_lastIndex = $index;
                             $shortCardMenu.show();
                         }
