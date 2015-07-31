@@ -119,6 +119,22 @@ class Students(models.Model):
         verbose_name_plural = u'Ученики'
 
 
+class Comments(models.Model):
+    u"""
+    Хранилице коментов
+    """
+
+    add_date = models.DateTimeField(verbose_name=u'Дата добавления')
+    student = models.ForeignKey(Students)
+    group = models.ForeignKey(Groups)
+    text = models.TextField(max_length=100, verbose_name=u'Текст коментария')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Коментарий'
+        verbose_name_plural = u'Коментарии'
+
+
 class PassTypes(models.Model):
 
     u"""

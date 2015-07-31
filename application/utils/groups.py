@@ -171,7 +171,11 @@ def get_student_calendar(student, group, from_date, lessons_count, form=None):
         else:
             buf['pass'] = True
             buf['sign'] = c_lesson.rus if not c_lesson.status == Lessons.STATUSES['not_processed'] and c_lesson.date == c_date.date() else ''
-            buf['color'] = html_color_classes[c_lesson.group_pass.color] if not student.org else ORG_PASS_HTML_CLASS
+
+            if not student.org or not c_lesson.group_pass.pass_type.one_group_pass or c_lesson.group_pass.pass_type.lessons == 1:
+                buf['color'] = html_color_classes[c_lesson.group_pass.color]
+            else:
+                buf['color'] = ORG_PASS_HTML_CLASS
 
             try:
                 c_lesson = lessons_itr.next()
