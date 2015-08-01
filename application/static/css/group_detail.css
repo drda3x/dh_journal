@@ -152,6 +152,7 @@
     display: none;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     padding: 10px;
+    width: 200px;
 }
 
 #shortCardMenu ul {
@@ -226,4 +227,83 @@
 .popover-pass_menu-content-active {
     color: #ffffff;
     background-color: #0088CC;
+}
+
+#commentWidget {
+    position: absolute;
+    top: 15px;
+}
+
+#commentWidgetContent {
+    overflow-y: scroll;
+    height: 450px;
+}
+
+.comment-content {
+    padding: 5px 15px;
+    margin: 5px 0;
+}
+
+.comment-content textarea {
+    width: 97%;
+    height: 100px;
+    cursor: default;
+    margin-bottom: 0;
+}
+
+.comment-content textarea:hover {
+    cursor: default;
+}
+
+.delete-comment {
+    float: right;
+    margin-left: 15px;
+    padding: 0 3px;
+}
+
+.edit-comment {
+    float: right;
+    margin: 0;
+    padding: 0 3px;
+}
+
+.comment-date {
+    display: inline-block;
+}
+
+.comment-buttonsblock {
+    display: inline-block;
+    width: 377px;
+    padding-top: 3px;
+}
+
+#saveCommentButtonBlock {
+    display: none;
+}
+
+.alert {
+    padding: 8px 35px 8px 14px;
+    margin-left: 18px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    width: 200px;
+    position: absolute;
+}
+
+.red {
+    background-color: #f2dede;
+    border-color: #eed3d7;
+    color: #b94a48;
+}
+
+.green {
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+    color: #468847;
+}
+
+.ib {
+    display: inline-block;
 }

@@ -39,7 +39,7 @@
             <div id="editStudent" class="modal hide fade">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h3>Карточка ученика</h3>
+                    <h3 class="ib">Карточка ученика</h3><div class="alert ib"></div>
                 </div>
                 <div class="form-horizontal" id="editStudentContent">
                     <input type="hidden" name="id" id="stid" />
@@ -118,7 +118,29 @@
                     <li id="changePassOwner">Передать абонемент</li>
                     <li id="writeOffPass">Списать абонемент</li>
                     <li id="deletePass">Удалить абонемент</li>
+                    <li class="divider"></li>
+                    <li id="comment">Коментарии</li>
                 </ul>
+            </div>
+
+            <div id="commentWidget" class="modal hide fade">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 class="ib">Коментарии</h3><div class="alert ib"></div>
+                </div>
+                <div id="commentWidgetContent">
+
+                </div>
+                <div class="modal-footer">
+                    <span id="addCommentButtonBlock">
+                        <button id="addComment" class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn">Добавить</button>
+                        <button class="btn" data-dismiss="modal" aria-hidden="true">Закрыть</button>
+                    </span>
+                    <span id="saveCommentButtonBlock">
+                        <button id="saveComment" class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn">Сохранить</button>
+                        <button id="saveCommentButtonBlockHide" class="btn">Отмена</button>
+                    </span>
+                </div>
             </div>
 
     {% endblock %}
@@ -140,12 +162,45 @@
                 var $shortCardMenu_lastIndex, $row, $id, $name, $family, $index;
                 var $groupId = {{ group_detail.id }};
 
+
+                // Алерт
+                var $alert = $('.alert');
+                $alert.hide();
+                $alert.types = ['red', 'green'];
+                $alert.show = function(msg, type, hideAfter, fadeOut) {
+                    this.text(msg);
+                    this.css('display', 'inline-block');
+
+                    for(var i= this.types.length - 1; i>=0; i--) {
+                        this.removeClass(this.types[i]);
+                    }
+
+                    this.addClass(type);
+
+                    if(hideAfter != undefined) {
+                        if(fadeOut != undefined) {
+                            setTimeout((function(context) {
+                                return function() {
+                                    context.fadeOut(fadeOut);
+                                }
+                            })(this), hideAfter)
+                        } else {
+                            setTimeout(this.hide, hideAfter)
+                        }
+
+                    }
+                };
+
                 $infoTable.find('tr').click(function(event) {
                     if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
                         event.stopPropagation();
                         var $shortCardMenu = $('#shortCardMenu');
                         $shortCardMenu.css('top', event.clientY);
-                        $shortCardMenu.css('left', event.clientX);
+                        if(event.clientX + $shortCardMenu.width() + 30 >  $(window).width()) {
+                            $shortCardMenu.css('left', event.clientX - $shortCardMenu.width() - 25);
+                        } else {
+                            $shortCardMenu.css('left', event.clientX);
+                        }
                         $id = $(this).data('id');
 
                         var chld = $(this).children();
@@ -161,24 +216,6 @@
                         }
 
                         function show() {
-                            console.log(event);
-
-
-                            /*if(event.pageX + $shortCardMenu.width() + 30 >  $(window).width()) {
-                                $shortCardMenu.offset({
-                                    top: event.pageY + 5,
-                                    left: event.pageX - $shortCardMenu.width() - 5
-                                });
-                                console.log(1);
-                            } else {
-                                $shortCardMenu.offset({
-                                    top: event.pageY + 5,
-                                    left: event.pageX + 15
-                                });
-                                console.log(2);
-                            }*/
-
-
                             $shortCardMenu_lastIndex = $index;
                             $shortCardMenu.show();
                         }
@@ -567,6 +604,131 @@
 
                     handlers[param]();
                 }
+
+                var $commentWidget = $('#commentWidget'),
+                    $commentWidgetContent = $('#commentWidgetContent');
+                $commentWidget.modal({show: false});
+
+                $('#comment').click(function() {
+                    $commentWidget.modal('show');
+                    $commentWidgetContent.empty();
+
+                    processData('get_comments', {group_id: {{ group_detail.id }}, stid: $id}, function(err, data) {
+                        if(!err) {
+                            var messages = data.data;
+
+                            for(var i= 0, j= messages.length; i<j; i++) {
+                                var container = $('<div class="comment-content"></div>'),
+                                    dt = $('<div class="comment-date"></div'),
+                                    ta = $('<textarea maxlength="100" readonly></textarea>'),
+                                    buttonsContainer = $('<div class="comment-buttonsblock"></div>'),
+                                    editButton = $('<button class="btn btn-mini edit-comment">Изменить</button>'),
+                                    deleteButton = $('<button class="btn btn-mini btn-danger delete-comment">Удалить</button>');
+
+                                if(i > 0) {
+                                    container.css('border-top', '1px solid #dddddd');
+                                }
+
+                                editButton.attr('data-id', messages[i].id);
+                                deleteButton.attr('data-id', messages[i].id);
+                                buttonsContainer.append(deleteButton);
+                                buttonsContainer.append(editButton);
+
+                                dt.text(messages[i].date);
+                                ta.val(messages[i].msg);
+
+                                container.appendTo($commentWidgetContent);
+                                container.append(dt);
+                                container.append(buttonsContainer);
+                                container.append(ta);
+
+                                editButton.click((function() {
+                                    var msgId = messages[i].id,
+                                        $textarea = ta;
+
+                                    function cb(err, data) {
+                                        if(!err) {
+                                            console.log('success');
+                                        }
+                                    }
+
+                                    return function() {
+                                        $textarea.removeAttr('readonly');
+                                        var text = $textarea.val();
+                                        //processData('edit_comment', {cid: msgId, msg: text}, cb)
+                                    }
+                                })());
+
+                                //deleteButton.click();
+                            }
+                        }
+                    });
+                });
+
+                function editComment(id, msg, callback) {}
+
+                var $currentElement;
+
+                $('#addComment').click(function() {
+                    $('#addCommentButtonBlock').hide();
+                    $('#saveCommentButtonBlock').show();
+
+                    var now = new Date(),
+                        dt = $('<div class="comment-date"></div');
+
+                    dt.text(now.toLocaleString().replace(',',''));
+
+                    $currentElement = $('<div class="comment-content new"><textarea maxlength="100"></textarea></div>');
+                    $currentElement.prepend(dt);
+                    $('#commentWidgetContent').prepend($currentElement);
+                });
+
+                function hideCommentSaveBlock() {
+                    $('#addCommentButtonBlock').show();
+                    $('#saveCommentButtonBlock').hide();
+                    if($currentElement.hasClass('new')) {
+                        $currentElement.remove();
+                    }
+                    $currentElement = null;
+                }
+
+
+
+                $('#saveCommentButtonBlockHide').click(hideCommentSaveBlock);
+
+                $('#saveComment').click(function() {
+                    var text = $currentElement.find('textarea').val(),
+                        params;
+
+                    if(text.length > 0) {
+                        if($currentElement.hasOwnProperty('commentId')) {
+                        params = {
+                            cid: $currentElement.commentId
+                        }
+                        } else {
+                            params = {
+                                stid: $id,
+                                group_id: {{ group_detail.id }}
+                            }
+                        }
+
+                        params.msg = text;
+
+                        processData('edit_comment', params, function(err, data) {
+                            if(err) {
+                                $alert.show('Ошибка сохранения', 'red', 2500, 1500);
+                            } else {
+                                $currentElement.removeClass('new');
+                                $currentElement.find('textarea').attr('readonly', true);
+                                hideCommentSaveBlock();
+                                $alert.show('Сохранено', 'green', 2500, 1500);
+                            }
+
+                        })
+                    } else {
+                        $alert.show('Введите коментарий', 'red', 2500, 1500);
+                    }
+                });
 
             })();
         </script>

@@ -4,6 +4,7 @@ import datetime, json, copy
 
 from traceback import format_exc
 
+from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.db.models import Q
@@ -408,7 +409,7 @@ def add_or_edit_comment(request):
             comment = Comments(
                 student=Students.objects.get(pk=request.GET['stid']),
                 group=Groups.objects.get(pk=request.GET['group_id']),
-                date=datetime.datetime.now(),
+                add_date=datetime.datetime.now(),
                 text=msg
             )
             comment.save()
@@ -427,12 +428,19 @@ def add_or_edit_comment(request):
 
 def get_comments(request):
 
+    def to_json(elem):
+        return {
+            'id': elem.id,
+            'date': elem.add_date.strftime('%d.%m.%Y %H:%M:%S'),
+            'msg': elem.text
+        }
+
     try:
-        data = Comments.objects.filter(group_id=request.GET['group_id'], student_id=request.GET['stid']).order_by('-add_date').values('id', 'add_date', 'text')
-        HttpResponse(json.dumps(data))
+        data = map(to_json, Comments.objects.filter(group_id=request.GET['group_id'], student_id=request.GET['stid']).order_by('-add_date'))
+        return HttpResponse(json.dumps({'data': data}))
 
     except Comments.DoesNotExist:
-        return HttpResponseServerError('no comments yet')
+        HttpResponse(json.dumps({'data': []}))
 
     except Exception:
         print format_exc()
