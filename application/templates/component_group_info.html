@@ -76,7 +76,7 @@
                             </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                        <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
                         <input class="btn btn-primary" type="submit" value="Добавить" />
                     </div>
                 </div>
@@ -126,7 +126,7 @@
             <div id="commentWidget" class="modal hide fade">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h3 class="ib">Коментарии</h3><div class="alert ib"></div>
+                    <h3 class="ib">Коментарии - <span></span></h3><div class="alert ib"></div>
                 </div>
                 <div id="commentWidgetContent">
 
@@ -161,7 +161,22 @@
 
                 var $shortCardMenu_lastIndex, $row, $id, $name, $family, $index;
                 var $groupId = {{ group_detail.id }};
+                var needReload = false;
 
+                // Перезагрузка страницы если надо
+                $('.close').click(function() {
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
+
+                $('.cancel').click(function() {
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
 
                 // Алерт
                 var $alert = $('.alert');
@@ -526,12 +541,11 @@
 
                     $submit.off('click');
                     $submit.click(function() {
-                        $studentForm.modal('hide');
-                        backDrop('show');
                         processData(addUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
-                                reload();
-                                $studentForm.modal('hide');
+                                needReload = true;
+                                $studentForm.find('.modal-body').find('input').val('').prop('checked', false);
+                                $alert.show('Сохранено (можно еще)', 'green', 2500, 1500);
                             } else {
                                 console.log(err);
                             }
@@ -619,6 +633,7 @@
                 $('#comment').click(function() {
                     $commentWidget.modal('show');
                     $commentWidgetContent.empty();
+                    $commentWidget.find('h3 span').text($family+' '+$name);
 
                     processData('get_comments', {group_id: {{ group_detail.id }}, stid: $id}, function(err, data) {
                         if(!err) {
@@ -837,6 +852,11 @@
                     } else {
                         $alert.show('Введите коментарий', 'red', 2500, 1500);
                     }
+                });
+
+                $commentWidget.find('.close').click(function() {
+                    hideCommentSaveBlock();
+                    $currentElement = null;
                 });
 
             })();
