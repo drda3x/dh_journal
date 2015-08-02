@@ -25,7 +25,7 @@
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}</td>
-                    <td>{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
+                    <td class="comment">{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -740,11 +740,18 @@
 
                             function callback(err, data) {
                                 if(!err) {
+                                    var firstComment;
                                     try {
-                                        $(_container.siblings()[0]).css('border-top', '0px');
+                                        firstComment = $(_container.siblings()[0]);
                                     } catch (e) {
 
                                     } finally {
+                                        if(firstComment != undefined) {
+                                            firstComment.css('border', '0px');
+                                            changeCommentInMainTable(firstComment.find('textarea').val())
+                                        } else {
+                                            changeCommentInMainTable('')
+                                        }
                                         $alert.show('Коментарий удален', 'green', 2500, 1500);
                                         _container.remove();
                                     }
@@ -758,6 +765,13 @@
 
                         return container;
 
+                }
+
+                function changeCommentInMainTable(msg) {
+                    var $tr = $($infoTable.find('tr')[$index]),
+                        $commentCell = $tr.find('.comment');
+
+                    $commentCell.text(msg);
                 }
 
                 var $currentElement;
@@ -812,9 +826,10 @@
                                 $alert.show('Ошибка сохранения', 'red', 2500, 1500);
                             } else {
                                 var newHtml = addComment(data.data);
-                                console.log(newHtml);
+
                                 $commentWidgetContent.prepend(newHtml);
                                 hideCommentSaveBlock();
+                                changeCommentInMainTable(data.data.msg);
                                 $alert.show('Сохранено', 'green', 2500, 1500);
                             }
 
