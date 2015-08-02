@@ -253,6 +253,7 @@
                     if (!confirm('Удалить ученика из группы?')) {
                         return
                     }
+                    backDrop('show');
                     processData('deletestudent', {ids: JSON.stringify([$id])}, function(err, data) {
                         if(!err) {
                             reload()
@@ -272,6 +273,7 @@
                             return;
                         }
                         processData('deletestudent', {ids: JSON.stringify(toDelete)}, function(err, data) {
+                        backDrop('show');
                         if(!err) {
                             reload()
                         } else {
@@ -316,6 +318,7 @@
                 });
 
                 function freezePass() {
+                    backDrop('show');
                     processData('freezepass',
                             {
                                 ids: JSON.stringify(freezeData),
@@ -353,6 +356,7 @@
                             msg = (ids.length > 1) ?  'Списать абонементы' : 'Списать абонемент';
 
                         if(confirm(msg)) {
+                            backDrop('show');
                             processData('writeoffpass', {ids: JSON.stringify(ids)}, function(err, data) {
                                 if(!err) {
                                     $passList.modal('hide');
@@ -380,6 +384,7 @@
                             msg = (ids.length > 1) ?  'Удалить абонементы' : 'Удалить абонемент';
 
                         if(confirm(msg)) {
+                            backDrop('show');
                             processData('deletepass', {ids: JSON.stringify(ids)}, function(err, data) {
                                 if(!err) {
                                     $passList.modal('hide');
@@ -423,6 +428,7 @@
 
                 $changePassOwnerModal.find('.btn.btn-primary').click(function() {
                     var new_owner = $changePassOwnerModal.find('input:checked').data('id');
+                    backDrop('show');
                     processData(
                         'changeowner',
                         {
@@ -441,7 +447,6 @@
                 });
 
                 function processData(url, params, callback) {
-                    backDrop('show');
                     $.ajax({
                         method: 'GET',
                         url: url,
@@ -495,6 +500,7 @@
                     var $submit = $studentForm.find('.btn.btn-primary');
                     $submit.off('click');
                     $submit.click(function() {
+                        backDrop('show');
                         processData(editUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
                                 reload()
@@ -521,6 +527,7 @@
                     $submit.off('click');
                     $submit.click(function() {
                         $studentForm.modal('hide');
+                        backDrop('show');
                         processData(addUrl, getStudentFormParams(), function(err, data) {
                             if(!err) {
                                 reload();
@@ -618,54 +625,140 @@
                             var messages = data.data;
 
                             for(var i= 0, j= messages.length; i<j; i++) {
-                                var container = $('<div class="comment-content"></div>'),
-                                    dt = $('<div class="comment-date"></div'),
-                                    ta = $('<textarea maxlength="100" readonly></textarea>'),
-                                    buttonsContainer = $('<div class="comment-buttonsblock"></div>'),
-                                    editButton = $('<button class="btn btn-mini edit-comment">Изменить</button>'),
-                                    deleteButton = $('<button class="btn btn-mini btn-danger delete-comment">Удалить</button>');
-
+                                var container = addComment(messages[i]);
                                 if(i > 0) {
                                     container.css('border-top', '1px solid #dddddd');
                                 }
-
-                                editButton.attr('data-id', messages[i].id);
-                                deleteButton.attr('data-id', messages[i].id);
-                                buttonsContainer.append(deleteButton);
-                                buttonsContainer.append(editButton);
-
-                                dt.text(messages[i].date);
-                                ta.val(messages[i].msg);
-
                                 container.appendTo($commentWidgetContent);
-                                container.append(dt);
-                                container.append(buttonsContainer);
-                                container.append(ta);
-
-                                editButton.click((function() {
-                                    var msgId = messages[i].id,
-                                        $textarea = ta;
-
-                                    function cb(err, data) {
-                                        if(!err) {
-                                            console.log('success');
-                                        }
-                                    }
-
-                                    return function() {
-                                        $textarea.removeAttr('readonly');
-                                        var text = $textarea.val();
-                                        //processData('edit_comment', {cid: msgId, msg: text}, cb)
-                                    }
-                                })());
-
-                                //deleteButton.click();
                             }
                         }
                     });
                 });
 
-                function editComment(id, msg, callback) {}
+
+                function addComment(data) {
+                    var container = $('<div class="comment-content"></div>'),
+                        dt = $('<div class="comment-date"></div'),
+                        ta = $('<textarea maxlength="100" readonly></textarea>'),
+                        buttonsContainer = $('<div class="comment-buttonsblock"></div>'),
+                        editButton = $('<button class="btn btn-mini edit-comment">Изменить</button>'),
+                        saveButton = $('<button class="btn btn-mini edit-comment">Сохранить</button>'),
+                        cancelButton = $('<button class="btn btn-mini edit-comment" style="margin-left: 15px;">Отмена</button>'),
+                        deleteButton = $('<button class="btn btn-mini btn-danger delete-comment">Удалить</button>');
+
+                        buttonsContainer.append(deleteButton);
+                        buttonsContainer.append(editButton);
+                        buttonsContainer.append(cancelButton);
+                        buttonsContainer.append(saveButton);
+
+
+                        saveButton.hide();
+                        cancelButton.hide();
+
+                        dt.text(data.date);
+                        ta.val(data.msg);
+
+                        container.append(dt);
+                        container.append(buttonsContainer);
+                        container.append(ta);
+
+                        editButton.click((function() {
+                            var msgId = data.id,
+                                _container = container,
+                                _textarea = ta,
+                                _saveBtn = saveButton,
+                                _cancelBtn = cancelButton;
+                            return function() {
+                                 var buffer = _textarea.clone();
+
+                                buffer.val(_textarea.val());
+                                buffer.hide();
+                                buffer.addClass('comment-buffer');
+                                _container.append(buffer);
+
+                                _textarea.attr('data-prevval', _textarea.val());
+                                _textarea.removeAttr('readonly');
+                                _saveBtn.show();
+                                _cancelBtn.show();
+                                $(this).hide();
+                            }
+                        })());
+
+                        saveButton.click((function() {
+                            var _container = container,
+                                _editBtn = editButton,
+                                _cancelBtn = cancelButton,
+                                _saveBtn = saveButton,
+                                msgId = data.id,
+                                _textarea = ta;
+
+                            function cb(err, data) {
+                                if(!err) {
+                                    console.log('success');
+                                    _container.find('.comment-buffer').remove();
+                                    _textarea.attr('readonly', true);
+
+                                    _editBtn.show();
+                                    _cancelBtn.hide();
+                                    _saveBtn.hide();
+
+                                    $alert.show('Сохранено', 'green', 2500, 1500);
+
+                                } else {
+                                    $alert.show('Не сохранено. Ошибка!', 'red', 2500, 1500);
+                                }
+                            }
+
+                            return function() {
+                                var text = _textarea.val();
+                                processData('edit_comment', {cid: msgId, msg: text}, cb);
+                            }
+                        })());
+
+                        cancelButton.click((function() {
+                            var _container = container,
+                                _editBtn = editButton,
+                                _saveBtn = saveButton,
+                                _textarea = ta;
+
+                            return function() {
+                                var buffer = _container.find('.comment-buffer');
+
+                                _textarea.val(buffer.val());
+                                buffer.remove();
+                                _textarea.attr('readonly', true);
+
+                                _editBtn.show();
+                                _saveBtn.hide();
+                                $(this).hide();
+                            }
+                        })());
+
+                        deleteButton.click((function() {
+                            var _container = container,
+                                msgId = data.id;
+
+                            function callback(err, data) {
+                                if(!err) {
+                                    try {
+                                        $(_container.siblings()[0]).css('border-top', '0px');
+                                    } catch (e) {
+
+                                    } finally {
+                                        $alert.show('Коментарий удален', 'green', 2500, 1500);
+                                        _container.remove();
+                                    }
+                                }
+                            }
+
+                            return function() {
+                                processData('delete_comment', {cid: msgId}, callback);
+                            }
+                        })());
+
+                        return container;
+
+                }
 
                 var $currentElement;
 
@@ -718,8 +811,9 @@
                             if(err) {
                                 $alert.show('Ошибка сохранения', 'red', 2500, 1500);
                             } else {
-                                $currentElement.removeClass('new');
-                                $currentElement.find('textarea').attr('readonly', true);
+                                var newHtml = addComment(data.data);
+                                console.log(newHtml);
+                                $commentWidgetContent.prepend(newHtml);
                                 hideCommentSaveBlock();
                                 $alert.show('Сохранено', 'green', 2500, 1500);
                             }

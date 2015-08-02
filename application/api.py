@@ -398,6 +398,14 @@ def process_lesson(request):
 
 
 def add_or_edit_comment(request):
+
+    def to_json(elem):
+        return {
+            'id': elem.id,
+            'date': elem.add_date.strftime('%d.%m.%Y %H:%M:%S'),
+            'msg': elem.text
+        }
+
     cid = request.GET.get('cid', None)
     msg = request.GET.get('msg', None)
 
@@ -419,6 +427,19 @@ def add_or_edit_comment(request):
             comment.text = msg
             comment.save()
 
+        return HttpResponse(json.dumps({'data': to_json(comment)}))
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def delete_comment(request):
+
+    cid = request.GET.get('cid', None)
+
+    try:
+        Comments.objects.get(pk=cid).delete()
         return HttpResponse(200)
 
     except Exception:
