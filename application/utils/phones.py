@@ -8,7 +8,7 @@ def get_string_val(num):
 
 def check_phone(val):
     import re
-    plus_pattern = '[^\w]'
-    code_pattern = '^8'
-    res = re.sub(plus_pattern, '', val)
-    return re.sub(code_pattern, '7', res)
+    res = re.sub('[^\w]', '', val)
+    res = re.sub('^8', '7', res)
+    res = ('7' if not re.search('^7', res) else '') + res
+    return res
