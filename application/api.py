@@ -12,7 +12,7 @@ from django.db.models import Q
 from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list
 from application.utils.phones import check_phone
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons
 from application.views import group_detail_view
 
 
@@ -378,6 +378,9 @@ def process_lesson(request):
                     if not _pass.new_pass or _pass.presence:
                         _pass.set_lesson_attended(date, group=group.id)
                     attended_passes_ids.append(_pass.orm_object.id)
+
+        else:
+            CanceledLessons(group=group, date=date).save()
 
         for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
                 Q(group=group),

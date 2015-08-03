@@ -39,7 +39,7 @@
             <div id="editStudent" class="modal hide fade">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h3 class="ib">Карточка ученика</h3><div class="alert ib"></div>
+                    <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px;"></div>
                 </div>
                 <div class="form-horizontal" id="editStudentContent">
                     <input type="hidden" name="id" id="stid" />
@@ -173,6 +173,13 @@
                 });
 
                 $('.cancel').click(function() {
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
+
+                $('.modal').on('hidden', function() {
                     if(needReload) {
                         needReload = false;
                         reload()
@@ -546,7 +553,7 @@
                             if(!err) {
                                 needReload = true;
                                 $studentForm.find('.modal-body').find('input').val('').prop('checked', false);
-                                $alert.show('Сохранено (можно еще)', 'green', 2500, 1500);
+                                $alert.show('Сохранено (можно добавить еще одного)', 'green', 2500, 1500);
                             } else {
                                 console.log(err);
                             }

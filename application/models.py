@@ -99,6 +99,16 @@ class Groups(models.Model):
         verbose_name_plural = u'Группы'
 
 
+class CanceledLessons(models.Model):
+    group = models.ForeignKey(Groups)
+    date = models.DateField(verbose_name=u'Дата отмененного урока')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Отмененное занятие'
+        verbose_name_plural = u'Отмененные занятия'
+
+
 class Students(models.Model):
 
     u"""

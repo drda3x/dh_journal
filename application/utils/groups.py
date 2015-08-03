@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
-from application.models import Groups, Students, Passes, Lessons, GroupList, Comments
+from application.models import Groups, Students, Passes, Lessons, GroupList, Comments, CanceledLessons
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
@@ -47,17 +47,17 @@ def get_group_detail(group_id, _date_from, date_to):
         date_to
     )
 
+    calendar = filter(lambda d1: not CanceledLessons.objects.filter(group=group, date=d1.date()).exists(), group.get_calendar(date_from=date_from, count=dates_count))
+
     students = [
         {
             'person': s,
-            'calendar': get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+            'calendar': [get_student_lesson_status(s, group, dt) for dt in calendar],  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
             'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to)),
             'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
         } for s in get_group_students_list(group)
     ]
-
-    calendar = map(lambda d: d.strftime('%d.%m.%Y'), group.get_calendar(date_from=date_from, count=dates_count))
 
     money = dict()
     money['dance_hall'] = group.dance_hall.prise
@@ -72,7 +72,7 @@ def get_group_detail(group_id, _date_from, date_to):
         'start_date': group.start_date,
         'students': students,
         'last_lesson': group.last_lesson,
-        'calendar': calendar,
+        'calendar': map(lambda d: d.strftime('%d.%m.%Y'), calendar),
         'money': money
     }
 
@@ -132,6 +132,34 @@ def get_teacher_students_list(teacher):
         )
 
     return res
+
+
+def get_student_lesson_status(student, group, date):
+    try:
+        lesson = Lessons.objects.get(student=student, group=group, date=date)
+
+        html_color_classes = {
+            key: val for val, key in get_color_classes()
+        }
+
+        buf = {
+            'pass': True,
+            'sign': lesson.rus if lesson.status == Lessons.STATUSES['moved'] else lesson.prise() if not lesson.status == Lessons.STATUSES['not_processed'] else ''
+        }
+
+        if not student.org or not lesson.group_pass.pass_type.one_group_pass or lesson.group_pass.pass_type.lessons == 1:
+                buf['color'] = html_color_classes[lesson.group_pass.color]
+        else:
+            buf['color'] = ORG_PASS_HTML_CLASS
+
+        return buf
+
+    except Lessons.DoesNotExist:
+        return {
+            'pass': False,
+            'color': None,
+            'sign': ''
+        }
 
 
 def get_student_calendar(student, group, from_date, lessons_count, form=None):

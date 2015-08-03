@@ -295,6 +295,7 @@ html, body {
     border-radius: 4px;
     width: 125px;
     position: absolute;
+    text-align: center;
 }
 
 .red {
