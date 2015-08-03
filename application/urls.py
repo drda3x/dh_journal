@@ -17,11 +17,12 @@ Including another URLconf
 import views
 import application.api as api
 
-from django.conf.urls import include, url
+from django.conf import settings
+from django.conf.urls import include, url, patterns
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin', include(admin.site.urls)),
     url(r'^group/addstudent', api.add_student),
     url(r'^group/editstudent', api.edit_student),
     # url(r'^group/addpass', api.add_pass),
@@ -41,5 +42,13 @@ urlpatterns = [
     url(r'^get_comments', api.get_comments),
     url(r'^edit_comment', api.add_or_edit_comment),
     url(r'^delete_comment', api.delete_comment),
-    url(r'', views.index_view)
+    url(r'^index', views.index_view)
 ]
+
+urlpatterns += patterns('', (r'^media\/(?P<path>.*)$',
+                                 'django.views.static.serve',
+                                 {'document_root': settings.MEDIA_ROOT}),
+                           )
+
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
