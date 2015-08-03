@@ -47,7 +47,7 @@ def get_group_detail(group_id, _date_from, date_to):
         date_to
     )
 
-    calendar = filter(lambda d1: not CanceledLessons.objects.filter(group=group, date=d1.date()).exists(), group.get_calendar(date_from=date_from, count=dates_count))
+    calendar = group.get_calendar(date_from=date_from, count=dates_count)
 
     students = [
         {

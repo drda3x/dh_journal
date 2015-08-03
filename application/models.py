@@ -83,7 +83,17 @@ class Groups(models.Model):
 
             cur_month_days += self.get_calendar(count - len(cur_month_days), datetime.datetime(next_year, next_month, 1))
 
-        return cur_month_days[:count]
+        res = cur_month_days[:count]
+
+        try:
+            canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
+
+            res = filter(lambda r: res not in canceled_lessons, res)
+
+        except CanceledLessons.DoesNotExist:
+            pass
+
+        return res
 
     def __unicode__(self):
 

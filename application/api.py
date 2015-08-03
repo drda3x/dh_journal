@@ -388,7 +388,7 @@ def process_lesson(request):
                 Q(lessons__gt=0)
         ).exclude(pk__in=attended_passes_ids)):
             if _pass and _pass.check_date(date):
-                _pass.set_lesson_not_attended(date) if not canceled else _pass.freeze(next_date)
+                _pass.set_lesson_not_attended(date) if not canceled else _pass.freeze(date)
 
         if error:
             return HttpResponseServerError(json.dumps(error))
