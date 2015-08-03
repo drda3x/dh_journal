@@ -59,11 +59,32 @@ def get_group_detail(group_id, _date_from, date_to):
         } for s in get_group_students_list(group)
     ]
 
-    money = dict()
-    money['dance_hall'] = group.dance_hall.prise
-    money['total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date__range=[date_from, date_to]).exclude(status=Lessons.STATUSES['moved']), 0)
-    money['club'] = round((money['total'] - money['dance_hall']) * 0.3, 0)
-    money['balance'] = round(money['total'] - money['dance_hall'] - money['club'], 0)
+    moneys = []
+    money_total = {key: 0 for key in ('day_total', 'dance_hall', 'club', 'balance')}
+
+    for _day in calendar:
+
+        buf = dict()
+        buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date=_day).exclude(status=Lessons.STATUSES['moved']), 0)
+        buf['dance_hall'] = group.dance_hall.prise
+        buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
+        buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - buf['club'], 0)
+        buf['date'] = _day
+
+        try:
+            for key, val in buf.iteritems():
+                money_total[key] += val
+
+        except KeyError:
+            pass
+
+        moneys.append(buf)
+
+    # money = dict()
+    # money['dance_hall'] = group.dance_hall.prise
+    # money['total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date__range=[date_from, date_to]).exclude(status=Lessons.STATUSES['moved']), 0)
+    # money['club'] = round((money['total'] - money['dance_hall']) * 0.3, 0)
+    # money['balance'] = round(money['total'] - money['dance_hall'] - money['club'], 0)
 
     return {
         'id': group.id,
@@ -73,7 +94,8 @@ def get_group_detail(group_id, _date_from, date_to):
         'students': students,
         'last_lesson': group.last_lesson,
         'calendar': map(lambda d: d.strftime('%d.%m.%Y'), calendar),
-        'money': money
+        'moneys': moneys,
+        'money_total': money_total
     }
 
 
@@ -162,61 +184,61 @@ def get_student_lesson_status(student, group, date):
         }
 
 
-def get_student_calendar(student, group, from_date, lessons_count, form=None):
-
-    u"""
-    Получить календарь занятий для конкретного ученика и конкретной ргуппы
-    """
-
-    html_color_classes = {
-        key: val for val, key in get_color_classes()
-    }
-
-    group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
-    lessons = Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date')
-    lessons_itr = iter(lessons)
-
-    calendar = []
-
-    try:
-        c_lesson = lessons_itr.next()
-
-    except StopIteration:
-        return [
-            {
-                'date': d if not form else d.strftime(form),
-                'sign': ''
-            } for d in group_calendar
-        ]
-
-    no_lessons = False
-
-    for c_date in group_calendar:
-
-        buf = {
-            'date': c_date if not form else c_date.strftime(form)
-        }
-
-        if no_lessons or c_lesson.date > c_date.date():
-            buf['pass'] = False
-            buf['color'] = None
-            buf['sign'] = ''
-
-        else:
-            buf['pass'] = True
-            buf['sign'] = c_lesson.rus if not c_lesson.status == Lessons.STATUSES['not_processed'] and c_lesson.date == c_date.date() else ''
-
-            if not student.org or not c_lesson.group_pass.pass_type.one_group_pass or c_lesson.group_pass.pass_type.lessons == 1:
-                buf['color'] = html_color_classes[c_lesson.group_pass.color]
-            else:
-                buf['color'] = ORG_PASS_HTML_CLASS
-
-            try:
-                c_lesson = lessons_itr.next()
-
-            except StopIteration:
-                no_lessons = True
-
-        calendar.append(buf)
-
-    return calendar
+# def get_student_calendar(student, group, from_date, lessons_count, form=None):
+#
+#     u"""
+#     Получить календарь занятий для конкретного ученика и конкретной ргуппы
+#     """
+#
+#     html_color_classes = {
+#         key: val for val, key in get_color_classes()
+#     }
+#
+#     group_calendar = group.get_calendar(date_from=from_date, count=lessons_count)
+#     lessons = Lessons.objects.filter(student=student, group=group, date__gte=from_date).order_by('date')
+#     lessons_itr = iter(lessons)
+#
+#     calendar = []
+#
+#     try:
+#         c_lesson = lessons_itr.next()
+#
+#     except StopIteration:
+#         return [
+#             {
+#                 'date': d if not form else d.strftime(form),
+#                 'sign': ''
+#             } for d in group_calendar
+#         ]
+#
+#     no_lessons = False
+#
+#     for c_date in group_calendar:
+#
+#         buf = {
+#             'date': c_date if not form else c_date.strftime(form)
+#         }
+#
+#         if no_lessons or c_lesson.date > c_date.date():
+#             buf['pass'] = False
+#             buf['color'] = None
+#             buf['sign'] = ''
+#
+#         else:
+#             buf['pass'] = True
+#             buf['sign'] = c_lesson.rus if not c_lesson.status == Lessons.STATUSES['not_processed'] and c_lesson.date == c_date.date() else ''
+#
+#             if not student.org or not c_lesson.group_pass.pass_type.one_group_pass or c_lesson.group_pass.pass_type.lessons == 1:
+#                 buf['color'] = html_color_classes[c_lesson.group_pass.color]
+#             else:
+#                 buf['color'] = ORG_PASS_HTML_CLASS
+#
+#             try:
+#                 c_lesson = lessons_itr.next()
+#
+#             except StopIteration:
+#                 no_lessons = True
+#
+#         calendar.append(buf)
+#
+#     return calendar

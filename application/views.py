@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.template.context_processors import csrf
 
 from application.utils.passes import get_color_classes
-from application.utils.groups import get_groups_list, get_group_detail, get_student_calendar, get_group_students_list
+from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 from application.models import Lessons, User
 
@@ -150,6 +150,6 @@ def print_lesson(request):
 
     context['group_name'] = group.name
     context['date'] = date.strftime('%d.%m.%Y')
-    context['students'] = map(lambda s: dict(data=get_student_calendar(s, group, date, 1), info=s), get_group_students_list(group))
+    context['students'] = map(lambda s: dict(data=get_student_lesson_status(s, group, date), info=s), get_group_students_list(group))
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
