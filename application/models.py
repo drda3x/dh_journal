@@ -88,7 +88,7 @@ class Groups(models.Model):
         try:
             canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
 
-            res = filter(lambda r: res not in canceled_lessons, res)
+            res = filter(lambda r: r.date() not in canceled_lessons, res)
 
         except CanceledLessons.DoesNotExist:
             pass

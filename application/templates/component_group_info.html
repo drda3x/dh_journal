@@ -102,7 +102,7 @@
 
             <div id="freezePassModal" class="modal hide fade">
                 <div class="modal-header"><h4></h4></div>
-                <div class="content">Перенести на: <input type="text" class="datepicker" name="calendar"></div>
+                <div class="content">Перенести c <input type="text" class="datepicker" name="calendar"> на <input type="text" class="datepicker" name="calendar"></div>
                 <div class="modal-footer">
                     <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
                     <input class="btn btn-primary" type="submit" value="Перенести" />
@@ -307,7 +307,7 @@
                 });
 
                 var $freezePass = $('#freezePassModal');
-                var $datepicker = $('.datepicker');
+                var $datepicker = $freezePass.find('.datepicker');
                 var now = new Date();
                 var freezeData = [];
 
@@ -342,11 +342,17 @@
 
                 function freezePass() {
                     backDrop('show');
+
+                    var dates = [];
+                    $datepicker.each(function() {
+                        dates.push($(this).val());
+                    });
+
                     processData('freezepass',
                             {
                                 ids: JSON.stringify(freezeData),
                                 group: {{ group_detail.id }},
-                                date: $datepicker.val()
+                                date: JSON.stringify(dates)
                             }, function(err, data) {
                         if(!err) {
                             clearFreeze();

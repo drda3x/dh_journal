@@ -113,15 +113,27 @@ class AbstractPass(object):
         pass
 
     # Заморозить
-    def freeze(self, date):
+    def freeze(self, date_from, date_to):
 
         def move_lesson(lesson, new_date):
             lesson.date = new_date
             lesson.save()
 
+        self.orm_object.frozen_date = date_to
+        lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_from, status=Lessons.STATUSES['not_processed']).order_by('date')
+        cal = self.orm_object.group.get_calendar(len(lessons), date_to)
+        map(move_lesson, lessons, cal)
+
+        self.orm_object.save()
+
+    def cancel_lesson(self, date):
+        def move_lesson(lesson, new_date):
+            lesson.date = new_date
+            lesson.save()
+
         self.orm_object.frozen_date = date
-        cal = self.orm_object.group.get_calendar(self.orm_object.lessons, date)
-        lessons = Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']).order_by('date')
+        lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date, status=Lessons.STATUSES['not_processed']).order_by('date')
+        cal = self.orm_object.group.get_calendar(len(lessons) + 1, date)[1:]
         map(move_lesson, lessons, cal)
 
         self.orm_object.save()

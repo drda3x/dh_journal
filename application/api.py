@@ -220,7 +220,7 @@ def freeze_pass(request):
     try:
         ids = json.loads(request.GET['ids'])
         group = Groups.objects.get(pk=request.GET['group'])
-        date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
+        date_from, date_to = (datetime.datetime.strptime(d, '%d.%m.%Y') for d in json.loads(request.GET['date']))
         students = Students.objects.filter(pk__in=ids)
 
         for student in students:
@@ -228,7 +228,7 @@ def freeze_pass(request):
 
             if p.lessons > 0:
                 wrapped = PassLogic.wrap(p)
-                wrapped.freeze(date)
+                wrapped.freeze(date_from, date_to)
             else:
                 pass
 
@@ -302,7 +302,6 @@ def process_lesson(request):
         attended_passes = []
         attended_passes_ids = []
         error = []
-        next_date = group.get_calendar(2, date)[-1]
 
         if not canceled:
             if new_passes:
@@ -388,7 +387,7 @@ def process_lesson(request):
                 Q(lessons__gt=0)
         ).exclude(pk__in=attended_passes_ids)):
             if _pass and _pass.check_date(date):
-                _pass.set_lesson_not_attended(date) if not canceled else _pass.freeze(date)
+                _pass.set_lesson_not_attended(date) if not canceled else _pass.cancel_lesson(date)
 
         if error:
             return HttpResponseServerError(json.dumps(error))
