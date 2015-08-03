@@ -58,6 +58,8 @@ def group_detail_view(request):
     date_to = get_last_day_of_month(date_from)
     now = datetime.datetime.now()
 
+    border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
+
     context['control_data'] = {
         'constant': {
             'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
@@ -65,7 +67,10 @@ def group_detail_view(request):
         },
         'date_control': map(
             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
-            map(lambda x: get_month_offset(now.date().replace(day=1), x), xrange(0, 7))
+            filter(
+                lambda x1: x1 >= border,
+                map(lambda x: get_month_offset(now.date().replace(day=1), x), xrange(0, 7))
+            )
         )
     }
     context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')

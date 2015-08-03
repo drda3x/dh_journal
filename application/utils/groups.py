@@ -23,18 +23,23 @@ def get_groups_list(user):
     return [
         {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
         for g in Groups.objects.filter(
-            Q(teacher_leader=user) | Q(teacher_follower=user)
+            Q(teacher_leader=user) | Q(teacher_follower=user),
+            Q(is_opened=True)
         )
     ]
 
 
-def get_group_detail(group_id, date_from, date_to):
+def get_group_detail(group_id, _date_from, date_to):
 
     u"""
     Получить детальную информацию о группе
     """
 
     group = Groups.objects.get(pk=group_id)
+
+    gs_dt = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
+
+    date_from = _date_from if gs_dt < _date_from else gs_dt
 
     dates_count = get_count_of_weekdays_per_interval(
         group.days,

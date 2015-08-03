@@ -17,6 +17,11 @@ class User(UserOrigin):
 
     objects = UserManager
 
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Преподаватель'
+        verbose_name_plural = u'Преподаватели'
+
 
 class DanceHalls(models.Model):
     """
@@ -85,7 +90,8 @@ class Groups(models.Model):
         leader = self.teacher_leader.last_name if self.teacher_leader else ''
         follower = self.teacher_follower.last_name if self.teacher_follower else ''
         days = '-'.join(self.days)
-        return u'%s - %s %s - %s' % (self.name, leader, follower, days)
+
+        return u'%s - %s %s - %s' % (self.name, leader, follower, days) + (u' - ЗАКРЫТА' if not self.is_opened else '')
 
     class Meta:
         app_label = u'application'
