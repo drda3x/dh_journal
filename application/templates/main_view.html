@@ -14,6 +14,7 @@
 
                 $frame = $('iframe');
                 $frame.attr('src', $(this).attr('href'));
+                console.log($(this).attr('href'))
                 $('.pull-right.dropdown.header-right.open').removeClass('open');
                return false;
             });
@@ -46,22 +47,17 @@
     </div>
     <div style="padding-top: 20px; margin: 35px" class="container-fluid">
         <div class="row-fluid">
-            {% if groups %}
-                <div class="span2">
-                    <ul class="nav nav nav-list">
-                        <li class="nav-header"><h5 style="margin: 0">Группы:</h5></li>
-                        {% for group in groups %}
-                            <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="span10">
-                    <iframe frameborder="0" width="100%px" height="900px"></iframe>
-                </div>
-            {% else %}
-
-                Ты еще не ведешь ни одной группы
-            {% endif %}
+            <div class="span2">
+                <ul class="nav nav nav-list">
+                    <li class="nav-header"><h5 style="margin: 0">Группы:</h5></li>
+                    {% for group in groups %}
+                        <li><a class="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="span10">
+                <iframe frameborder="0" width="100%px" height="900px"></iframe>
+            </div>
         </div>
     </div>
 {% endblock %}
