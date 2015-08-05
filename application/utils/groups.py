@@ -64,16 +64,20 @@ def get_group_detail(group_id, _date_from, date_to):
 
     for _day in calendar:
 
+        qs = Lessons.objects.filter(group=group, date=_day)
+
+        flag = qs.exclude(status=Lessons.STATUSES['not_processed'])
+
         buf = dict()
-        buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date=_day).exclude(status=Lessons.STATUSES['moved']), 0)
-        buf['dance_hall'] = group.dance_hall.prise
-        buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
-        buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - buf['club'], 0)
-        buf['date'] = _day
+        buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status=Lessons.STATUSES['moved']), 0) if flag else ''
+        buf['dance_hall'] = group.dance_hall.prise if flag else ''
+        buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0) if flag else ''
+        buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - buf['club'], 0) if flag else ''
+        buf['date'] = _day if flag else ''
 
         try:
             for key, val in buf.iteritems():
-                money_total[key] += val
+                money_total[key] += (val if flag else 0)
 
         except KeyError:
             pass
