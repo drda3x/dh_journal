@@ -16,11 +16,17 @@
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.sign }}">
+                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
-                        <strong>{{ date.sign }}</strong>
+                        <strong>
+                            {% if date.sign > 0 %}
+                                {{ date.sign }}
+                            {% else %}
+                                <span style="color: #f00000">{{ date.sign|stringformat:"+d"|slice:"1:" }}</span>
+                            {% endif %}
+                        </strong>
                     {% else %}
-                    {{ date.sign }}
+                        {{ date.sign }}
                     {% endif %}
                 </td>
                 {% endfor %}
@@ -47,7 +53,7 @@
             <tr>
                 <td><strong>Преподавателям:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able">{{ money.balance }}</td>
+                    <td class="hover-able">{{ money.balance }} ({{ money.half_balance }})</td>
                 {% endfor %}
             </tr>
         </table>
@@ -59,7 +65,7 @@
             <div>Всего: <strong>{{ group_detail.money_total.day_total }}</strong></div>
             <div>Аренда залла: <strong>{{ group_detail.money_total.dance_hall }}</strong></div>
             <div>30% клубу: <strong>{{ group_detail.money_total.club }}</strong></div>
-            <div>Преподавателям: <strong>{{ group_detail.money_total.balance }}</strong></div>
+            <div>Преподавателям: <strong>{{ group_detail.money_total.balance }}</strong> ({{ group_detail.money_total.half_balance }})</div>
         </div>
 
         <!-- Форма выбора абонемента -->
@@ -188,12 +194,12 @@
                         $this.removeClass('highlight');
 
                         if(data[i].data('pass') === 'True') {
-                            var is_empty = data[i].data('sign') == '',
+                            var attended = data[i].data('sign') == 'True',
                                 $inp = $('<input type="checkbox" style="margin: 0" />');
 
                             $this.append($inp);
 
-                            if(!is_empty) {
+                            if(attended) {
                                 $inp.prop('checked', 'checked');
                             }
 
@@ -339,7 +345,8 @@
                         json = {
                             group_id: {{ group_detail.id }},
                             date: $('#lesson_window_date').text(),
-                            data: [],
+                            checked: [],
+                            unchecked: [],
                             canceled: false
                         };
 
@@ -348,36 +355,44 @@
                     }
 
                     if(!$('#cancel_lesson_inp').prop('checked')) {
+
                         data_source.each(function() {
                             var cont = $(this).children(),
                                 lesson = $(cont[1]),
                                 student_id = $(cont[0]).data('stid');
 
-                            if(lesson.find('input:checked').length > 0) {
-                                if(lesson.hasClass('add-pass')) {
+                            lesson_inp = lesson.find('input');
 
-                                    var values = {
+                            if(lesson.find('input').length > 0) {
+                                if(lesson.find('input:checked').length > 0) {
+                                    if(lesson.hasClass('add-pass')) {
+
+                                        var values = {
+                                            student_id: student_id,
+                                            pass_type: lesson.attr('val'),
+                                            from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
+                                            presence: true
+                                        };
+
+                                        if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
+                                            values.pass_id = lesson.data('multipass_id');
+                                        }
+                                        json.checked.push(values);
+                                    } else {
+                                        json.checked.push(student_id);
+                                    }
+                                } else if(lesson.attr('val') !== undefined) {
+                                    json.checked.push({
                                         student_id: student_id,
                                         pass_type: lesson.attr('val'),
-                                        from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
-                                        presence: true
-                                    };
-
-                                    if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
-                                        values.pass_id = lesson.data('multipass_id');
-                                    }
-                                    json.data.push(values);
+                                        presence: false
+                                    });
                                 } else {
-                                    json.data.push(student_id);
+                                    json.unchecked.push(student_id);
                                 }
-                            } else if(lesson.attr('val') !== undefined) {
-                                json.data.push({
-                                    student_id: student_id,
-                                    pass_type: lesson.attr('val'),
-                                    presence: false
-                                });
                             }
                         });
+
                     } else {
                         json.canceled = true
                     }

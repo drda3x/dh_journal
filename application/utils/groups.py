@@ -60,29 +60,30 @@ def get_group_detail(group_id, _date_from, date_to):
     ]
 
     moneys = []
-    money_total = {key: 0 for key in ('day_total', 'dance_hall', 'club', 'balance')}
+    money_total = {key: 0 for key in ('day_total', 'dance_hall')}
 
     for _day in calendar:
 
         qs = Lessons.objects.filter(group=group, date=_day)
 
-        flag = qs.exclude(status=Lessons.STATUSES['not_processed'])
+        flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
 
         buf = dict()
         buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status=Lessons.STATUSES['moved']), 0) if flag else ''
         buf['dance_hall'] = group.dance_hall.prise if flag else ''
         buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0) if flag else ''
-        buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - buf['club'], 0) if flag else ''
+        buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0) if flag else ''
+        buf['half_balance'] = round(buf['balance'] / 2, 1) if isinstance(buf['balance'], (float, int)) else ''
         buf['date'] = _day if flag else ''
 
-        try:
-            for key, val in buf.iteritems():
-                money_total[key] += (val if flag else 0)
-
-        except KeyError:
-            pass
+        for key in money_total.iterkeys():
+            money_total[key] += (buf[key] if isinstance(buf[key], (int, float)) else 0)
 
         moneys.append(buf)
+
+    money_total['club'] = round((money_total['day_total'] - money_total['dance_hall']) * 0.3, 0)
+    money_total['balance'] = round(money_total['day_total'] - money_total['dance_hall'] - abs(money_total['club']), 0)
+    money_total['half_balance'] = round(money_total['balance'] / 2, 1)
 
     # money = dict()
     # money['dance_hall'] = group.dance_hall.prise
@@ -170,7 +171,8 @@ def get_student_lesson_status(student, group, date):
 
         buf = {
             'pass': True,
-            'sign': lesson.rus if lesson.status == Lessons.STATUSES['moved'] else lesson.prise() if not lesson.status == Lessons.STATUSES['not_processed'] else ''
+            'sign': lesson.rus if lesson.status == Lessons.STATUSES['moved'] else (lesson.prise() if lesson.status == Lessons.STATUSES['attended'] else lesson.prise() * -1) if not lesson.status == Lessons.STATUSES['not_processed'] else '',
+            'attended': lesson.status == Lessons.STATUSES['attended']
         }
 
         if not student.org or not lesson.group_pass.pass_type.one_group_pass or lesson.group_pass.pass_type.lessons == 1:
@@ -184,7 +186,8 @@ def get_student_lesson_status(student, group, date):
         return {
             'pass': False,
             'color': None,
-            'sign': ''
+            'sign': '',
+            'attended': False
         }
 
 

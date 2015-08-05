@@ -293,7 +293,8 @@ def process_lesson(request):
 
         group = Groups.objects.get(pk=json_data['group_id'])
         date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
-        data = json_data['data']
+        data = json_data['checked']
+        data1 = json_data['unchecked']
         canceled = json_data['canceled']
 
         new_passes = filter(lambda p: isinstance(p, dict), data)
@@ -365,9 +366,9 @@ def process_lesson(request):
                     if pass_orm_object:
                         l_cnt = pass_orm_object.pass_type.lessons
                         st_dt = pass_orm_object.date
-                        calendar = group.get_calendar(l_cnt, date_from=st_dt)
+                        pass_calendar = Lessons.objects.filter(group_pass=pass_orm_object, date__gte=date).values_list('date', flat=True)
 
-                        if date in calendar:
+                        if date.date() in pass_calendar:
                             wrapped = PassLogic.wrap(pass_orm_object)
                             wrapped.new_pass = False
                             attended_passes.append(wrapped)
@@ -378,16 +379,27 @@ def process_lesson(request):
                         _pass.set_lesson_attended(date, group=group.id)
                     attended_passes_ids.append(_pass.orm_object.id)
 
+            if data1:
+                for p in data1:
+                    pass_orm_object = Passes.objects.select_related().filter(
+                            Q(student_id=p),
+                            Q(group=group),
+                            Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
+                        ).order_by('start_date').last()
+
+                    wrapped = PassLogic.wrap(pass_orm_object)
+                    wrapped.set_lesson_not_attended(date)
+
         else:
             CanceledLessons(group=group, date=date).save()
 
-        for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
-                Q(group=group),
-                Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
-                Q(lessons__gt=0)
-        ).exclude(pk__in=attended_passes_ids)):
-            if _pass and _pass.check_date(date):
-                _pass.set_lesson_not_attended(date) if not canceled else _pass.cancel_lesson(date)
+            for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
+                    Q(group=group),
+                    Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
+                    Q(lessons__gt=0)
+            )):
+                if _pass.check_date(date):
+                     _pass.cancel_lesson(date)
 
         if error:
             return HttpResponseServerError(json.dumps(error))

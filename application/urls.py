@@ -22,7 +22,7 @@ from django.conf.urls import include, url, patterns
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^admin/{1}', include(admin.site.urls)),
+    url(r'^admin/?', include(admin.site.urls)),
     url(r'^group/addstudent', api.add_student),
     url(r'^group/editstudent', api.edit_student),
     # url(r'^group/addpass', api.add_pass),
