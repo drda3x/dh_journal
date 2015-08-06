@@ -137,7 +137,7 @@ def get_group_students_list(group):
     return Students.objects.filter(
         pk__in=GroupList.objects.filter(group=group).values('student_id'),
         is_deleted=False
-    )
+    ).order_by('last_name', 'first_name')
 
 
 def get_teacher_students_list(teacher):
@@ -171,14 +171,16 @@ def get_student_lesson_status(student, group, date):
 
         buf = {
             'pass': True,
-            'sign': lesson.rus if lesson.status == Lessons.STATUSES['moved'] else (lesson.prise() if lesson.status == Lessons.STATUSES['attended'] else lesson.prise() * -1) if not lesson.status == Lessons.STATUSES['not_processed'] else '',
+            'sign': '' if lesson.status == Lessons.STATUSES['moved'] else (lesson.prise() if lesson.status == Lessons.STATUSES['attended'] else lesson.prise() * -1) if not lesson.status == Lessons.STATUSES['not_processed'] else '',
             'attended': lesson.status == Lessons.STATUSES['attended']
         }
 
-        if not student.org or not lesson.group_pass.pass_type.one_group_pass or lesson.group_pass.pass_type.lessons == 1:
-                buf['color'] = html_color_classes[lesson.group_pass.color]
-        else:
-            buf['color'] = ORG_PASS_HTML_CLASS
+        if not lesson.status == Lessons.STATUSES['moved']:
+
+            if not student.org or not lesson.group_pass.pass_type.one_group_pass or lesson.group_pass.pass_type.lessons == 1:
+                    buf['color'] = html_color_classes[lesson.group_pass.color]
+            else:
+                buf['color'] = ORG_PASS_HTML_CLASS
 
         return buf
 
