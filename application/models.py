@@ -174,6 +174,7 @@ class PassTypes(models.Model):
     skips = models.PositiveIntegerField(verbose_name=u'Количество пропусков', null=True, blank=True)
     color = models.CharField(verbose_name=u'Цвет', max_length=7, null=True, blank=True)
     one_group_pass = models.BooleanField(verbose_name=u'Одна группа', default=True)
+    sequence = models.PositiveIntegerField(verbose_name=u'Порядковый номер', null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%dр.)' % (self.name, self.prise)
@@ -187,6 +188,10 @@ class PassTypes(models.Model):
             color=self.color,
             oneGroupPass=self.one_group_pass
         )
+
+    def save(self, *args, **kwargs):
+        if not self.sequence:
+            self.sequence = PassTypes.objects.all().order_by('id').last()
 
     class Meta:
         app_label = u'application'

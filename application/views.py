@@ -84,7 +84,7 @@ def group_detail_view(request):
     ]
 
     context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-    context['pass_detail'] = PassTypes.objects.all().values()
+    context['pass_detail'] = PassTypes.objects.all().order_by('sequence').values()
 
     for det in context['pass_detail']:
         det['html_color_class'] = html_color_classes[det['color']]
