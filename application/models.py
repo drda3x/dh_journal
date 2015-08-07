@@ -190,8 +190,35 @@ class PassTypes(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if not self.sequence:
-            self.sequence = PassTypes.objects.all().order_by('id').last()
+
+        try:
+            max_seq = PassTypes.objects.all().aggregate(models.Max('sequence'))['sequence__max'] or 0
+
+        except PassTypes.DoesNotExist:
+            max_seq = 0
+
+        if not self.sequence or self.sequence > max_seq:
+            self.sequence = max_seq + 1
+
+        else:
+
+            prev_seq = PassTypes.objects.get(id=self.id).sequence
+
+            if prev_seq != self.sequence:
+                if self.sequence > prev_seq:
+                    _type = PassTypes.objects.filter(sequence__gt=prev_seq).order_by('sequence').first()
+                    _type.sequence = prev_seq
+                    super(PassTypes, _type).save()
+
+                else:
+                    _seq = self.sequence + 1
+                    for _type in PassTypes.objects.filter(sequence__gte=self.sequence).exclude(id=self.id).order_by('sequence'):
+                        _type.sequence = _seq
+                        _seq += 1
+
+                        super(PassTypes, _type).save()
+
+        super(PassTypes, self).save(*args, **kwargs)
 
     class Meta:
         app_label = u'application'
