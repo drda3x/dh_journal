@@ -183,6 +183,16 @@ class AbstractPass(object):
         pass
 
     def create_lessons(self, date, count=None):
+
+        def get_cal(dt, cnt):
+            cl = self.orm_object.group.get_calendar(date_from=dt, count=cnt, clean=False)
+            canceled = filter(lambda x: x['canceled'] == True, cl)
+            if len(canceled == 0):
+                return cl
+            else:
+                cleaned = filter(lambda x: not x['canceled'], cl)
+                return cleaned + get_cal(cleaned[-1], len(cleaned))
+
         _count = count if count else self.orm_object.lessons
 
         for _date in self.orm_object.group.get_calendar(date_from=date, count=_count):
