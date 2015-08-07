@@ -9,14 +9,14 @@
                     Фамилия Имя
                 </th>
                 {% for date in group_detail.calendar %}
-                <th class="hover-able">{{ date }}</th>
+                <th class="hover-able {% if date.canceled %}canceled{% endif %}">{{ date.date }}{% if date.canceled %} <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
                 {% endfor %}
             </tr>
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
+                <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
                         <strong>
                             {% if date.sign > 0 %}
@@ -35,25 +35,25 @@
             <tr>
                 <td style="border-top: 3px solid"><strong>Всего:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able" style="border-top: 3px solid">{{ money.day_total }}</td>
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}" style="border-top: 3px solid">{{ money.day_total }}</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td><strong>Аренда залла:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able">{{ money.dance_hall }}</td>
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.dance_hall }}</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td><strong>30% клубу:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able">{{ money.club }}</td>
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.club }}</td>
                 {% endfor %}
             </tr>
             <tr>
                 <td><strong>Преподавателям:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able">{{ money.balance }} ({{ money.half_balance }})</td>
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.balance }} ({{ money.half_balance }})</td>
                 {% endfor %}
             </tr>
         </table>
@@ -120,7 +120,19 @@
                 <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                 <button class="btn btn-primary save_data" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Сохранить</button>
             </div>
-    </div>
+        </div>
+
+
+        <!-- Форма восстановления отмененного занятия -->
+        <div id="lesson_restore" class="modal hide fade">
+            <div class="modal-header">
+                <h4><span id="restore_lesson_window_date"></span> - {{ group_detail.name }} - занятие отменено</h4>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                <button id="restore_lesson_submit" class="btn btn-primary" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Восстановить</button>
+            </div>
+        </div>
 
     {% endblock %}
 
@@ -320,7 +332,12 @@
                     var $this = $(event.target),
                         date = getDateFromColumn($this);
 
-                    if($this.hasClass('hover-able')) {
+                    if($this.hasClass('canceled')) {
+
+                        $('#lesson_restore').modal('show');
+                        $('#restore_lesson_window_date').text(date);
+
+                    } else if($this.hasClass('hover-able')) {
 
                         fillLessonsForm($this);
 
@@ -328,6 +345,23 @@
                             $('#lesson_window').modal('show');
                         }
                     }
+                });
+
+                $('#restore_lesson_submit').click(function() {
+                    backDrop('show');
+                    $.ajax({
+                        method: 'GET',
+                        url: 'restorelesson',
+                        data: {
+                            id: {{ group_detail.id }},
+                            date: $('#restore_lesson_window_date').text().replace(/[^\w\.]/g,'')
+                        }
+                    }).error(function(err) {
+                        alert('Возникла ошибка при восстановлении отмененного занятия');
+                       backDrop('hide');
+                    }).done(function(data) {
+                        window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
+                    });
                 });
 
                 $('#lesson_window').on('hidden', function(){
@@ -413,7 +447,7 @@
                 function backDrop(param) {
                     var handlers = {
                         show: function() {
-                            $('<div class="modal-backdrop"></div>').appendTo('body')
+                            $('<div class="modal-backdrop">Тут должна быть анимация</div>').appendTo('body')
                         },
                         hide: function() {
                             $('modal-backdrop').remove()

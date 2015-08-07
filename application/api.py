@@ -411,6 +411,29 @@ def process_lesson(request):
         return HttpResponseServerError('failed')
 
 
+def restore_lesson(request):
+
+    try:
+        group = Groups.objects.get(id=request.GET['id'])
+        date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
+
+        for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
+                    Q(group=group),
+                    Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
+                    Q(lessons__gt=0)
+            )):
+                if _pass.check_date(date):
+                     _pass.restore_lesson(date)
+
+        CanceledLessons.objects.get(group=group, date=date).delete()
+
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
 def add_or_edit_comment(request):
 
     def to_json(elem):

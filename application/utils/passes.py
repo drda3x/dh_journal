@@ -3,6 +3,8 @@
 import datetime, copy
 from application.models import PassTypes, Passes, Groups, Lessons, Students
 
+from django.db.models import Min, Max
+
 
 ORG_PASS_HTML_CLASS = 'pass_type_org'
 ORG_PASS_HTML_VAL = '#1e90ff'
@@ -32,7 +34,8 @@ class AbstractPass(object):
         self.orm_object = obj
 
     def check_date(self, date):
-        return Lessons.objects.filter(group_pass=self.orm_object, date=date.date()).exists()
+        max_date = Lessons.objects.filter(group_pass=self.orm_object).aggregate(Max('date'))
+        return self.orm_object.start_date <= date.date() <= max_date['date__max']
 
     def check_lessons_count(self):
         self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))
@@ -134,6 +137,13 @@ class AbstractPass(object):
         lessons[0].status = Lessons.STATUSES['not_processed']
         lessons[0].save()
         self.orm_object.save()
+
+    def restore_lesson(self, date):
+        lesson = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date, status=Lessons.STATUSES['not_processed']).order_by('date').last()
+
+        if lesson:
+            lesson.date = date
+            lesson.save()
 
     # Разморозить
     def unfreeze(self, date):
