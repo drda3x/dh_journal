@@ -4,6 +4,7 @@ import datetime, math, calendar as calendar_origin
 from django.db import models
 from django.contrib.auth.models import User as UserOrigin, UserManager
 
+from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
 from application.utils.phones import get_string_val
 
@@ -66,10 +67,11 @@ class Groups(models.Model):
     @property
     def last_lesson(self):
         now = datetime.datetime.now()
-        week_ago = now - datetime.timedelta(days=7)
-        return filter(lambda x: x <= now, self.get_calendar(date_from=week_ago, count=4))[-1].date()
+        _from = datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
+        cnt = get_count_of_weekdays_per_interval(self.days, _from, now)
+        return filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
 
-    def get_calendar(self, count, date_from=None):
+    def get_calendar(self, count, date_from=None, clean=True):
         start_date = date_from if date_from else self.start_date
         days = calendar.itermonthdays2(start_date.year, start_date.month)
         cur_month_days = map(
@@ -88,7 +90,16 @@ class Groups(models.Model):
         try:
             canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
 
-            res = filter(lambda r: r.date() not in canceled_lessons, res)
+            if clean:
+                res = filter(lambda r: r.date() not in canceled_lessons, res)
+
+            else:
+                res = [
+                    {
+                        'date': d,
+                        'canceled': d.date() in canceled_lessons
+                    } for d in res
+                ]
 
         except CanceledLessons.DoesNotExist:
             pass
