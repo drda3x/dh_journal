@@ -43,9 +43,17 @@ html, body {
     content: "";
 }
 
+#lesson_container{
+    padding: 10px 45px;
+    overflow-y: scroll;
+    position: relative;
+}
+
 #lesson_content {
-    width: 80%;
-    margin: 10px 10%;
+}
+
+.modal.fade.in {
+    top: 10px;
 }
 
 #lesson_content tr th:nth-child(even), #lesson_content tr td:nth-child(even){
