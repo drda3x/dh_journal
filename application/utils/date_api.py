@@ -44,7 +44,7 @@ def get_count_of_weekdays_per_interval(wd, int_start, int_stop):
             yield WEEK[index]
             index = index + 1 if index < 6 else 0
 
-    d_delta = (int_stop - int_start).days
+    d_delta = (int_stop - int_start).days + 1
     first_day = int_start.weekday()
 
     calendar = list(_gen(d_delta, first_day))

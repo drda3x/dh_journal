@@ -46,7 +46,7 @@ html, body {
 #lesson_container{
     padding: 10px 45px;
     overflow-y: scroll;
-    position: relative;
+
 }
 
 #lesson_content {

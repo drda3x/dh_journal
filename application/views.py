@@ -58,6 +58,8 @@ def group_detail_view(request):
     date_to = get_last_day_of_month(date_from)
     now = datetime.datetime.now()
 
+    forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
+
     border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
 
     context['control_data'] = {
@@ -69,7 +71,7 @@ def group_detail_view(request):
             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
             filter(
                 lambda x1: x1 >= border,
-                map(lambda x: get_month_offset(now.date().replace(day=1), x), xrange(0, 7))
+                map(lambda x: get_month_offset(forward_month.date(), x), xrange(0, 8))
             )
         )
     }

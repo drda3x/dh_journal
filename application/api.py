@@ -353,7 +353,7 @@ def process_lesson(request):
                             wrapped.create_lessons(date)
 
                             wrapped.presence = p.get('presence', False)
-                            if wrapped.presence:
+                            if date.date() <= group.last_lesson:
                                 attended_passes.append(wrapped)
 
             if old_passes:
