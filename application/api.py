@@ -353,7 +353,8 @@ def process_lesson(request):
                             wrapped.create_lessons(date)
 
                             wrapped.presence = p.get('presence', False)
-                            attended_passes.append(wrapped)
+                            if wrapped.presence:
+                                attended_passes.append(wrapped)
 
             if old_passes:
                 for p in old_passes:
@@ -380,15 +381,19 @@ def process_lesson(request):
                     attended_passes_ids.append(_pass.orm_object.id)
 
             if data1:
-                for p in data1:
-                    pass_orm_object = Passes.objects.select_related().filter(
-                            Q(student_id=p),
-                            Q(group=group),
-                            Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
-                        ).order_by('start_date').last()
 
-                    wrapped = PassLogic.wrap(pass_orm_object)
-                    wrapped.set_lesson_not_attended(date)
+                now = datetime.datetime.combine(datetime.datetime.now(), datetime.datetime.min.time())
+                if now >= date:
+                    for p in data1:
+                        pass_orm_object = Passes.objects.select_related().filter(
+                                Q(student_id=p),
+                                Q(group=group),
+                                Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
+                            ).order_by('start_date').last()
+
+                        wrapped = PassLogic.wrap(pass_orm_object)
+
+                        wrapped.set_lesson_not_attended(date)
 
         else:
             CanceledLessons(group=group, date=date).save()
