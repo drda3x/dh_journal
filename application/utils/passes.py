@@ -194,8 +194,8 @@ class AbstractPass(object):
                 return cleaned + get_cal(cleaned[-1], len(cleaned))
 
         _count = count if count else self.orm_object.lessons
-
-        for _date in self.orm_object.group.get_calendar(date_from=date, count=_count):
+        print get_cal(date, _count)
+        for _date in get_cal(date, _count):#self.orm_object.group.get_calendar(date_from=date, count=_count):
             lesson = Lessons(
                 date=_date,
                 group=self.orm_object.group,
