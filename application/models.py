@@ -74,35 +74,43 @@ class Groups(models.Model):
     def get_calendar(self, count, date_from=None, clean=True):
         start_date = date_from if date_from else self.start_date
         days = calendar.itermonthdays2(start_date.year, start_date.month)
+
         cur_month_days = map(
             lambda _d: datetime.datetime(start_date.year, start_date.month, _d[0]),
             filter(lambda day: day[0] and day[0] >= start_date.day and day[1] in self.days_nums, days)
         )
 
+        try:
+            canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
+
+        except CanceledLessons.DoesNotExist:
+            canceled_lessons = []
+
+        if clean:
+            cur_month_days = filter(lambda day: day.date() not in canceled_lessons, cur_month_days)
+
         if len(cur_month_days) < count:
             next_month = start_date.month + 1 if start_date.month < 12 else 1
             next_year = start_date.year if start_date.month < 12 else start_date.year + 1
 
-            cur_month_days += self.get_calendar(count - len(cur_month_days), datetime.datetime(next_year, next_month, 1))
+            cur_month_days += self.get_calendar(
+                count - len(cur_month_days),
+                datetime.datetime(next_year, next_month, 1),
+                clean=clean
+            )
 
         res = cur_month_days[:count]
 
-        try:
-            canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
+        if not clean:
 
-            if clean:
-                res = filter(lambda r: r.date() not in canceled_lessons, res)
+            _res = []
 
-            else:
-                res = [
-                    {
-                        'date': d,
-                        'canceled': d.date() in canceled_lessons
-                    } for d in res
-                ]
+            for r in res:
+                _res.append(
+                    {'date': r, 'canceled': r.date() in canceled_lessons} if not isinstance(r, dict) else r
+                )
 
-        except CanceledLessons.DoesNotExist:
-            pass
+            res = _res
 
         return res
 

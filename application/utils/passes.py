@@ -133,10 +133,14 @@ class AbstractPass(object):
 
         self.orm_object.frozen_date = date
         lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date).order_by('date')
-        lessons[0].date = self.orm_object.group.get_calendar(len(lessons) + 1, date)[-1]
-        lessons[0].status = Lessons.STATUSES['not_processed']
-        lessons[0].save()
+        first_lesson = lessons.first()
+
+        first_lesson.date = self.orm_object.group.get_calendar(len(lessons), date)[-1]
+        first_lesson.status = Lessons.STATUSES['not_processed']
+        first_lesson.save()
         self.orm_object.save()
+
+        self.check_moved_lessons()
 
     def restore_lesson(self, date):
         lesson = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date, status=Lessons.STATUSES['not_processed']).order_by('date').last()
@@ -184,18 +188,22 @@ class AbstractPass(object):
 
     def create_lessons(self, date, count=None):
 
-        def get_cal(dt, cnt):
-            cl = self.orm_object.group.get_calendar(date_from=dt, count=cnt, clean=False)
-            canceled = filter(lambda x: x['canceled'] == True, cl)
-            if len(canceled == 0):
+        def get_cal(dt, cnt, st=0):
+            cl = self.orm_object.group.get_calendar(date_from=dt, count=cnt, clean=False)[st:]
+            canceled = filter(lambda x: x['canceled'], cl)
+            if len(canceled) == 0:
                 return cl
             else:
                 cleaned = filter(lambda x: not x['canceled'], cl)
-                return cleaned + get_cal(cleaned[-1], len(cleaned))
+                return cleaned + get_cal(
+                    canceled[-1]['date'] if canceled[-1]['date'] > cleaned[-1]['date'] else cleaned[-1]['date'],
+                    len(canceled) + 1,
+                    1
+                )
 
         _count = count if count else self.orm_object.lessons
-        print get_cal(date, _count)
-        for _date in get_cal(date, _count):#self.orm_object.group.get_calendar(date_from=date, count=_count):
+        c = self.orm_object.group.get_calendar(date_from=date, count=_count)
+        for _date in self.orm_object.group.get_calendar(date_from=date, count=_count):
             lesson = Lessons(
                 date=_date,
                 group=self.orm_object.group,
@@ -246,6 +254,13 @@ class OrgPass(AbstractPass):
     def set_lesson_not_attended(self, date):
         self.process_lesson(date, Lessons.STATUSES['moved'])
         self.check_lessons_count()
+
+    def check_moved_lessons(self):
+        lessons = Lessons.objects.filter(group_pass=self.orm_object).exclude(status=Lessons.STATUSES['moved']).order_by('date')
+
+        delta = len(lessons) - self.orm_object.pass_type.lessons
+        if delta > 0:
+            map(lambda l: l.delete(), lessons.reverse()[:delta])
 
 
 class MultiPass(AbstractPass):
