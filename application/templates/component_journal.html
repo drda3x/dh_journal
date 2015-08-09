@@ -102,7 +102,7 @@
                     Отменено
                 </label>
             </div>
-            <div id="lesson_container" style="height: 425px; position: relative;">
+            <div id="lesson_container" style="max-height: 425px;">
                 <table id="lesson_content" class="table table-bordered table-striped">
                     <tr><th>Фамилия Имя</th><th>Присутствие</th></tr>
                     {% for student in group_detail.students %}
@@ -261,9 +261,11 @@
 
                     $inp.click(function() {
                         if($(this).prop('checked')) {
+                            $('#lesson_container').css('position','relative');
                             popoverLogic.hide();
                             $blockTable.show();
                         } else {
+                            $('#lesson_container').css('position','static');
                             $blockTable.hide();
                             $('.popover-opened').removeClass('popover-opened');
                         }
