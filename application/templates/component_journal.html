@@ -71,11 +71,18 @@
         <!-- Форма выбора абонемента -->
         <div id="pass_menu" class="modal hide">
             <div>
+                   <div class="control-group">
+                        <label class="checkbox">
+                            <input type="checkbox">
+                            <span>долг</span>
+                            <input style="width: 60px" type="text">
+                        </label>
+                    </div> 
                 {% for p in pass_detail %}
                     <div class="control-group">
                         <label class="radio">
                             <input type="radio" name="select_pass_type" value="{{ p.id }}" data-color="{{ p.html_color_class }}">
-                            <span>{{ p.name }}</span>
+                            <span>{{ p.name }}
                         </label>
                     </div>
                 {% endfor %}
