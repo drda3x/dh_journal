@@ -166,6 +166,17 @@ class Students(models.Model):
         verbose_name_plural = u'Ученики'
 
 
+class Debts(models.Model):
+    u"""
+    Хранилищи записей о долгах
+    """
+
+    date = models.DateField(verbose_name=u'Дата')
+    student = models.ForeignKey(Students)
+    group = models.ForeignKey(Groups)
+    val = models.PositiveIntegerField(verbose_name=u'Сумма')
+
+
 class Comments(models.Model):
     u"""
     Хранилице коментов

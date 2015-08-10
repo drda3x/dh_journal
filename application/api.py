@@ -12,7 +12,7 @@ from django.db.models import Q
 from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list
 from application.utils.phones import check_phone
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
 
 
@@ -356,6 +356,16 @@ def process_lesson(request):
                             if date.date() <= group.last_lesson:
                                 attended_passes.append(wrapped)
 
+                    if 'debt' in p.iterkeys():
+                        try:
+                            debt = Debts.objects.get(student__id=p['student_id'], group=group)
+
+                        except Debts.DoesNotExist:
+                            debt = Debts(student_id=p['student_id'], group=group, date=date)
+
+                        debt.val = debt.val + p['debt'] if debt.val else p['debt']
+                        debt.save()
+
             if old_passes:
                 for p in old_passes:
                     pass_orm_object = Passes.objects.select_related().filter(
@@ -507,4 +517,27 @@ def get_comments(request):
 
     except Exception:
         print format_exc()
+        return HttpResponseServerError('failed')
+
+
+def write_off_debt(request):
+    try:
+        debt = Debts.objects.get(
+            student_id=request.GET['sid'],
+            group_id=request.GET['gid']
+        )
+
+        delta = debt.val - int(request.GET['val'])
+
+        if delta == 0:
+            debt.delete()
+
+        else:
+            debt.val = delta
+            debt.save()
+
+        return HttpResponse(delta)
+
+    except Exception:
+        format_exc()
         return HttpResponseServerError('failed')

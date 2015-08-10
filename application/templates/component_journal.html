@@ -14,7 +14,7 @@
             </tr>
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-                <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
+                <td class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
                 {% for date in student.calendar %}
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
@@ -141,6 +141,14 @@
             </div>
         </div>
 
+        <div class="debt-write_off modal hide">
+            <div class="form-inline debt">
+                <label class="control-label debt-label">Погасить:</label>
+                <input class="pass_menu-debt-inp" type="number">
+                <button class="btn btn-small debt-write_off-btn" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Погасить</button>
+            </div>
+        </div>
+
     {% endblock %}
 
     {% block script %}
@@ -179,7 +187,11 @@
                  * @returns {*}
                  */
                 function getDateFromColumn(element) {
-                    return matrix.getColumn(element)[0].text();
+                    try {
+                        return matrix.getColumn(element)[0].text();
+                    } catch(e) {
+                        return NaN
+                    }
                 }
 
                 /**
@@ -187,102 +199,106 @@
                  * @param context
                  */
                 function fillLessonsForm(context) {
-                    var $date = $('#lesson_window_date'),
+                    try {
+                        var $date = $('#lesson_window_date'),
                         data = matrix.getColumn(context),
                         $targets = $('.lesson_data'),
                         $popover = $('.popover');
 
-                    $targets.empty();
-                    $targets.off();
-                    $targets.removeAttr('val');
+                        $targets.empty();
+                        $targets.off();
+                        $targets.removeAttr('val');
 
-                    $popover.remove();
+                        $popover.remove();
 
-                    $date.text(getDateFromColumn(context));
+                        $date.text(getDateFromColumn(context));
 
-                    var i = 1;
+                        var i = 1;
 
-                    $targets.each(function() {
-                        var $this = $(this);
+                        $targets.each(function() {
+                            var $this = $(this);
 
-                        $this.attr('class', data[i].attr('class'));
-                        $this.addClass('lesson_data');
+                            $this.attr('class', data[i].attr('class'));
+                            $this.addClass('lesson_data');
 
-                        // Удаляем следы hover-эффекта от родительской таблицы
-                        $this.removeClass('active');
-                        $this.removeClass('highlight');
+                            // Удаляем следы hover-эффекта от родительской таблицы
+                            $this.removeClass('active');
+                            $this.removeClass('highlight');
 
-                        if(data[i].data('pass') === 'True') {
-                            var attended = data[i].data('sign') == 'True',
-                                $inp = $('<input type="checkbox" style="margin: 0" />');
+                            if(data[i].data('pass') === 'True') {
+                                var attended = data[i].data('sign') == 'True',
+                                    $inp = $('<input type="checkbox" style="margin: 0" />');
 
-                            $this.append($inp);
+                                $this.append($inp);
 
-                            if(attended) {
-                                $inp.prop('checked', 'checked');
+                                if(attended) {
+                                    $inp.prop('checked', 'checked');
+                                }
+
+                                $this.click(function(event) {
+
+                                    var $target = $(event.target);
+
+                                    if(!$target.is('input')) {
+                                        var cb = $(this).children().first();
+
+                                        if(cb.prop('checked')) {
+                                            cb.removeAttr('checked');
+                                        } else {
+                                            cb.prop('checked', 'checked');
+                                        }
+                                    }
+                                });
+                            } else {
+                                $this.addClass('add-pass');
+                                popoverLogic.init($this);
+
+                                $this.click(function() {
+                                    popoverLogic.hide();
+                                    popoverLogic.show($(this));
+                                    if ($this.attr('data-multipass_id')) {
+                                        $('.popover-content').find('.control-group').each(function() {
+                                            var $label = $(this).find('label span');
+                                            if($label.text().toLowerCase().indexOf('мультикарта') >= 0) {
+                                                $label.html('<strong>Мультикарта ('+$this.data('multipass_lessons')+')</strong>')
+                                            }
+                                        });
+                                    }
+                                });
                             }
 
-                            $this.click(function(event) {
+                            i++;
 
-                                var $target = $(event.target);
-
-                                if(!$target.is('input')) {
-                                    var cb = $(this).children().first();
-
-                                    if(cb.prop('checked')) {
-                                        cb.removeAttr('checked');
-                                    } else {
-                                        cb.prop('checked', 'checked');
-                                    }
-                                }
-                            });
-                        } else {
-                            $this.addClass('add-pass');
-                            popoverLogic.init($this);
-
-                            $this.click(function() {
-                                popoverLogic.hide();
-                                popoverLogic.show($(this));
-                                if ($this.attr('data-multipass_id')) {
-                                    $('.popover-content').find('.control-group').each(function() {
-                                        var $label = $(this).find('label span');
-                                        if($label.text().toLowerCase().indexOf('мультикарта') >= 0) {
-                                            $label.html('<strong>Мультикарта ('+$this.data('multipass_lessons')+')</strong>')
-                                        }
-                                    });
-                                }
-                            });
-                        }
-
-                        i++;
-
-                    });
-
-                    var $blockTable = $('#block_table'),
-                        $inp = $('#cancel_lesson_inp');
-
-                    // Если стоит галочка в поле "Отменено"
-                    if($inp.prop('checked')) {
-                        $blockTable.show();
-                    }
-
-                    $inp.click(function() {
-                        if($(this).prop('checked')) {
-                            $('#lesson_container').css('position','relative');
-                            popoverLogic.hide();
-                            $blockTable.show();
-                        } else {
-                            $('#lesson_container').css('position','static');
-                            $blockTable.hide();
-                            $('.popover-opened').removeClass('popover-opened');
-                        }
-                    });
-
-                    var printBtn = $('#printBtn');
-                        printBtn.off('click');
-                        printBtn.click(function() {
-                            window.open('/print?id={{ group_detail.id }}&type=lesson&date='+getDateFromColumn(context).replace(/\./g, ''), '', 'width=500, height=800, location=no')
                         });
+
+                        var $blockTable = $('#block_table'),
+                            $inp = $('#cancel_lesson_inp');
+
+                        // Если стоит галочка в поле "Отменено"
+                        if($inp.prop('checked')) {
+                            $blockTable.show();
+                        }
+
+                        $inp.click(function() {
+                            if($(this).prop('checked')) {
+                                $('#lesson_container').css('position','relative');
+                                popoverLogic.hide();
+                                $blockTable.show();
+                            } else {
+                                $('#lesson_container').css('position','static');
+                                $blockTable.hide();
+                                $('.popover-opened').removeClass('popover-opened');
+                            }
+                        });
+
+                        var printBtn = $('#printBtn');
+                            printBtn.off('click');
+                            printBtn.click(function() {
+                                window.open('/print?id={{ group_detail.id }}&type=lesson&date='+getDateFromColumn(context).replace(/\./g, ''), '', 'width=500, height=800, location=no')
+                            });
+                    } catch (e) {
+
+                    }
                 }
 
                 // ====================================================================================================
@@ -467,6 +483,63 @@
                     handlers[param]();
                 }
 
+                var $debtLinks = $('.debt-main');
+
+                $debtLinks.popover({
+                    content: $('.debt-write_off').html(),
+                    html: true,
+                    show: false
+                });
+
+                $debtLinks.click(function() {
+                    var $this = $(this);
+
+                    try{
+                        $this.popover('toggle');
+                    } catch (e) {}
+
+
+                    var $popover = $this.siblings('.popover'),
+                    $clickBtn = $popover.find('.debt-write_off-btn');
+                    $clickBtn.off('click');
+
+                    console.log($popover);
+                    console.log($clickBtn);
+
+                    $clickBtn.click(function() {
+
+                        var $td = $(this).parentsUntil('td'),
+                            $val = $popover.find('input');
+
+                        function cb(err, data) {
+                            if(!err) {
+                                console.log($this.find('strong'));
+                                if(parseInt(data) == 0) {
+                                    $this.remove();
+                                } else {
+                                    console.log('else');
+                                    $this.text('долг: '+ data);
+                                }
+                            }
+                        }
+
+                        $.ajax({
+                            method: 'GET',
+                            url: 'writeoffdebt',
+                            data: {
+                                gid: {{ group_detail.id }},
+                                sid: $this.data('id'),
+                                val: $val.val()
+                            }
+                        }).done(function(data) {
+                            cb(null, data)
+                        }).error(function(err) {
+                            cb(err, null)
+                        });
+
+                        $this.popover('hide');
+                    });
+                });
             })()
         </script>
     {% endblock %}

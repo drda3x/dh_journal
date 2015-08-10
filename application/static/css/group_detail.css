@@ -111,8 +111,25 @@ html, body {
     padding-right: 0 !important;
 }
 
+.fio_cell span:hover {
+    text-decoration: underline #000000;
+}
+
 .fio_cell .popover.right .arrow {
     top: 50%;
+}
+
+.debt-main {
+    margin-left: 10px;
+}
+
+.pass_menu-debt-inp {
+    width: 60px;
+    margin-right: 15px;
+}
+
+.debt-main:hover {
+    text-decoration: underline lightcoral;
 }
 
 #journal {}

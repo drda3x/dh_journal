@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^edit_comment', api.add_or_edit_comment),
     url(r'^delete_comment', api.delete_comment),
     url(r'^restorelesson', api.restore_lesson),
+    url(r'writeoffdebt', api.write_off_debt),
     url(r'', views.index_view)
 ]
 

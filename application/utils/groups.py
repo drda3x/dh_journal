@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
-from application.models import Groups, Students, Passes, Lessons, GroupList, Comments, CanceledLessons
+from application.models import Groups, Students, Passes, Lessons, GroupList, Comments, CanceledLessons, Debts
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
@@ -53,6 +53,7 @@ def get_group_detail(group_id, _date_from, date_to):
         {
             'person': s,
             'calendar': [get_student_lesson_status(s, group, dt) for dt in calendar],  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+            'debt': check_debt(s, group),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
             'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to)),
             'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
@@ -118,6 +119,22 @@ def get_group_detail(group_id, _date_from, date_to):
         'moneys': moneys,
         'money_total': money_total
     }
+
+
+def check_debt(student, group):
+
+    u'''
+    Проверить наличие долгов у студента
+    :param student: models.Student
+    :param group: models.Group
+    :return: models.Debt | None
+    '''
+
+    try:
+        return Debts.objects.get(student=student, group=group)
+
+    except Debts.DoesNotExist:
+        return None
 
 
 def get_student_pass_remaining(student, group):
