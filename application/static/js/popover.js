@@ -65,6 +65,7 @@ window.vidgetsLogic.Popover = (function($) {
             self.$target.popover('show');
             self.$object = self.$container.find(self.objSelector);
             self.$debt = self.$container.find('.debt');
+            self.$debtCheckbox = self.$debt.find('input:checkbox');
             self.$debtText = self.$container.find('.pass_menu-debt-inp');
 
             var debtVal;
@@ -73,6 +74,16 @@ window.vidgetsLogic.Popover = (function($) {
             var value = self.getExistedValue();
             if(value) {
                 this.$object.find('input[value='+value+']').prop('checked', 'checked');
+                self.$debtCheckbox.prop('disabled', false);
+
+                debtVal = self.$target.attr('data-debt');
+                console.log(debtVal);
+                if(debtVal != undefined) {
+                    self.$debtCheckbox.prop('checked', true);
+                    self.$debtText.prop('readonly', false);
+                    self.$debtText.val(debtVal);
+                }
+
                 self.toggleAdvanced(value);
             } else {
                 self.$target.removeAttr('subval');
@@ -89,24 +100,26 @@ window.vidgetsLogic.Popover = (function($) {
 
                 // Если кликнули по выделленному input'y - нужно снять с него фокус и обнулить контейнер данных и убрать выделение цветом
                 if(newValue == self.getExistedValue()) {
-                    debtVal = null;
+                    debtVal = undefined;
                     $this.prop('checked', false);
                     self.$target.removeAttr('val');
                     self.$target.removeClass(self.$target.passClass);
                     self.$target.find('input').off('click', stop).remove();
-                    self.$debt.find('input:checkbox').prop('checked', false);
+                    self.$debtCheckbox.prop('checked', false);
+                    self.$debtCheckbox.prop('disabled', true);
                     self.$debtText.val('');
                     self.$debtText.prop('readonly', true);
-                    self.$target.removeAttr('data-debt');
-                    self.$target.removeAttr('data-prise');
+                    self.$target.data('debt', undefined);
                 } else {
                     self.$target.attr('val', newValue);
-                    //debtVal = $this.data('prise');
-                    debtVal = 3000;
+                    debtVal = $this.data('prise');
 
                     if(self.$debt.find('input:checkbox').prop('checked')) {
                         self.$debtText.val(debtVal);
+                        self.$target.attr('data-debt', debtVal);
                     }
+
+                    self.$debtCheckbox.prop('disabled', false);
 
                     if(self.$target.hasOwnProperty('passClass')) {
                         self.$target.removeClass(self.$target.passClass );
@@ -131,11 +144,19 @@ window.vidgetsLogic.Popover = (function($) {
                     if($target.prop('checked')) {
                         self.$debtText.prop('readonly', false);
                         self.$debtText.val(debtVal);
+                        self.$target.attr('data-debt', debtVal);
                     } else {
                         self.$debtText.val('');
                         self.$debtText.prop('readonly', true);
+                        self.$target.removeAttr('data-debt');
+                        debtVal = null;
                     }
                 }
+            });
+
+            self.$debtText.keyup(function() {
+                debtVal = $(this).val();
+                self.$target.attr('data-debt', debtVal);
             });
 
             // Класс с активным попапом может быть только один, так что сначала удалим все классы,

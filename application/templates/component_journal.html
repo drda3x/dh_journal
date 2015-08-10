@@ -73,7 +73,7 @@
             <div>
                    <div class="control-group">
                         <label class="checkbox debt">
-                            <input type="checkbox">
+                            <input type="checkbox" disabled>
                             <span>долг</span>
                             <input class="pass_menu-debt-inp" type="text" readonly>
                         </label>
@@ -414,7 +414,8 @@
                                             student_id: student_id,
                                             pass_type: lesson.attr('val'),
                                             from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
-                                            presence: true
+                                            presence: true,
+                                            debt: lesson.data('debt')
                                         };
 
                                         if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
