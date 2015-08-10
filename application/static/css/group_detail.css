@@ -103,9 +103,9 @@ html, body {
     width: 300px;
 }
 
-.popover.right .arrow {
-    top: 85px;
-}
+/*.popover.right .arrow {*/
+    /*top: 85px;*/
+/*}*/
 
 .fio_cell {
     padding-right: 0 !important;
@@ -320,6 +320,11 @@ html, body {
 
 .ib {
     display: inline-block;
+}
+
+.pass_menu-debt-inp {
+    width: 60px;
+    margin: -6px 6px !important;
 }
 
 /*.canceled {*/

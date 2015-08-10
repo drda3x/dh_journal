@@ -64,6 +64,10 @@ window.vidgetsLogic.Popover = (function($) {
             self.$container = $target.parent();
             self.$target.popover('show');
             self.$object = self.$container.find(self.objSelector);
+            self.$debt = self.$container.find('.debt');
+            self.$debtText = self.$container.find('.pass_menu-debt-inp');
+
+            var debtVal;
 
             // Если нужно устанавливаем уже существующее значение
             var value = self.getExistedValue();
@@ -85,12 +89,24 @@ window.vidgetsLogic.Popover = (function($) {
 
                 // Если кликнули по выделленному input'y - нужно снять с него фокус и обнулить контейнер данных и убрать выделение цветом
                 if(newValue == self.getExistedValue()) {
+                    debtVal = null;
                     $this.prop('checked', false);
                     self.$target.removeAttr('val');
                     self.$target.removeClass(self.$target.passClass);
                     self.$target.find('input').off('click', stop).remove();
+                    self.$debt.find('input:checkbox').prop('checked', false);
+                    self.$debtText.val('');
+                    self.$debtText.prop('readonly', true);
+                    self.$target.removeAttr('data-debt');
+                    self.$target.removeAttr('data-prise');
                 } else {
                     self.$target.attr('val', newValue);
+                    //debtVal = $this.data('prise');
+                    debtVal = 3000;
+
+                    if(self.$debt.find('input:checkbox').prop('checked')) {
+                        self.$debtText.val(debtVal);
+                    }
 
                     if(self.$target.hasOwnProperty('passClass')) {
                         self.$target.removeClass(self.$target.passClass );
@@ -107,6 +123,19 @@ window.vidgetsLogic.Popover = (function($) {
 
                 // Возможно нужно открыть доп. окошко
                 self.toggleAdvanced(self.getExistedValue());
+            });
+
+            self.$debt.click(function(event) {
+                var $target = $(event.target);
+                if($target.is('input:checkbox')) {
+                    if($target.prop('checked')) {
+                        self.$debtText.prop('readonly', false);
+                        self.$debtText.val(debtVal);
+                    } else {
+                        self.$debtText.val('');
+                        self.$debtText.prop('readonly', true);
+                    }
+                }
             });
 
             // Класс с активным попапом может быть только один, так что сначала удалим все классы,
