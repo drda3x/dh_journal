@@ -2,6 +2,7 @@
 
 import datetime, math, calendar as calendar_origin
 from django.db import models
+from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
 
 from application.utils.date_api import get_count_of_weekdays_per_interval
@@ -68,7 +69,7 @@ class Groups(models.Model):
     def last_lesson(self):
         now = datetime.datetime.now()
         _from = datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
-        cnt = get_count_of_weekdays_per_interval(self.days, _from, now)
+        cnt = get_count_of_weekdays_per_interval(self.days, _from, now) + 1
         return filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
 
     def get_calendar(self, count, date_from=None, clean=True):
