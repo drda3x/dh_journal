@@ -277,7 +277,7 @@
                         return
                     }
                     backDrop('show');
-                    processData('deletestudent', {ids: JSON.stringify([$id])}, function(err, data) {
+                    processData('deletestudent', {ids: JSON.stringify([$id]), gid: {{ group_detail.id }} }, function(err, data) {
                         if(!err) {
                             reload()
                         } else {

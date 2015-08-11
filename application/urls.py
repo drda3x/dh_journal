@@ -20,8 +20,15 @@ import application.api as api
 from django.conf import settings
 from django.conf.urls import include, url, patterns
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-urlpatterns = [
+urlpatterns = patterns('', (r'^media\/(?P<path>.*)$',
+                                 'django.views.static.serve',
+                                 {'document_root': settings.MEDIA_ROOT}),
+                           )
+urlpatterns += staticfiles_urlpatterns()
+
+urlpatterns += [
     url(r'^admin/?', include(admin.site.urls)),
     url(r'^group/addstudent', api.add_student),
     url(r'^group/editstudent', api.edit_student),
@@ -46,11 +53,3 @@ urlpatterns = [
     url(r'writeoffdebt', api.write_off_debt),
     url(r'', views.index_view)
 ]
-
-urlpatterns += patterns('', (r'^media\/(?P<path>.*)$',
-                                 'django.views.static.serve',
-                                 {'document_root': settings.MEDIA_ROOT}),
-                           )
-
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-urlpatterns += staticfiles_urlpatterns()
