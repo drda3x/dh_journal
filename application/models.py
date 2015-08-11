@@ -265,6 +265,7 @@ class GroupList(models.Model):
 
     group = models.ForeignKey(Groups, verbose_name=u'Группа')
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
+    active = models.BooleanField(verbose_name=u'Ссылка активна', default=True)
 
     class Meta:
         app_label = u'application'

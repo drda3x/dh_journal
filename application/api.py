@@ -77,9 +77,7 @@ def add_student(request):
 
         try:
             student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
-
-            if GroupList.objects.filter(student=student, group_id=group_id).exists():
-                return group_detail_view(request)
+            group_list = GroupList.objects.get(student=student, group_id=group_id)
 
         except Students.DoesNotExist:
             student = Students(
@@ -92,15 +90,21 @@ def add_student(request):
 
             student.save()
 
-        group_list = GroupList(
-            student=student,
-            group_id=group_id
-        )
+            group_list = None
 
-        try:
+        except GroupList.DoesNotExist:
+            group_list = None
+
+        if not group_list:
+            group_list = GroupList(
+                student=student,
+                group_id=group_id
+            )
             group_list.save()
-        except Exception:
-            pass
+
+        elif not group_list.active:
+            group_list.active = True
+            group_list.save()
 
         return HttpResponse(200)
 
@@ -112,15 +116,25 @@ def add_student(request):
 def delete_student(request):
     try:
         ids = json.loads(request.GET['ids'])
+        gid = request.GET['gid']
         students = Students.objects.filter(pk__in=ids)
         errors = []
-        for student in students:
+
+        for gl in GroupList.objects.filter(group__id=gid, student__id__in=ids).select_related('student'):
             try:
-                student.is_deleted = True
-                student.save()
+                gl.active = False
+                gl.save()
 
             except Exception:
-                errors.append(student.id)
+                errors.append(gl.student.id)
+
+        # for student in students:
+        #     try:
+        #         student.is_deleted = True
+        #         student.save()
+        #
+        #     except Exception:
+        #         errors.append(student.id)
 
         return HttpResponse(200) if not errors else HttpResponseServerError(json.dumps(errors))
 

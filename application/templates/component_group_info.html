@@ -295,7 +295,7 @@
                         if (!confirm(msg)) {
                             return;
                         }
-                        processData('deletestudent', {ids: JSON.stringify(toDelete)}, function(err, data) {
+                        processData('deletestudent', {ids: JSON.stringify(toDelete), gid: {{ group_detail.id }} }, function(err, data) {
                         backDrop('show');
                         if(!err) {
                             reload()

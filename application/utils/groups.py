@@ -168,7 +168,7 @@ def get_group_students_list(group):
         raise TypeError('Expected Groups instance!')
 
     return Students.objects.filter(
-        pk__in=GroupList.objects.filter(group=group).values('student_id'),
+        pk__in=GroupList.objects.filter(group=group, active=True).values('student_id'),
         is_deleted=False
     ).order_by('last_name', 'first_name')
 
