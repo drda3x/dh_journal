@@ -19,10 +19,10 @@
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
                         <strong>
-                            {% if date.sign > 0 %}
+                            {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
                                 {{ date.sign }}
                             {% else %}
-                                <span style="color: #f00000">{{ date.sign|stringformat:"+d"|slice:"1:" }}</span>
+                                <span style="color: #f00000">{% if date.sign|slice:":2" == '--' %}{{ date.sign|slice:"2:" }}{% else %}{{ date.sign|stringformat:"+d"|slice:"1:" }}{% endif %}</span>
                             {% endif %}
                         </strong>
                     {% else %}
@@ -150,13 +150,13 @@
             </div>
         </div>
 
-        <div id="sub_menu" class="dropdown hide">
+        <div id="sub_menu" class="dropdown" style="display: none;">
             <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
+            <span></span>
             <b class="caret"></b>
             </a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                 <li class="sub_menu_del">Удалить</li>
-                <li>Перенести</li>
             </ul>
         </div>
 
@@ -217,7 +217,7 @@
                         $popover = $('.popover'),
                         $dropdown = $('#sub_menu').clone();
 
-                        $dropdown.removeClass('hide');
+                        $dropdown.css('display', 'inline-block');
 
                         $targets.empty();
                         $targets.off();
@@ -225,7 +225,8 @@
 
                         $popover.remove();
 
-                        $date.text(getDateFromColumn(context));
+                        var date_val = getDateFromColumn(context);
+                        $date.text(date_val);
 
                         var i = 1;
 
@@ -241,10 +242,16 @@
 
                             if(data[i].data('pass') === 'True') {
                                 var attended = data[i].data('sign') == 'True',
-                                    $inp = $('<input type="checkbox" style="margin: 0" />');
+                                    $inp = $('<input type="checkbox" style="margin: 0" />'),
+                                    drop_down_local = $dropdown.clone(),
+                                    linkLabel = drop_down_local.find('a span');
 
                                 $this.append($inp);
-                                $this.append($dropdown.clone());
+
+                                linkLabel.empty();
+                                linkLabel.text(data[i].text() || 'н');
+
+                                $this.append(drop_down_local);
                                 if(attended) {
                                     $inp.prop('checked', 'checked');
                                 }
@@ -252,7 +259,7 @@
                                 $this.click(function(event) {
 
                                     var $target = $(event.target);
-                                    if(!$target.is('input') && !$target.is('b.caret') && !$target.is('li')) {
+                                    if(!$target.is('input') && !$target.is('a') && !$target.is('span') && !$target.is('b.caret') && !$target.is('li')) {
                                         var cb = $(this).children().first();
 
                                         if(cb.prop('checked')) {
@@ -282,6 +289,45 @@
 
                             i++;
 
+                            $this.find('.sub_menu_del').click((function($this, date_val) {
+
+                                var _this = $this,
+                                    _date_val = date_val;
+
+                                return function() {
+                                    var container, sibling, cb;
+                                    sibling = $(_this.siblings()[0]);
+
+                                    cb = function(err, data) {
+                                        if(!err) {
+                                            _this.empty();
+                                            _this.removeAttr('class');
+
+                                            _this.addClass('add-pass');
+                                            _this.addClass('lesson_data');
+                                            popoverLogic.init(_this);
+
+                                            _this.click(function() {
+                                                popoverLogic.hide();
+                                                popoverLogic.show($(this));
+                                            });
+                                        }
+                                    };
+                                    if(confirm('Удалить абонемент?')) {
+                                        $.ajax('deletepass', {
+                                            data: {
+                                                gid: {{ group_detail.id }},
+                                                date: _date_val,
+                                                stid: sibling.data('stid')
+                                            }
+                                        }).done(function(data) {
+                                            cb(null, data);
+                                        }).error(function(err) {
+                                            cb(err, null);
+                                        })
+                                    }
+                                };
+                            })($this, date_val));
                         });
 
                         var $blockTable = $('#block_table'),
@@ -526,7 +572,7 @@
 
                         function cb(err, data) {
                             if(!err) {
-                                console.log($this.find('strong'));
+                                needReload = true;
                                 if(parseInt(data) == 0) {
                                     $this.remove();
                                 } else {
@@ -554,8 +600,36 @@
                     });
                 });
 
-            $('.pass_menu-cnt').hide();
+                $('.pass_menu-cnt').hide();
 
+                needReload = false;
+
+                function reload() {
+                    window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}';
+                }
+
+                 // Перезагрузка страницы если надо
+                $('.close').click(function() {
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
+
+                $('.cancel').click(function() {
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
+
+                $('.modal').on('hidden', function() {
+                console.log(needReload);
+                    if(needReload) {
+                        needReload = false;
+                        reload()
+                    }
+                });
             })()
         </script>
     {% endblock %}

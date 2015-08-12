@@ -216,8 +216,9 @@ def get_student_lesson_status(student, group, _date):
 
         buf = {
             'pass': True,
-            'sign': '' if lesson.status == Lessons.STATUSES['moved'] else (lesson.prise() if lesson.status == Lessons.STATUSES['attended'] else lesson.prise() * -1) if not lesson.status == Lessons.STATUSES['not_processed'] else '',
-            'attended': lesson.status == Lessons.STATUSES['attended']
+            'sign': lesson.sign,
+            'attended': lesson.status == Lessons.STATUSES['attended'],
+            'pid': lesson.group_pass.id
         }
 
         if not lesson.status == Lessons.STATUSES['moved']:

@@ -206,6 +206,7 @@ class PassTypes(models.Model):
     color = models.CharField(verbose_name=u'Цвет', max_length=7, null=True, blank=True)
     one_group_pass = models.BooleanField(verbose_name=u'Одна группа', default=True)
     sequence = models.PositiveIntegerField(verbose_name=u'Порядковый номер', null=True, blank=True)
+    shown_value = models.CharField(verbose_name=u'Отображаемое значение(если пустое - показывается цена за занятие)', null=True, blank=True, max_length=30)
 
     def __unicode__(self):
         return u'%s - %s (%dр.)' % (str(self.sequence), self.name, self.prise)
@@ -291,6 +292,10 @@ class Passes(models.Model):
     frozen_date = models.DateField(verbose_name=u'Дата окончания заморозки', null=True, blank=True)
 
     @property
+    def shown_value(self):
+        return self.pass_type.shown_value
+
+    @property
     def date(self):
         return self.frozen_date or self.start_date
 
@@ -357,6 +362,16 @@ class Lessons(models.Model):
     student = models.ForeignKey(Students, verbose_name=u'Учение')
     group_pass = models.ForeignKey(Passes, verbose_name=u'Абонемент', related_name=u'lesson_group_pass')
     status = models.IntegerField(verbose_name=u'Статус занятия', choices=[(val, key) for key, val in STATUSES.iteritems()], default=DEFAULT_STATUS)
+
+    @property
+    def sign(self):
+
+        if self.status in [Lessons.STATUSES['moved'], Lessons.STATUSES['not_processed']]:
+            return ''
+        elif self.status == Lessons.STATUSES['attended']:
+            return self.group_pass.shown_value or self.prise()
+        else:
+            return '--' + self.group_pass.shown_value if self.group_pass.shown_value else self.prise() * -1
 
     @property
     def rus(self):

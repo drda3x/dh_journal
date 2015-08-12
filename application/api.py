@@ -161,15 +161,32 @@ def edit_student(request):
 
 def delete_pass(request):
     try:
-        ids = json.loads(request.GET['ids'])
-        passes = Passes.objects.filter(pk__in=ids)
+        ids = request.GET.get('ids', None)
+        gid = request.GET.get('gid', None)
+        date = request.GET.get('date', None)
+        stid = request.GET.get('stid', None)
+        errors = []
 
-        processed = ((p.id, PassLogic.wrap(p).delete()) for p in passes)
+        if ids:
+            passes = Passes.objects.filter(pk__in=json.loads(ids))
+            processed = ((p.id, PassLogic.wrap(p).delete()) for p in passes)
 
-        if all([p1[1] for p1 in processed]):
-            return HttpResponse(200)
+            if all([p1[1] for p1 in processed]):
+                return HttpResponse(200)
 
-        errors = filter(lambda x: not x[1], processed)
+            errors += filter(lambda x: not x[1], processed)
+
+        elif gid and date and stid:
+            _pass = Lessons.objects.get(
+                group_id=gid,
+                student_id=stid,
+                date=datetime.datetime.strptime(date, '%d.%m.%Y').date()
+            )
+
+            success = PassLogic.wrap(_pass.group_pass).delete()
+
+            return HttpResponse(200) if success else HttpResponseServerError(json.dumps([_pass.id]))
+
         return HttpResponseServerError(json.dumps(errors))
 
     except Exception:
