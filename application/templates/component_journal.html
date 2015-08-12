@@ -71,13 +71,6 @@
         <!-- Форма выбора абонемента -->
         <div id="pass_menu" class="modal hide">
             <div>
-                   <div class="control-group">
-                        <label class="checkbox debt">
-                            <input type="checkbox" disabled>
-                            <span>долг</span>
-                            <input class="pass_menu-debt-inp" type="text" readonly>
-                        </label>
-                    </div> 
                 {% for p in pass_detail %}
                     <div class="control-group">
                         <label class="radio">
@@ -95,6 +88,13 @@
                         <input id="pass_menu_fio" type="text" placeholder="Фамилия Имя">
                         <ul id="pass_menu_advanced_content"></ul>
                     </div>
+                </div>
+                <div class="control-group">
+                    <label class="checkbox debt">
+                        <input type="checkbox" disabled>
+                        <span>долг</span>
+                        <input class="pass_menu-debt-inp" type="text" readonly>
+                    </label>
                 </div>
             </div>
         </div>

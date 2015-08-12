@@ -68,6 +68,14 @@ window.vidgetsLogic.Popover = (function($) {
             self.$debtCheckbox = self.$debt.find('input:checkbox');
             self.$debtText = self.$container.find('.pass_menu-debt-inp');
 
+            self.$target.passClass = (function($this) {
+                var classes = $this.attr('class'),
+                    re = /[pass_type\w]/,
+                    target_class = classes.match(/pass_type\d/);
+
+                return target_class ? target_class[0] : undefined;
+            })(self.$target);
+
             var debtVal;
 
             // Если нужно устанавливаем уже существующее значение
@@ -77,7 +85,6 @@ window.vidgetsLogic.Popover = (function($) {
                 self.$debtCheckbox.prop('disabled', false);
 
                 debtVal = self.$target.attr('data-debt');
-                console.log(debtVal);
                 if(debtVal != undefined) {
                     self.$debtCheckbox.prop('checked', true);
                     self.$debtText.prop('readonly', false);
