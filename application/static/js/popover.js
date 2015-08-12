@@ -81,7 +81,9 @@ window.vidgetsLogic.Popover = (function($) {
             // Если нужно устанавливаем уже существующее значение
             var value = self.getExistedValue();
             if(value) {
-                this.$object.find('input[value='+value+']').prop('checked', 'checked');
+                var $radio = this.$object.find('input[value='+value+']');
+                $radio.prop('checked', 'checked');
+                $radio.siblings('.pass_menu-cnt').show();
                 self.$debtCheckbox.prop('disabled', false);
 
                 debtVal = self.$target.attr('data-debt');
@@ -99,8 +101,8 @@ window.vidgetsLogic.Popover = (function($) {
             // Вешаем евенты
             self.$object.find('input[type=radio]').click(function() {
                 var $this = $(this),
-                    newValue = $this.val();
-
+                    newValue = $this.val(),
+                    $cntInp = $($this.siblings('.pass_menu-cnt')[0]) || undefined;
                 function stop(event) {
                     event.stopPropagation();
                 }
@@ -117,6 +119,9 @@ window.vidgetsLogic.Popover = (function($) {
                     self.$debtText.val('');
                     self.$debtText.prop('readonly', true);
                     self.$target.data('debt', undefined);
+                    if($cntInp) {
+                        $cntInp.hide();
+                    }
                 } else {
                     self.$target.attr('val', newValue);
                     debtVal = $this.data('prise');
@@ -138,6 +143,10 @@ window.vidgetsLogic.Popover = (function($) {
                         var $inp = $('<input type="checkbox" style="margin: 0; position: absolute;" checked>');
                         self.$target.append($inp);
                         $inp.click(stop);
+                    }
+                    if($cntInp) {
+                        $('.pass_menu-cnt').hide();
+                        $cntInp.show();
                     }
                 }
 

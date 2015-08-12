@@ -75,7 +75,8 @@
                     <div class="control-group">
                         <label class="radio">
                             <input type="radio" name="select_pass_type" value="{{ p.id }}" data-color="{{ p.html_color_class }}" data-prise="{{ p.prise }}">
-                            <span>{{ p.name }}
+                            <span>{{ p.name }}</span>
+                            {% if p.lessons > 1 %}<input class="pass_menu-cnt" type="text" name="def_lesson_cnt" value="{{ p.lessons }}" />{% endif %}
                         </label>
                     </div>
                 {% endfor %}
@@ -149,6 +150,16 @@
             </div>
         </div>
 
+        <div id="sub_menu" class="dropdown hide">
+            <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
+            <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <li class="sub_menu_del">Удалить</li>
+                <li>Перенести</li>
+            </ul>
+        </div>
+
     {% endblock %}
 
     {% block script %}
@@ -203,7 +214,10 @@
                         var $date = $('#lesson_window_date'),
                         data = matrix.getColumn(context),
                         $targets = $('.lesson_data'),
-                        $popover = $('.popover');
+                        $popover = $('.popover'),
+                        $dropdown = $('#sub_menu').clone();
+
+                        $dropdown.removeClass('hide');
 
                         $targets.empty();
                         $targets.off();
@@ -230,7 +244,7 @@
                                     $inp = $('<input type="checkbox" style="margin: 0" />');
 
                                 $this.append($inp);
-
+                                $this.append($dropdown.clone());
                                 if(attended) {
                                     $inp.prop('checked', 'checked');
                                 }
@@ -238,8 +252,7 @@
                                 $this.click(function(event) {
 
                                     var $target = $(event.target);
-
-                                    if(!$target.is('input')) {
+                                    if(!$target.is('input') && !$target.is('b.caret') && !$target.is('li')) {
                                         var cb = $(this).children().first();
 
                                         if(cb.prop('checked')) {
@@ -540,6 +553,9 @@
                         $this.popover('hide');
                     });
                 });
+
+            $('.pass_menu-cnt').hide();
+
             })()
         </script>
     {% endblock %}

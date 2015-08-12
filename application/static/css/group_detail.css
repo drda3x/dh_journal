@@ -344,6 +344,50 @@ html, body {
     margin: -6px 6px !important;
 }
 
+#sub_menu {
+    display: inline-block;
+    width: 135px;
+    position: absolute;
+}
+
+#sub_menu .dropdown-toggle {
+    color: #000000;
+}
+
+#sub_menu .dropdown-toggle .caret {
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #ffffff;
+    content: "";
+    display: inline-block;
+    height: 0;
+    vertical-align: top;
+    width: 0;
+    margin-top: 4px;
+    float: right;
+}
+
+#sub_menu .dropdown-menu {
+
+}
+
+#sub_menu .dropdown-menu li {
+    text-align: center;
+    margin: 2px 0;
+    padding: 3px 0;
+}
+
+#sub_menu .dropdown-menu li:hover {
+    background-color: #0088CC;
+    color: #ffffff;
+}
+
+.pass_menu-cnt {
+    width: 30px;
+    margin: 0 3px !important;
+    padding: 0 3px !important;
+}
+
 /*.canceled {*/
     /*background-color: #979997 !important;*/
 /*}*/
