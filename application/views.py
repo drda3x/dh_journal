@@ -52,44 +52,51 @@ def group_detail_view(request):
     template = 'group_detail.html'
     date_format = '%d%m%Y'
 
-    group_id = int(request.GET['id'])
-    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-        else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    date_to = get_last_day_of_month(date_from)
-    now = datetime.datetime.now()
+    try:
+        group_id = int(request.GET['id'])
+        date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+            else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        date_to = get_last_day_of_month(date_from)
+        now = datetime.datetime.now()
 
-    forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
+        forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
 
-    border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
+        border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
 
-    context['control_data'] = {
-        'constant': {
-            'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
-            'current_date_numval': date_from.strftime(date_format)
-        },
-        'date_control': map(
-            lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
-            filter(
-                lambda x1: x1 >= border,
-                map(lambda x: get_month_offset(forward_month.date(), x), xrange(0, 8))
+        context['control_data'] = {
+            'constant': {
+                'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
+                'current_date_numval': date_from.strftime(date_format)
+            },
+            'date_control': map(
+                lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+                filter(
+                    lambda x1: x1 >= border,
+                    map(lambda x: get_month_offset(forward_month.date(), x), xrange(0, 8))
+                )
             )
-        )
-    }
-    context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
+        }
+        context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
 
-    html_color_classes = {
-        key: val for val, key in get_color_classes()
-    }
+        html_color_classes = {
+            key: val for val, key in get_color_classes()
+        }
 
-    context['passes_color_classes'] = [
-        {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
-    ]
+        context['passes_color_classes'] = [
+            {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
+        ]
 
-    context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-    context['pass_detail'] = PassTypes.objects.all().order_by('sequence').values()
+        context['group_detail'] = get_group_detail(group_id, date_from, date_to)
+        context['pass_detail'] = PassTypes.objects.all().order_by('sequence').values()
 
-    for det in context['pass_detail']:
-        det['html_color_class'] = html_color_classes[det['color']]
+        for det in context['pass_detail']:
+            det['html_color_class'] = html_color_classes[det['color']]
+
+        context['error'] = False
+
+    except Groups.DoesNotExist:
+
+        context['error'] = True
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 

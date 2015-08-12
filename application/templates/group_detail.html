@@ -22,6 +22,7 @@
 
 {% block body %}
     {% block content %}
+    {% if not error %}
     <div class="journal-header">
         <div id="dateControl" class="dropdown">
             <strong class="text-info">
@@ -54,10 +55,10 @@
             {% include "component_group_info.html" %}
         </div>
     </div>
-
+    {% endif %}
     {% endblock %}
     {% block script %}
-
+        {% if not error %}
         <script type="text/javascript">
 
             (function() {
@@ -75,7 +76,7 @@
                 // todo проработать механизм хранения отмененных занятий (походу для этого нужен рефакторинг)
             })();
         </script>
-
+        {% endif %}
     {% endblock %}
 
 {% endblock %}

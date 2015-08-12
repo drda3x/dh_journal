@@ -208,7 +208,7 @@ class PassTypes(models.Model):
     sequence = models.PositiveIntegerField(verbose_name=u'Порядковый номер', null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s (%dр.)' % (self.name, self.prise)
+        return u'%s - %s (%dр.)' % (str(self.sequence), self.name, self.prise)
 
     def __json__(self):
         return dict(
