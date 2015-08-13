@@ -20,9 +20,19 @@
                     {% if date.pass and date.sign %}
                         <strong>
                             {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
-                                {{ date.sign }}
+                                {% if date.sign_type == 's' %}
+                                    {{ date.sign }}
+                                {% else %}
+                                    {{ date.sign }} р
+                                {% endif %}
                             {% else %}
-                                <span style="color: #f00000">{% if date.sign|slice:":2" == '--' %}{{ date.sign|slice:"2:" }}{% else %}{{ date.sign|stringformat:"+d"|slice:"1:" }}{% endif %}</span>
+                                <span style="color: #f00000">
+                                    {% if date.sign|slice:":2" == '--' %}
+                                        {{ date.sign|slice:"2:" }}
+                                    {% else %}
+                                        {{ date.sign|stringformat:"+d"|slice:"1:" }} р
+                                    {% endif %}
+                                </span>
                             {% endif %}
                         </strong>
                     {% else %}
@@ -311,6 +321,7 @@
                                                 popoverLogic.hide();
                                                 popoverLogic.show($(this));
                                             });
+                                            needReload = true;
                                         }
                                     };
                                     if(confirm('Удалить абонемент?')) {
@@ -602,10 +613,11 @@
 
                 $('.pass_menu-cnt').hide();
 
-                needReload = false;
+                var needReload = false;
 
                 function reload() {
-                    window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}';
+                    //window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}';
+                    window.location.reload();
                 }
 
                  // Перезагрузка страницы если надо

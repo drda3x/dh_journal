@@ -217,6 +217,7 @@ def get_student_lesson_status(student, group, _date):
         buf = {
             'pass': True,
             'sign': lesson.sign,
+            'sign_type': 'n' if isinstance(lesson.sign, int) else 's',
             'attended': lesson.status == Lessons.STATUSES['attended'],
             'pid': lesson.group_pass.id
         }
