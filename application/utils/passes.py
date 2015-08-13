@@ -3,7 +3,7 @@
 import datetime, copy
 from application.models import PassTypes, Passes, Groups, Lessons, Students
 
-from django.db.models import Min, Max
+from django.db.models import Min, Max, Q
 
 
 ORG_PASS_HTML_CLASS = 'pass_type_org'
@@ -44,14 +44,34 @@ class AbstractPass(object):
     def check_moved_lessons(self):
         count = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object))
         moved = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object, status=Lessons.STATUSES['moved']))
-        if self.orm_object.pass_type.lessons < count - moved:
-            map(lambda l: l.delete(), Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date')[:count - self.orm_object.pass_type.lessons + moved].reverse())
-            self.orm_object.skips = self.orm_object.pass_type.skips - moved
+        if self.orm_object.lessons_origin < count - moved:
+            map(lambda l: l.delete(), Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date')[:count - self.orm_object.lessons_origin + moved].reverse())
+            self.orm_object.skips = self.orm_object.skips_origin - moved
             self.orm_object.save()
+
+    def check_pass_crossing(self, date):
+        group = self.orm_object.group
+        student = self.orm_object.student
+        try:
+            # Проверяем пересечения с другими абонементами.
+            # Если они есть, то запустить эту функцию для первого занятия этого абонемента.
+            crossed_lesson = Lessons.objects.get(date=date, group=group, student=student)
+            crossed_pass = crossed_lesson.group_pass
+            crossed_pass_lessons = Lessons.objects.filter(date__gte=date, group_pass=crossed_pass)
+            mb_new_date = group.get_calendar(len(crossed_pass_lessons)+1, date)[-1]
+
+            wrapped = PassLogic.wrap(crossed_pass)
+            wrapped.check_pass_crossing(mb_new_date)
+            crossed_lesson.date = mb_new_date
+            crossed_lesson.save()
+
+        except Lessons.DoesNotExist:
+            # Пересечений с уроками нет, можно переносить
+            pass
 
     def process_lesson(self, date, status):
         lesson = Lessons.objects.get(
-            date=date,
+            date=date.date(),
             group_pass=self.orm_object
         )
 
@@ -74,6 +94,9 @@ class AbstractPass(object):
         elif status == Lessons.STATUSES['moved']:
             last_lesson = Lessons.objects.filter(group_pass=self.orm_object).order_by('date').last()
             new_date = self.orm_object.group.get_calendar(2, last_lesson.date)[-1]
+
+            self.check_pass_crossing(new_date)
+
             new_lesson = Lessons(
                 date=new_date,
                 group=self.orm_object.group,
@@ -258,7 +281,7 @@ class OrgPass(AbstractPass):
     def check_moved_lessons(self):
         lessons = Lessons.objects.filter(group_pass=self.orm_object).exclude(status=Lessons.STATUSES['moved']).order_by('date')
 
-        delta = len(lessons) - self.orm_object.pass_type.lessons
+        delta = len(lessons) - self.orm_object.lessons_origin
         if delta > 0:
             map(lambda l: l.delete(), lessons.reverse()[:delta])
 

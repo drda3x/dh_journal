@@ -16,7 +16,7 @@
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.attended }}">
+                <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
                         <strong>
                             {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
@@ -258,6 +258,8 @@
                                     $inp = $('<input type="checkbox" style="margin: 0" />'),
                                     drop_down_local = $dropdown.clone(),
                                     linkLabel = drop_down_local.find('a span');
+
+                                $this.attr('data-pid', data[i].data('pid'));
 
                                 $this.append($inp);
 
@@ -514,7 +516,7 @@
                                         }
                                         json.checked.push(values);
                                     } else {
-                                        json.checked.push(student_id);
+                                        json.checked.push(lesson.data('pid'));
                                     }
                                 } else if(lesson.attr('val') !== undefined) {
                                     json.checked.push({
@@ -523,7 +525,7 @@
                                         presence: false
                                     });
                                 } else {
-                                    json.unchecked.push(student_id);
+                                    json.unchecked.push(lesson.data('pid'));
                                 }
                             }
                         });

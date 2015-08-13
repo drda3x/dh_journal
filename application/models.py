@@ -234,10 +234,14 @@ class PassTypes(models.Model):
 
         else:
 
-            prev_seq = PassTypes.objects.get(id=self.id).sequence
+            try:
+                prev_seq = PassTypes.objects.get(id=self.id).sequence
+
+            except PassTypes.DoesNotExist:
+                prev_seq = None
 
             if prev_seq != self.sequence:
-                if self.sequence > prev_seq:
+                if prev_seq and self.sequence > prev_seq:
                     _type = PassTypes.objects.filter(sequence__gt=prev_seq).order_by('sequence').first()
                     _type.sequence = prev_seq
                     super(PassTypes, _type).save()

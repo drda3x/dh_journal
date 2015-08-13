@@ -380,7 +380,9 @@ def process_lesson(request):
                                 pass_type=pt,
                                 start_date=date,
                                 lessons=lessons_count,
-                                skips=skips_count
+                                skips=skips_count,
+                                lessons_origin=lessons_count,
+                                skips_origin=skips_count
                             )
                             pass_orm_object.save()
 
@@ -402,12 +404,7 @@ def process_lesson(request):
                         debt.save()
 
             if old_passes:
-                for p in old_passes:
-                    pass_orm_object = Passes.objects.select_related().filter(
-                        Q(student_id=p),
-                        Q(group=group),
-                        Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
-                    ).order_by('start_date').last()
+                for pass_orm_object in Passes.objects.select_related().filter(pk__in=old_passes):
 
                     if pass_orm_object:
                         l_cnt = pass_orm_object.pass_type.lessons
@@ -429,15 +426,8 @@ def process_lesson(request):
 
                 now = datetime.datetime.combine(datetime.datetime.now(), datetime.datetime.min.time())
                 if now >= date:
-                    for p in data1:
-                        pass_orm_object = Passes.objects.select_related().filter(
-                                Q(student_id=p),
-                                Q(group=group),
-                                Q(Q(start_date__lte=date) | Q(frozen_date__lte=date))
-                            ).order_by('start_date').last()
-
+                    for pass_orm_object in Passes.objects.select_related().filter(pk__in=data1):
                         wrapped = PassLogic.wrap(pass_orm_object)
-
                         wrapped.set_lesson_not_attended(date)
 
         else:
