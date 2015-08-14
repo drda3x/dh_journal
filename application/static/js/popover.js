@@ -16,6 +16,7 @@ window.vidgetsLogic.Popover = (function($) {
         this.activeClass = 'popover-opened';
         this.group = group;
         this.timer = undefined;
+        this.scrollContainer = $('#lesson_container');
     }
 
     /**
@@ -44,6 +45,7 @@ window.vidgetsLogic.Popover = (function($) {
             setTimeout(this.$object.remove, timeout || 0);
         }
         this.stopIntervals();
+        this.scrollContainer.off('scroll');
     };
 
     /**
@@ -165,7 +167,7 @@ window.vidgetsLogic.Popover = (function($) {
                     self.$target.passClass = $this.data('color');
                     self.$target.addClass(self.$target.passClass );
                     if (self.$target.find('input').length == 0) {
-                        var $inp = $('<input type="checkbox" style="margin: 0; position: absolute;" checked>');
+                        var $inp = $('<input type="checkbox" style="margin: 0; display: none;" checked>');
                         self.$target.append($inp);
                         $inp.click(stop);
                     }
@@ -214,6 +216,12 @@ window.vidgetsLogic.Popover = (function($) {
             });
 
             self.$target.addClass(self.activeClass);
+
+            self.scrollContainer.scroll(function(event) {
+                console.log($(this).scrollTop());
+                
+            });
+
         } else {
             self.$target.removeClass(this.activeClass);
         }
