@@ -8,24 +8,24 @@
             <table class="table table-bordered table-striped table-hover">
                 <tr class="shotcard-disabled">
                     <th class="info-fio"><input class="student-selector" type="checkbox" value="-1" /></th>
-                    <th>Фамилия</th>
-                    <th>Имя</th>
-                    <th>Телефон</th>
-                    <th>E-mail</th>
+                    <th style="min-width: 100px;">Фамилия</th>
+                    <th style="min-width: 100px;">Имя</th>
+                    <th style="min-width: 133px;">Телефон</th>
+                    <th style="min-width: 150px;">E-mail</th>
                     <th>ОРГ-статус</th>
                     <th>Остаток по абонементу</th>
-                    <th>Коментарий</th>
+                    <th style="min-width: 120px;">Коментарий</th>
                 </tr>
                 {% for student in group_detail.students %}
                 <tr data-id="{{ student.person.id }}">
                     <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
-                    <td>{{ student.person.last_name }}</td>
-                    <td>{{ student.person.first_name }}</td>
-                    <td>{{ student.person.str_phone }}</td>
-                    <td>{{ student.person.e_mail }}</td>
+                    <td style="min-width: 100px;">{{ student.person.last_name }}</td>
+                    <td style="min-width: 100px;">{{ student.person.first_name }}</td>
+                    <td style="min-width: 133px;">{{ student.person.str_phone }}</td>
+                    <td style="min-width: 150px;">{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}</td>
-                    <td class="comment">{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
+                    <td class="comment" style="min-width: 120px;">{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
                 </tr>
                 {% endfor %}
             </table>
