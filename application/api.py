@@ -335,6 +335,8 @@ def process_lesson(request):
         attended_passes_ids = []
         error = []
 
+        now = datetime.datetime.combine(datetime.datetime.now(), datetime.datetime.min.time())
+
         if not canceled:
             if new_passes:
                 for p in new_passes:
@@ -403,12 +405,10 @@ def process_lesson(request):
                         debt.val = debt.val + p['debt'] if debt.val else p['debt']
                         debt.save()
 
-            if old_passes:
+            if old_passes and date.date() <= group.last_lesson:
                 for pass_orm_object in Passes.objects.select_related().filter(pk__in=old_passes):
 
                     if pass_orm_object:
-                        l_cnt = pass_orm_object.pass_type.lessons
-                        st_dt = pass_orm_object.date
                         pass_calendar = Lessons.objects.filter(group_pass=pass_orm_object, date__gte=date).values_list('date', flat=True)
 
                         if date.date() in pass_calendar:
@@ -423,9 +423,7 @@ def process_lesson(request):
                     attended_passes_ids.append(_pass.orm_object.id)
 
             if data1:
-
-                now = datetime.datetime.combine(datetime.datetime.now(), datetime.datetime.min.time())
-                if now >= date:
+                if date.date() <= group.last_lesson:
                     for pass_orm_object in Passes.objects.select_related().filter(pk__in=data1):
                         wrapped = PassLogic.wrap(pass_orm_object)
                         wrapped.set_lesson_not_attended(date)

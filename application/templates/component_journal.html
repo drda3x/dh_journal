@@ -47,31 +47,36 @@
             </tr>
             {% endfor %}
             <tr>
-                <td colspan="2" style="border-top: 3px solid"><strong>Всего:</strong></td>
+                <td style="border-right: 0px; border-top: 3px solid"></td>
+                <td style="border-top: 3px solid; border-left: 0px""><strong>Всего:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}" style="border-top: 3px solid">{{ money.day_total }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td colspan="2"><strong>Аренда залла:</strong></td>
+                <td style="border-right: 0px"></td>
+                <td style="border-left: 0px"><strong>Аренда залла:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.dance_hall }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td colspan="2"><strong>30% клубу:</strong></td>
+                <td style="border-right: 0px"></td>
+                <td style="border-left: 0px"><strong>30% клубу:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.club }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td colspan="2"><strong>ИТОГО за день:</strong></td>
+                <td style="border-right: 0px"></td>
+                <td style="border-left: 0px"><strong>ИТОГО за день:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.balance }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td colspan="2"><strong>Преподавателям:</strong></td>
+                <td style="border-right: 0px"></td>
+                <td style="border-left: 0px"><strong>Преподавателям:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.half_balance }}</td>
                 {% endfor %}
