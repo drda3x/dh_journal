@@ -374,12 +374,18 @@
                         }
 
                         $inp.click(function() {
+                            var container = $('#lesson_container'),
+                                content = $('#lesson_content');
+
                             if($(this).prop('checked')) {
-                                $('#lesson_container').css('position','relative');
+                                container.css('position','relative');
+                                container.css('overflow-y','hidden');
                                 popoverLogic.hide();
+                                $blockTable.height(content.height() + 20);
                                 $blockTable.show();
                             } else {
-                                $('#lesson_container').css('position','static');
+                                container.css('position','static');
+                                container.css('overflow-y','scroll');
                                 $blockTable.hide();
                                 $('.popover-opened').removeClass('popover-opened');
                             }
