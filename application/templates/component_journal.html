@@ -5,6 +5,9 @@
     {% block content %}
         <table id="journal" class="table table-bordered table-striped">
             <tr>
+                <th style="width: 15px">
+                №
+                </th>
                 <th>
                     Фамилия Имя
                 </th>
@@ -14,7 +17,8 @@
             </tr>
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-                <td class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
+                <td style="width: 15px">{{ forloop.counter }}</td>
+                <td style="min-width: 150px;" class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
                 {% for date in student.calendar %}
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
@@ -43,27 +47,33 @@
             </tr>
             {% endfor %}
             <tr>
-                <td style="border-top: 3px solid"><strong>Всего:</strong></td>
+                <td colspan="2" style="border-top: 3px solid"><strong>Всего:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}" style="border-top: 3px solid">{{ money.day_total }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td><strong>Аренда залла:</strong></td>
+                <td colspan="2"><strong>Аренда залла:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.dance_hall }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td><strong>30% клубу:</strong></td>
+                <td colspan="2"><strong>30% клубу:</strong></td>
                 {% for money in group_detail.moneys %}
                     <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.club }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td><strong>Преподавателям:</strong></td>
+                <td colspan="2"><strong>ИТОГО за день:</strong></td>
                 {% for money in group_detail.moneys %}
-                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.balance }} ({{ money.half_balance }})</td>
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.balance }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Преподавателям:</strong></td>
+                {% for money in group_detail.moneys %}
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.half_balance }}</td>
                 {% endfor %}
             </tr>
         </table>
@@ -75,7 +85,8 @@
             <div>Всего: <strong>{{ group_detail.money_total.day_total }}</strong></div>
             <div>Аренда залла: <strong>{{ group_detail.money_total.dance_hall }}</strong></div>
             <div>30% клубу: <strong>{{ group_detail.money_total.club }}</strong></div>
-            <div>Преподавателям: <strong>{{ group_detail.money_total.balance }}</strong> ({{ group_detail.money_total.half_balance }})</div>
+            <div>ИТОГО: <strong>{{ group_detail.money_total.balance }}</strong></div>
+            <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
         </div>
 
         <!-- Форма выбора абонемента -->
@@ -257,16 +268,19 @@
                                 var attended = data[i].data('sign') == 'True',
                                     $inp = $('<input type="checkbox" style="margin: 0" />'),
                                     drop_down_local = $dropdown.clone(),
-                                    linkLabel = drop_down_local.find('a span');
+                                    linkLabel = drop_down_local.find('a span'),
+                                    labelTxt = data[i].text();
 
                                 $this.attr('data-pid', data[i].data('pid'));
 
                                 $this.append($inp);
 
                                 linkLabel.empty();
-                                linkLabel.text(data[i].text() || 'н');
-
-                                $this.append(drop_down_local);
+                                linkLabel.text(labelTxt);
+                                console.log(labelTxt);
+                                if (labelTxt.replace(/\s/g, '') != '') {
+                                    $this.append(drop_down_local);
+                                }
                                 if(attended) {
                                     $inp.prop('checked', 'checked');
                                 }
