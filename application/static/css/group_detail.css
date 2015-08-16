@@ -351,7 +351,6 @@ html, body {
 #sub_menu {
     display: inline-block;
     width: 135px;
-    position: absolute;
     text-align: center;
 }
 

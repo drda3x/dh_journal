@@ -217,10 +217,29 @@ window.vidgetsLogic.Popover = (function($) {
 
             self.$target.addClass(self.activeClass);
 
-            self.scrollContainer.scroll(function(event) {
-                console.log($(this).scrollTop());
-                
-            });
+            self.scrollContainer.scroll((function() {
+
+                var pos = self.$object.position(),
+                    h = self.scrollContainer.height,
+                    scroll = self.scrollContainer.scrollTop(),
+                    visible = true,
+                    $footer = $('#lesson_window').find('.modal-footer');
+
+
+                return function(event) {
+                    self.$object.offset({top: pos.top + scroll - $(this).scrollTop() + 10});
+
+                    var target_pos = self.$target.position();
+                    console.log($footer);
+                    if(visible && (target_pos.top < self.scrollContainer.position().top || $footer.position().top < target_pos.top)) {
+                        self.$object.hide();
+                        visible = false;
+                    } else if(!visible && target_pos.top > self.scrollContainer.position().top && $footer.position().top > target_pos.top) {
+                        self.$object.show();
+                        visible = true;
+                    }
+                }
+            })());
 
         } else {
             self.$target.removeClass(this.activeClass);
