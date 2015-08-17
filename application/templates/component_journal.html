@@ -18,7 +18,7 @@
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td style="width: 15px">{{ forloop.counter }}</td>
-                <td style="min-width: 150px;" class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
+                <td {% if student.debt %} style="min-width: 200px;" {% else %} style="min-width: 150px;" {% endif %} class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
                 {% for date in student.calendar %}
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
