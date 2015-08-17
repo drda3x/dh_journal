@@ -59,10 +59,16 @@
         <div class="row-fluid">
             <div class="span2">
                 <ul class="nav nav nav-list">
-                    <li class="nav-header"><h5 style="margin: 0">Группы:</h5></li>
-                    {% for group in groups %}
+                    <li class="nav-header"><h5 style="margin: 0">{% if groups.other %}Мои группы:{% else %}Группы:{% endif %}</h5></li>
+                    {% for group in groups.self %}
                         <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }}</a></li>
                     {% endfor %}
+                    {% if groups.other %}
+                    <li class="nav-header"><h5 style="margin: 0">Группы других преподавателей:</h5></li>
+                        {% for group in groups.other %}
+                            <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}"><strong>{{ group.t1 }}-{{ group.t2 }}</strong> {{ group.name }} - {{ group.days }}</a></li>
+                        {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
             <div class="span10">

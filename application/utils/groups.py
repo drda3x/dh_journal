@@ -21,18 +21,31 @@ def get_groups_list(user):
         return None
 
     if user.is_superuser:
-        return [
-            {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
-            for g in Groups.objects.all()
-        ]
+        return {
+            'self': [
+                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+                for g in Groups.objects.filter(
+                    Q(teacher_leader=user) | Q(teacher_follower=user),
+                    Q(is_opened=True)
+                )
+            ],
+            'other': [
+                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else ''}
+                for g in Groups.objects.filter(is_opened=True).exclude(
+                    Q(teacher_leader=user) | Q(teacher_follower=user)
+                )
+            ]
+        }
 
-    return [
-        {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
-        for g in Groups.objects.filter(
-            Q(teacher_leader=user) | Q(teacher_follower=user),
-            Q(is_opened=True)
-        )
-    ]
+    return {
+        'self': [
+            {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+            for g in Groups.objects.filter(
+                Q(teacher_leader=user) | Q(teacher_follower=user),
+                Q(is_opened=True)
+            )
+        ]
+    }
 
 
 def get_group_detail(group_id, _date_from, date_to):
