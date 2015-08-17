@@ -20,6 +20,12 @@ def get_groups_list(user):
     if not isinstance(user, User):
         return None
 
+    if user.is_superuser:
+        return [
+            {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+            for g in Groups.objects.all()
+        ]
+
     return [
         {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
         for g in Groups.objects.filter(
