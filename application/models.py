@@ -290,6 +290,8 @@ class Passes(models.Model):
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
     skips = models.PositiveIntegerField(verbose_name=u'Количество оставшихся пропусков', null=True, blank=True)
     frozen_date = models.DateField(verbose_name=u'Дата окончания заморозки', null=True, blank=True)
+    lessons_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных занятий')
+    skips_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных пропусков', null=True, blank=True)
 
     @property
     def shown_value(self):
@@ -304,6 +306,13 @@ class Passes(models.Model):
             self.lessons = self.pass_type.lessons
         if self.skips is None:
             self.skips = self.pass_type.skips
+
+        if self.lessons_origin is None:
+            self.lessons_origin = self.pass_type.lessons
+
+        if self.skips_origin is None:
+            self.skips_origin = self.pass_type.skips
+
         super(Passes, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
     @property
