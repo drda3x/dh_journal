@@ -522,10 +522,10 @@
                     $children = $this.children();
 
                     $('#stid').val($id);
-                    $('#last_name').val($($children[1]).text());
-                    $('#first_name').val($($children[2]).text());
-                    $('#phone').val($($children[3]).text());
-                    $('#e_mail').val($($children[4]).text());
+                    $('#last_name').val($($children[2]).text());
+                    $('#first_name').val($($children[3]).text());
+                    $('#phone').val($($children[4]).text());
+                    $('#e_mail').val($($children[5]).text());
                     $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
 
                     var $submit = $studentForm.find('.btn.btn-primary');
