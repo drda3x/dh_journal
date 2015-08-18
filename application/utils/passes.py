@@ -96,15 +96,7 @@ class BasePass(object):
             new_date = self.orm_object.group.get_calendar(2, last_lesson.date)[-1]
 
             self.check_pass_crossing(new_date)
-
-            new_lesson = Lessons(
-                date=new_date,
-                group=self.orm_object.group,
-                student=self.orm_object.student,
-                group_pass=self.orm_object,
-                status=Lessons.STATUSES['not_processed']
-            )
-            new_lesson.save()
+            self.create_lessons(new_date, 1)
             self.orm_object.skips -= 1
             self.orm_object.save()
 
@@ -209,10 +201,14 @@ class BasePass(object):
     def get_calendar(self):
         pass
 
-    def create_lessons(self, date, count=None):
+    def create_lessons(self, date, count=None, **kwargs):
+
+        group = kwargs.get('group', None) or self.orm_object.group
+        _count = count if count else self.orm_object.lessons
+        res = []
 
         def get_cal(dt, cnt, st=0):
-            cl = self.orm_object.group.get_calendar(date_from=dt, count=cnt, clean=False)[st:]
+            cl = group.get_calendar(date_from=dt, count=cnt, clean=False)[st:]
             canceled = filter(lambda x: x['canceled'], cl)
             if len(canceled) == 0:
                 return cl
@@ -224,18 +220,20 @@ class BasePass(object):
                     1
                 )
 
-        _count = count if count else self.orm_object.lessons
-        c = self.orm_object.group.get_calendar(date_from=date, count=_count)
-        for _date in self.orm_object.group.get_calendar(date_from=date, count=_count):
+        for _date in group.get_calendar(date_from=date, count=_count):
             lesson = Lessons(
                 date=_date,
-                group=self.orm_object.group,
+                group=group,
                 student=self.orm_object.student,
                 group_pass=self.orm_object,
                 status=Lessons.STATUSES['not_processed']
             )
 
+            res.append(lesson)
+
             lesson.save()
+
+        return res
 
     def delete(self):
         try:
@@ -293,23 +291,27 @@ class MultiPass(BasePass):
 
     def set_lesson_attended(self, date, person=None, **kwargs):
 
+        try:
+            kwargs['group'] = Groups.objects.get(pk=kwargs['group']) if isinstance(kwargs['group'], int) else kwargs['group']
+
+        except Exception:
+            raise TypeError('Expected group or group.id in kwargs')
+
         wright_type = lambda x: x.date() if isinstance(x, datetime.datetime) else x
         if not wright_type(self.orm_object.start_date) <= wright_type(date) <= wright_type(self.orm_object.end_date):
             return
 
-        lesson = Lessons(
-            date=date,
-            group_id=kwargs['group'],
-            student=self.orm_object.student,
-            group_pass=self.orm_object,
-            status=Lessons.STATUSES['attended']
-        )
+        if not Lessons.objects.filter(group_pass=self.orm_object, date=date).exists():
+            lessons = super(MultiPass, self).create_lessons(date, 1, **kwargs)
 
-        lesson.save()
-        self.orm_object.lessons -= 1
-        self.orm_object.save()
+            for lesson in lessons:
+                lesson.status = Lessons.STATUSES['attended']
+                lesson.save()
 
-    def create_lessons(self, date, count=None):
+            self.orm_object.lessons -= 1
+            self.orm_object.save()
+
+    def create_lessons(self, date, count=None, **kwargs):
         pass
 
 
