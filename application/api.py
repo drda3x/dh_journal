@@ -369,6 +369,8 @@ def process_lesson(request):
                     else:
                         pt = PassTypes.objects.get(pk=_pt)
                         st_id = p['student_id']
+                        lessons_count = p.get('lcnt', None)
+                        skips_count = p.get('scnt', None)
                         if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
                             error.append(st_id)
                         elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
@@ -376,12 +378,14 @@ def process_lesson(request):
                                 student_id=st_id,
                                 group=group,
                                 pass_type=pt,
-                                start_date=date
+                                start_date=date,
+                                lessons=lessons_count,
+                                skips=skips_count
                             )
                             pass_orm_object.save()
 
                             wrapped = PassLogic.wrap(pass_orm_object)
-                            wrapped.create_lessons(date)
+                            wrapped.create_lessons(date, lessons_count)
 
                             wrapped.presence = p.get('presence', False)
                             if date.date() <= group.last_lesson:

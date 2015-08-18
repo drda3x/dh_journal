@@ -244,6 +244,10 @@ html, body {
     width: 200px;
 }
 
+.popover {
+    max-width: 300px;
+}
+
 .popover-pass_menu-content {
     cursor: pointer;
     margin: 3px 0;

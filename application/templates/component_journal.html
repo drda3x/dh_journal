@@ -86,7 +86,10 @@
                         <label class="radio">
                             <input type="radio" name="select_pass_type" value="{{ p.id }}" data-color="{{ p.html_color_class }}" data-prise="{{ p.prise }}">
                             <span>{{ p.name }}</span>
-                            {% if p.lessons > 1 %}<input class="pass_menu-cnt" type="text" name="def_lesson_cnt" value="{{ p.lessons }}" />{% endif %}
+                            {% if p.lessons > 1 %}
+                                    <input class="pass_menu-cnt" type="text" name="def_lesson_cnt" value="{{ p.lessons }}" />
+                                    <input class="pass_menu-cnt" type="text" name="def_lesson_cnt" value="{{ p.skips }}" />
+                            {% endif %}
                         </label>
                     </div>
                 {% endfor %}
@@ -501,7 +504,9 @@
                                             pass_type: lesson.attr('val'),
                                             from_another: (lesson.attr('val') == -1) ? lesson.attr('subval') : null,
                                             presence: true,
-                                            debt: lesson.data('debt')
+                                            debt: lesson.data('debt'),
+                                            lcnt: lesson.data('lcnt'),
+                                            scnt: lesson.data('scnt')
                                         };
 
                                         if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
@@ -534,7 +539,7 @@
                             data: JSON.stringify(json)
                         }
                     }).done(function() {
-                        window.location.pathname = 'group?id={{ group_detail.id }}&date={{ control_data.constant.current_date_numval }}'
+                        reload()
                     }).error(function(err) {
                         console.log(err);
                     });

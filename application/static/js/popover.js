@@ -81,9 +81,28 @@ window.vidgetsLogic.Popover = (function($) {
             // Если нужно устанавливаем уже существующее значение
             var value = self.getExistedValue();
             if(value) {
-                var $radio = this.$object.find('input[value='+value+']');
+                var $radio = this.$object.find('input[value='+value+']'),
+                    $cntInp = $radio.siblings('.pass_menu-cnt');
                 $radio.prop('checked', 'checked');
-                $radio.siblings('.pass_menu-cnt').show();
+
+                if($cntInp.length > 0) {
+                    var cntValues = [
+                        self.$target.attr('data-lcnt'),
+                        self.$target.attr('data-scnt')
+                    ];
+
+                    var i = 0;
+
+                    $cntInp.each(function() {
+                        var $this = $(this);
+                        $this.val(cntValues[i]);
+                        i++;
+                    });
+
+                    attacheCntInpEvents($cntInp);
+                    $cntInp.show();
+                }
+
                 self.$debtCheckbox.prop('disabled', false);
 
                 debtVal = self.$target.attr('data-debt');
@@ -102,7 +121,8 @@ window.vidgetsLogic.Popover = (function($) {
             self.$object.find('input[type=radio]').click(function() {
                 var $this = $(this),
                     newValue = $this.val(),
-                    $cntInp = $($this.siblings('.pass_menu-cnt')[0]) || undefined;
+                    $cntInp = $this.siblings('.pass_menu-cnt') || undefined;
+
                 function stop(event) {
                     event.stopPropagation();
                 }
@@ -121,9 +141,14 @@ window.vidgetsLogic.Popover = (function($) {
                     self.$target.data('debt', undefined);
                     if($cntInp) {
                         $cntInp.hide();
+                        self.$target.removeAttr('lcnt');
+                        self.$target.removeAttr('scnt');
+
+                        $cntInp.off('keyup');
                     }
                 } else {
                     self.$target.attr('val', newValue);
+
                     debtVal = $this.data('prise');
 
                     if(self.$debt.find('input:checkbox').prop('checked')) {
@@ -147,6 +172,13 @@ window.vidgetsLogic.Popover = (function($) {
                     if($cntInp) {
                         $('.pass_menu-cnt').hide();
                         $cntInp.show();
+
+                        var cnt_values = getCntInpVals($cntInp);
+
+                        self.$target.attr('data-lcnt', cnt_values[0]);
+                        self.$target.attr('data-scnt', cnt_values[1]);
+
+                        attacheCntInpEvents($cntInp);
                     }
                 }
 
@@ -184,6 +216,28 @@ window.vidgetsLogic.Popover = (function($) {
             self.$target.addClass(self.activeClass);
         } else {
             self.$target.removeClass(this.activeClass);
+        }
+
+        function getCntInpVals(elem) {
+            var res = [];
+
+            elem.each(function() {
+                res.push($(this).val())
+            });
+
+            return res
+        }
+
+        function attacheCntInpEvents(elem) {
+            elem.off('keyup');
+
+            elem.keyup(function() {
+
+                var cnt_values = getCntInpVals(elem);
+
+                self.$target.attr('data-lcnt', cnt_values[0]);
+                self.$target.attr('data-scnt', cnt_values[1]);
+            });
         }
     };
 
