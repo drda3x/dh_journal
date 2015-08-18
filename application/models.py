@@ -308,14 +308,14 @@ class Passes(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.lessons is None:
             self.lessons = self.pass_type.lessons
-        if self.skips is None:
-            self.skips = self.pass_type.skips
+        if self.skips in [None, '']:
+            self.skips = self.pass_type.skips if isinstance(self.pass_type.skips, int) else None
 
         if self.lessons_origin is None:
             self.lessons_origin = self.pass_type.lessons
 
-        if self.skips_origin is None:
-            self.skips_origin = self.pass_type.skips
+        if self.skips_origin in [None, '']:
+            self.skips_origin = self.pass_type.skips if isinstance(self.pass_type.skips, int) else None
 
         super(Passes, self).save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 

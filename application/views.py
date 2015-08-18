@@ -4,11 +4,12 @@ from django.shortcuts import render_to_response, redirect
 from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
+from project.settings import CLUB_CARD_ID
 
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User
+from application.models import Lessons, User, Passes
 
 from models import Groups, Students, User, PassTypes
 
@@ -89,6 +90,9 @@ def group_detail_view(request):
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
         context['pass_detail'] = PassTypes.objects.all().order_by('sequence').values()
 
+        for elem in context['pass_detail']:
+            elem['skips'] = '' if elem['skips'] is None else elem['skips']
+
         for det in context['pass_detail']:
             det['html_color_class'] = html_color_classes[det['color']]
 
@@ -160,5 +164,14 @@ def print_lesson(request):
     context['group_name'] = group.name
     context['date'] = date.strftime('%d.%m.%Y')
     context['students'] = map(lambda s: dict(data=get_student_lesson_status(s, group, date), info=s), get_group_students_list(group))
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def club_cards(request):
+    context = {}
+    template = 'club_cards.html'
+
+    passes = Passes.objects.filter(pass_type=CLUB_CARD_ID)
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

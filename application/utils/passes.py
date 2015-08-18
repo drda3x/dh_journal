@@ -25,7 +25,7 @@ def get_color_classes():
     ) + [(ORG_PASS_HTML_CLASS, ORG_PASS_HTML_VAL)]
 
 
-class AbstractPass(object):
+class BasePass(object):
 
     orm_object = None
     new_pass = False
@@ -254,7 +254,7 @@ class AbstractPass(object):
             return False
 
 
-class RegularPass(AbstractPass):
+class RegularPass(BasePass):
     u"""
     Обычный абонемент
     """
@@ -266,7 +266,7 @@ class RegularPass(AbstractPass):
         self.check_lessons_count()
 
 
-class OrgPass(AbstractPass):
+class OrgPass(BasePass):
     u"""
     ОРГ-абонемент
     """
@@ -286,7 +286,7 @@ class OrgPass(AbstractPass):
             map(lambda l: l.delete(), lessons.reverse()[:delta])
 
 
-class MultiPass(AbstractPass):
+class MultiPass(BasePass):
     u"""
     Мультикарта
     """
