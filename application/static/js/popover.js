@@ -17,6 +17,7 @@ window.vidgetsLogic.Popover = (function($) {
         this.group = group;
         this.timer = undefined;
         this.scrollContainer = $('#lesson_container');
+        this.opened = false;
     }
 
     /**
@@ -46,6 +47,8 @@ window.vidgetsLogic.Popover = (function($) {
         }
         this.stopIntervals();
         this.scrollContainer.off('scroll');
+        this.opened = false;
+        //this.$target.removeClass(this.activeClass);
     };
 
     /**
@@ -59,7 +62,7 @@ window.vidgetsLogic.Popover = (function($) {
         // Если открываем popover для ячейки для которой он еще не открыт
         // иначе просто удаляем класс "popover-opened"(self.activeClass)
         // как следствие - popover просто закроется
-        if(!$target.hasClass(self.activeClass)) {
+        if(!$target.hasClass(self.activeClass) || !self.opened) {
 
             // init
             self.$target = $target;
@@ -241,7 +244,10 @@ window.vidgetsLogic.Popover = (function($) {
                 }
             })());
 
+            self.opened = true;
+
         } else {
+            self.opened = false;
             self.$target.removeClass(this.activeClass);
         }
 

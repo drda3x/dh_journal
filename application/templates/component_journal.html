@@ -318,6 +318,11 @@
                                             }
                                         });
                                     }
+
+                                    $this.parents('table').find('.highlight').removeClass('highlight');
+                                    $this.siblings('td').addClass('highlight');
+                                    $this.addClass('highlight');
+
                                 });
                             }
 
@@ -489,8 +494,33 @@
                     });
                 });
 
-                $('#lesson_window').on('hidden', function(){
+                var $lesson_window = $('#lesson_window'),
+                    opened = false;
+
+                $lesson_window.click(function(event) {
+                    var $target = $(event.target),
+                        top = $target.parentsUntil('.popover');
+
+                    console.log(top[top.length-1]);
+
+                    if(!($(top[top.length-1]).is('.popover-inner') || $target.is('.lesson_data')) && popoverLogic.opened && opened) {
+                        popoverLogic.hide();
+                    }
+                    opened = popoverLogic.opened;
+                });
+
+                $lesson_window.on('hide', function(event) {
+                    if(popoverLogic.opened) {
+                        popoverLogic.hide();
+                        opened = false;
+                        return false;
+                    }
+                    event.stopPropagation();
+                });
+
+                $lesson_window.on('hidden', function(){
                     popoverLogic.stopIntervals();
+                    $(this).find('.highlight').removeClass('highlight');
                 });
 
                 // ====================================================================================================
