@@ -159,6 +159,38 @@ def edit_student(request):
         return HttpResponseServerError('failed')
 
 
+def delete_lessons(request):
+    try:
+        params = json.loads(request.GET['params'])
+        date = datetime.datetime.strptime(params[0], '%d.%m.%Y')
+        count = int(params[1])
+        lesson = None
+
+        for lesson in Lessons.objects.filter(
+            group_id=request.GET['gid'],
+            student_id=request.GET['stid'],
+            date__gte=date).order_by('date')[:count]:
+
+            lesson.delete()
+
+        if lesson:
+            _pass = lesson.group_pass
+            _pass.lessons -= count
+            _pass.lessons_origin -= count
+
+            if _pass.lessons == 0:
+                _pass.delete()
+
+            else:
+                _pass.save()
+
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
 def delete_pass(request):
     try:
         ids = request.GET.get('ids', None)

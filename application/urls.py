@@ -38,7 +38,7 @@ urlpatterns += [
     url(r'^writeoffpass', api.write_off_the_pass),
     url(r'^processlesson', api.process_lesson),
     url(r'^getpasses', api.get_passes),
-    url(r'^deletepass', api.delete_pass),
+    url(r'^deletepass', api.delete_lessons),
     url(r'^freezepass', api.freeze_pass),
     url(r'^changeowner', api.change_pass_owner),
     url(r'^deletestudent', api.delete_student),

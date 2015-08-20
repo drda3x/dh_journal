@@ -18,7 +18,33 @@
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td style="width: 15px">{{ forloop.counter }}</td>
-                <td {% if student.debt %} style="min-width: 200px;" {% else %} style="min-width: 150px;" {% endif %} class="fio_cell"><span>{{ student.person.last_name }} {{ student.person.first_name }}</span>{% if student.debt %}<strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>{% endif %}</td>
+                <td {% if student.debt %} style="min-width: 200px;" {% else %} style="min-width: 150px;" {% endif %} class="fio_cell">
+                    <div class="dropdown sub-menu">
+                        <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
+                        <!--b class="caret"></b-->
+                        <span>{{ student.person.last_name }} {{ student.person.first_name }}</span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <li class="sub_menu_del">
+                                <input id="cbd{{ forloop.counter }}" type="checkbox" name="accordion">
+                                <label for="cbd{{ forloop.counter }}">Удалить абонемент</label>
+                                <div class="li-content">
+                                   <input class="datepicker" type="date" placeholder="начиная с" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
+                                </div>
+                            </li>
+                            <li class="sub_menu_move">
+                                <input id="cbm{{ forloop.counter }}" type="checkbox" name="accordion">
+                                <label for="cbm{{ forloop.counter }}">Перенести абонемент</label>
+                                <div class="li-content">
+                                    c <input class="datepicker" type="date" placeholder="дата" style="margin: 0 26px 5px 9px;" />на <input class="datepicker" type="date" placeholder="дата" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    {% if student.debt %}
+                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>
+                    {% endif %}
+                </td>
                 {% for date in student.calendar %}
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
                     {% if date.pass and date.sign %}
@@ -179,16 +205,6 @@
             </div>
         </div>
 
-        <div id="sub_menu" class="dropdown" style="display: none;">
-            <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
-            <span></span>
-            <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                <li class="sub_menu_del">Удалить</li>
-            </ul>
-        </div>
-
     {% endblock %}
 
     {% block script %}
@@ -197,6 +213,76 @@
                 var matrix = new window.View.Matrix(),
                     popoverLogic = new window.vidgetsLogic.Popover({{ group_detail.id }});
 
+                // Логика sub-menu
+                $('.sub-menu li').click(function(event) {
+                    $(this).siblings().find('input:checked').prop('checked', false);
+                    event.stopPropagation();
+                });
+
+                $('.sub-menu').click(function() {
+                    $(this).find('input:checked').prop('checked', false);
+                    $(this).find('input[type!=button]').val('');
+                });
+
+                var $datepicker = $('.sub-menu .datepicker').datepicker({
+                    format: 'dd.mm.yyyy',
+                    weekStart: 1
+                }).on('changeDate', function(ev) {
+                    $(this).next().focus();
+                });
+
+                function getSiblingsVals(elem) {
+                    var params = [];
+                    elem.siblings().each(function() {
+                        params.push($(this).val())
+                    });
+
+                    return params;
+                }
+
+                $('.li-content input').on('focus', function() {
+                    $(this).siblings('.datepicker').datepicker('hide');
+                });
+
+                $('.li-content .move-btn').click(function() {
+                    console.log(getSiblingsVals($(this)));
+                    if(confirm('Подтвердите перенос')) {
+                        $.ajax('freezepass', {
+                            data: {
+                                group: {{ group_detail.id }},
+                                date: JSON.stringify(getSiblingsVals($(this))),
+                                ids: JSON.stringify([$(this).data('stid')])
+                            }
+                        }).done(function(data) {
+                            reload();
+                        }).error(function(err) {
+                            alert('error');
+                        })
+                    }
+                });
+
+                $('.li-content .del-btn').click(function() {
+                    if(confirm('Подтвердите удаление')) {
+                        $.ajax('deletepass', {
+                            data: {
+                                gid: {{ group_detail.id }},
+                                params: JSON.stringify(getSiblingsVals($(this))),
+                                stid: $(this).data('stid')
+                            }
+                        }).done(function(data) {
+                            reload();
+                        }).error(function(err) {
+                            alert('error');
+                        })
+                    }
+                });
+
+                /*
+                if(confirm('Удалить абонемент?')) {
+
+                }*/
+
+                //=====================================================================================================
 
                 /**
                  * Костыль для определения мультикарты
@@ -243,10 +329,7 @@
                         var $date = $('#lesson_window_date'),
                         data = matrix.getColumn(context),
                         $targets = $('.lesson_data'),
-                        $popover = $('.popover'),
-                        $dropdown = $('#sub_menu').clone();
-
-                        $dropdown.css('display', 'inline-block');
+                        $popover = $('.popover');
 
                         $targets.empty();
                         $targets.off();
@@ -272,20 +355,12 @@
                             if(data[i].data('pass') === 'True') {
                                 var attended = data[i].data('sign') == 'True',
                                     $inp = $('<input type="checkbox" style="margin: 0" />'),
-                                    drop_down_local = $dropdown.clone(),
-                                    linkLabel = drop_down_local.find('a span'),
-                                    labelTxt = data[i].text();
+                                    label = data[i].text();
 
                                 $this.attr('data-pid', data[i].data('pid'));
 
                                 $this.append($inp);
-
-                                linkLabel.empty();
-                                linkLabel.text(labelTxt);
-                                console.log(labelTxt);
-                                if (labelTxt.replace(/\s/g, '') != '') {
-                                    $this.append(drop_down_local);
-                                }
+                                $this.append(label);
                                 if(attended) {
                                     $inp.prop('checked', 'checked');
                                 }
@@ -327,47 +402,6 @@
                             }
 
                             i++;
-
-                            $this.find('.sub_menu_del').click((function($this, date_val) {
-
-                                var _this = $this,
-                                    _date_val = date_val;
-
-                                return function() {
-                                    var container, sibling, cb;
-                                    sibling = $(_this.siblings()[0]);
-
-                                    cb = function(err, data) {
-                                        if(!err) {
-                                            _this.empty();
-                                            _this.removeAttr('class');
-
-                                            _this.addClass('add-pass');
-                                            _this.addClass('lesson_data');
-                                            popoverLogic.init(_this);
-
-                                            _this.click(function() {
-                                                popoverLogic.hide();
-                                                popoverLogic.show($(this));
-                                            });
-                                            needReload = true;
-                                        }
-                                    };
-                                    if(confirm('Удалить абонемент?')) {
-                                        $.ajax('deletepass', {
-                                            data: {
-                                                gid: {{ group_detail.id }},
-                                                date: _date_val,
-                                                stid: sibling.data('stid')
-                                            }
-                                        }).done(function(data) {
-                                            cb(null, data);
-                                        }).error(function(err) {
-                                            cb(err, null);
-                                        })
-                                    }
-                                };
-                            })($this, date_val));
                         });
 
                         var $blockTable = $('#block_table'),

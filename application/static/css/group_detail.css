@@ -352,41 +352,48 @@ html, body {
     margin: -6px 6px !important;
 }
 
-#sub_menu {
-    display: inline-block;
-    width: 135px;
-    text-align: center;
-}
-
-#sub_menu .dropdown-toggle {
+.sub-menu .dropdown-toggle {
     color: #000000;
 }
 
-#sub_menu .dropdown-toggle .caret {
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #000000;
-    content: "";
-    display: inline-block;
-    height: 0;
-    vertical-align: top;
-    width: 0;
-    margin-top: 4px;
+.sub-menu .caret {
+    margin-top: 4px !important;
 }
 
-#sub_menu .dropdown-menu {
-
-}
-
-#sub_menu .dropdown-menu li {
+.sub-menu li label {
     text-align: center;
     margin: 2px 0;
     padding: 3px 0;
 }
 
-#sub_menu .dropdown-menu li:hover {
+.sub-menu .dropdown-menu li label:hover {
     background-color: #0088CC;
     color: #ffffff;
+}
+
+.sub-menu .li-content {
+    max-height: 0;
+    overflow: hidden;
+    padding-left: 10px;
+}
+
+.sub-menu input[type=checkbox] {
+    display: none;
+}
+
+.sub-menu input[type=checkbox]:checked ~ .li-content {
+    border-bottom: 1px solid #ddd;
+    max-height: 115px;
+    padding-bottom: 3px;
+}
+
+.sub-menu .li-content input[type=date] {
+    width: 75px;
+}
+
+.sub-menu .li-content input[type=text] {
+    width: 20px;
+    margin-left: 8px;
 }
 
 .pass_menu-cnt {
