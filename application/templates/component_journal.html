@@ -27,14 +27,14 @@
                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                             <li class="sub_menu_del">
                                 <input id="cbd{{ forloop.counter }}" type="checkbox" name="accordion">
-                                <label for="cbd{{ forloop.counter }}">Удалить абонемент</label>
+                                <label for="cbd{{ forloop.counter }}">Удалить занятия</label>
                                 <div class="li-content">
                                    <input class="datepicker" type="date" placeholder="начиная с" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
                                 </div>
                             </li>
                             <li class="sub_menu_move">
                                 <input id="cbm{{ forloop.counter }}" type="checkbox" name="accordion">
-                                <label for="cbm{{ forloop.counter }}">Перенести абонемент</label>
+                                <label for="cbm{{ forloop.counter }}">Перенести занятия</label>
                                 <div class="li-content">
                                     c <input class="datepicker" type="date" placeholder="дата" style="margin: 0 26px 5px 9px;" />на <input class="datepicker" type="date" placeholder="дата" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
                                 </div>
@@ -180,6 +180,7 @@
             </div>
             <div class="modal-footer">
                 <button id="printBtn" class="btn" style="float: left">Печать</button>
+                <label class="checkbox" style="width: 141px;padding-left: 387px"><input id="full_attended" type="checkbox">Проставить пропуски</label>
                 <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
                 <button class="btn btn-primary save_data" data-context="lesson_window" data-dismiss="modal" aria-hidden="true">Сохранить</button>
             </div>
@@ -549,12 +550,13 @@
                         opened = false;
                         return false;
                     }
-                    event.stopPropagation();
                 });
 
                 $lesson_window.on('hidden', function(){
                     popoverLogic.stopIntervals();
                     $(this).find('.highlight').removeClass('highlight');
+                    $('#full_attended').prop('checked', false);
+                    $('#cancel_lesson_inp').prop('checked', false);
                 });
 
                 // ====================================================================================================
@@ -564,6 +566,9 @@
 
                 $saveButton.click(function() {
                     backDrop('show');
+
+                    popoverLogic.hide();
+
                     var data_source = $('#lesson_content').find('tr:gt(0)'),
                         json = {
                             group_id: {{ group_detail.id }},
@@ -578,6 +583,8 @@
                     }
 
                     if(!$('#cancel_lesson_inp').prop('checked')) {
+
+                        var full_attended = $('#full_attended').prop('checked');
 
                         data_source.each(function() {
                             var cont = $(this).children(),
@@ -613,7 +620,7 @@
                                         pass_type: lesson.attr('val'),
                                         presence: false
                                     });
-                                } else {
+                                } else if(full_attended) {
                                     json.unchecked.push(lesson.data('pid'));
                                 }
                             }

@@ -151,6 +151,7 @@ class BasePass(object):
         first_lesson = lessons.first()
 
         first_lesson.date = self.orm_object.group.get_calendar(len(lessons), date)[-1]
+        self.check_pass_crossing(first_lesson.date)
         first_lesson.status = Lessons.STATUSES['not_processed']
         first_lesson.save()
         self.orm_object.save()

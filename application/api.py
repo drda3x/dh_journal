@@ -165,24 +165,35 @@ def delete_lessons(request):
         date = datetime.datetime.strptime(params[0], '%d.%m.%Y')
         count = int(params[1])
         lesson = None
+        passes = []
 
         for lesson in Lessons.objects.filter(
             group_id=request.GET['gid'],
             student_id=request.GET['stid'],
             date__gte=date).order_by('date')[:count]:
 
+            if lesson.group_pass not in passes:
+                passes.append(lesson.group_pass)
+
             lesson.delete()
 
-        if lesson:
-            _pass = lesson.group_pass
-            _pass.lessons -= count
-            _pass.lessons_origin -= count
+        i_passes = iter(passes)
+        while count > 0:
+            try:
+                current_pass = i_passes.next()
+                current_count = current_pass.lessons
 
-            if _pass.lessons == 0:
-                _pass.delete()
+                if current_count <= count:
+                    current_pass.delete()
+                    count -= current_count
+                else:
+                    current_pass.lessons -= count
+                    current_pass.origin_lessons -= count
+                    count = 0
+                    current_pass.save()
 
-            else:
-                _pass.save()
+            except StopIteration:
+                break
 
         return HttpResponse(200)
 
