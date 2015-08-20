@@ -352,6 +352,10 @@ html, body {
     margin: -6px 6px !important;
 }
 
+.sub-menu {
+    max-width: 160px;
+}
+
 .sub-menu .dropdown-toggle {
     color: #000000;
 }
