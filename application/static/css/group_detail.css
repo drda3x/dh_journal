@@ -352,6 +352,10 @@ html, body {
     margin: -6px 6px !important;
 }
 
+.sub-menu {
+    max-width: 160px;
+}
+
 .sub-menu .dropdown-toggle {
     color: #000000;
 }
@@ -387,8 +391,9 @@ html, body {
     padding-bottom: 3px;
 }
 
-.sub-menu .li-content input[type=date] {
-    width: 75px;
+.sub-menu .li-content .datepicker {
+    width: 75px !important;
+    margin-left: 17% !important;
 }
 
 .sub-menu .li-content input[type=text] {

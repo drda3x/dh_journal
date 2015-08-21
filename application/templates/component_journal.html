@@ -29,14 +29,14 @@
                                 <input id="cbd{{ forloop.counter }}" type="checkbox" name="accordion">
                                 <label for="cbd{{ forloop.counter }}">Удалить занятия</label>
                                 <div class="li-content">
-                                   <input class="datepicker" type="date" placeholder="начиная с" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
+                                   <input class="datepicker" type="text" placeholder="начиная с" style="margin-left: 0 !important;" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
                                 </div>
                             </li>
                             <li class="sub_menu_move">
                                 <input id="cbm{{ forloop.counter }}" type="checkbox" name="accordion">
                                 <label for="cbm{{ forloop.counter }}">Перенести занятия</label>
                                 <div class="li-content">
-                                    c <input class="datepicker" type="date" placeholder="дата" style="margin: 0 26px 5px 9px;" />на <input class="datepicker" type="date" placeholder="дата" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
+                                    <input class="datepicker" type="text" placeholder="с даты"/> <input class="datepicker" type="text" placeholder="на дату" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
                                 </div>
                             </li>
                         </ul>

@@ -188,7 +188,7 @@ def delete_lessons(request):
                     count -= current_count
                 else:
                     current_pass.lessons -= count
-                    current_pass.origin_lessons -= count
+                    current_pass.lessons_origin -= count
                     count = 0
                     current_pass.save()
 
