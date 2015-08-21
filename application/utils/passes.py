@@ -49,25 +49,17 @@ class BasePass(object):
             self.orm_object.skips = self.orm_object.skips_origin - moved
             self.orm_object.save()
 
-    def check_pass_crossing(self, date):
+    def check_pass_crossing(self, date, cb=None):
         group = self.orm_object.group
         student = self.orm_object.student
         try:
             # Проверяем пересечения с другими абонементами.
             # Если они есть, то запустить эту функцию для первого занятия этого абонемента.
             crossed_lesson = Lessons.objects.get(date=date, group=group, student=student)
-            crossed_pass = crossed_lesson.group_pass
-            crossed_pass_lessons = Lessons.objects.filter(date__gte=date, group_pass=crossed_pass)
-            mb_new_date = group.get_calendar(len(crossed_pass_lessons)+1, date)[-1]
-
-            wrapped = PassLogic.wrap(crossed_pass)
-            wrapped.check_pass_crossing(mb_new_date)
-            crossed_lesson.date = mb_new_date
-            crossed_lesson.save()
-
+            return cb(crossed_lesson) if cb else True
         except Lessons.DoesNotExist:
             # Пересечений с уроками нет, можно переносить
-            pass
+            return None
 
     def process_lesson(self, date, status):
         lesson = Lessons.objects.get(
@@ -92,10 +84,23 @@ class BasePass(object):
             except IndexError:
                 pass
         elif status == Lessons.STATUSES['moved']:
+
+            # callback для проверки пересечений
+            def response_processor(crossed_lesson):
+                crossed_pass = crossed_lesson.group_pass
+                crossed_pass_lessons = Lessons.objects.filter(date__gte=crossed_lesson.date, group_pass=crossed_pass)
+                mb_new_date = crossed_pass.group.get_calendar(len(crossed_pass_lessons)+1, crossed_lesson.date)[-1]
+
+                wrapped = PassLogic.wrap(crossed_pass)
+                wrapped.check_pass_crossing(mb_new_date, response_processor)
+                crossed_lesson.date = mb_new_date
+                crossed_lesson.save()
+
             last_lesson = Lessons.objects.filter(group_pass=self.orm_object).order_by('date').last()
             new_date = self.orm_object.group.get_calendar(2, last_lesson.date)[-1]
 
-            self.check_pass_crossing(new_date)
+            self.check_pass_crossing(new_date, response_processor)
+
             self.create_lessons(new_date, 1)
             self.orm_object.skips -= 1
             self.orm_object.save()
@@ -137,21 +142,46 @@ class BasePass(object):
             lesson.date = new_date
             lesson.save()
 
+        cross_flag = []
+
+        def process_response(crossed_lesson):
+            cross_flag.append(crossed_lesson.group_pass == self.orm_object)
+
         self.orm_object.frozen_date = date_to
-        lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_from, status=Lessons.STATUSES['not_processed']).order_by('date')
+        lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_from.date()).order_by('date')
         cal = self.orm_object.group.get_calendar(len(lessons), date_to)
+
+        for day in cal:
+            self.check_pass_crossing(day, process_response)
+
+        if not all(cross_flag):
+            return False
+
         map(move_lesson, lessons, cal)
 
         self.orm_object.save()
 
+        return True
+
     def cancel_lesson(self, date):
+
+        # callback для проверки пересечений
+        def response_processor(crossed_lesson):
+            crossed_pass = crossed_lesson.group_pass
+            crossed_pass_lessons = Lessons.objects.filter(date__gte=crossed_lesson.date, group_pass=crossed_pass)
+            mb_new_date = crossed_pass.group.get_calendar(len(crossed_pass_lessons)+1, crossed_lesson.date)[-1]
+
+            wrapped = PassLogic.wrap(crossed_pass)
+            wrapped.check_pass_crossing(mb_new_date, response_processor)
+            crossed_lesson.date = mb_new_date
+            crossed_lesson.save()
 
         self.orm_object.frozen_date = date
         lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date).order_by('date')
         first_lesson = lessons.first()
 
         first_lesson.date = self.orm_object.group.get_calendar(len(lessons), date)[-1]
-        self.check_pass_crossing(first_lesson.date)
+        self.check_pass_crossing(first_lesson.date, response_processor)
         first_lesson.status = Lessons.STATUSES['not_processed']
         first_lesson.save()
         self.orm_object.save()
