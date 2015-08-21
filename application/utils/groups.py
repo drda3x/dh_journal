@@ -90,7 +90,7 @@ def get_group_detail(group_id, _date_from, date_to):
 
             flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
 
-            buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status=Lessons.STATUSES['moved']), 0) if flag else ''
+            buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])), 0) if flag else ''
             buf['dance_hall'] = group.dance_hall.prise if flag else ''
             buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0) if flag else ''
             buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0) if flag else ''

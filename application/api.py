@@ -188,7 +188,7 @@ def delete_lessons(request):
                     count -= current_count
                 else:
                     current_pass.lessons -= count
-                    current_pass.origin_lessons -= count
+                    current_pass.lessons_origin -= count
                     count = 0
                     current_pass.save()
 
@@ -296,17 +296,24 @@ def freeze_pass(request):
         group = Groups.objects.get(pk=request.GET['group'])
         date_from, date_to = (datetime.datetime.strptime(d, '%d.%m.%Y') for d in json.loads(request.GET['date']))
         students = Students.objects.filter(pk__in=ids)
+        errors = []
 
         for student in students:
-            p = Passes.objects.filter(student=student, group=group).order_by('start_date').last()
+            try:
+                p = Lessons.objects.get(student=student, group=group, date=date_from).group_pass
 
-            if p.lessons > 0:
-                wrapped = PassLogic.wrap(p)
-                wrapped.freeze(date_from, date_to)
+                if p.lessons > 0:
+                    wrapped = PassLogic.wrap(p)
+                    if not wrapped.freeze(date_from, date_to):
+                        errors.append('%s %s' % (student.last_name, student.first_name))
+
+            except Lessons.DoesNotExist:
+                errors.append('%s %s' % (student.last_name, student.first_name))
+
             else:
                 pass
 
-        return HttpResponse(200)
+        return HttpResponse(200) if not errors else HttpResponseServerError('\n'.join(errors))
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')

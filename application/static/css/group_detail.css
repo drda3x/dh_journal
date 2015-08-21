@@ -391,8 +391,9 @@ html, body {
     padding-bottom: 3px;
 }
 
-.sub-menu .li-content input[type=date] {
-    width: 75px;
+.sub-menu .li-content .datepicker {
+    width: 75px !important;
+    margin-left: 17% !important;
 }
 
 .sub-menu .li-content input[type=text] {

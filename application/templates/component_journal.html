@@ -29,14 +29,14 @@
                                 <input id="cbd{{ forloop.counter }}" type="checkbox" name="accordion">
                                 <label for="cbd{{ forloop.counter }}">Удалить занятия</label>
                                 <div class="li-content">
-                                   <input class="datepicker" type="date" placeholder="начиная с" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
+                                   <input class="datepicker" type="text" placeholder="начиная с" style="margin-left: 0 !important;" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
                                 </div>
                             </li>
                             <li class="sub_menu_move">
                                 <input id="cbm{{ forloop.counter }}" type="checkbox" name="accordion">
                                 <label for="cbm{{ forloop.counter }}">Перенести занятия</label>
                                 <div class="li-content">
-                                    c <input class="datepicker" type="date" placeholder="дата" style="margin: 0 26px 5px 9px;" />на <input class="datepicker" type="date" placeholder="дата" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
+                                    <input class="datepicker" type="text" placeholder="с даты"/> <input class="datepicker" type="text" placeholder="на дату" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
                                 </div>
                             </li>
                         </ul>
@@ -246,7 +246,6 @@
                 });
 
                 $('.li-content .move-btn').click(function() {
-                    console.log(getSiblingsVals($(this)));
                     if(confirm('Подтвердите перенос')) {
                         $.ajax('freezepass', {
                             data: {
@@ -257,7 +256,8 @@
                         }).done(function(data) {
                             reload();
                         }).error(function(err) {
-                            alert('error');
+                            console.log(err);
+                            alert('Не выполнен перенос для следующих учеников:\n\n'+err.responseText+'\n\nна одну дату попадает несколько занятий');
                         })
                     }
                 });
@@ -536,8 +536,6 @@
                     var $target = $(event.target),
                         top = $target.parentsUntil('.popover');
 
-                    console.log(top[top.length-1]);
-
                     if(!($(top[top.length-1]).is('.popover-inner') || $target.is('.lesson_data')) && popoverLogic.opened && opened) {
                         popoverLogic.hide();
                     }
@@ -565,8 +563,14 @@
                 var $saveButton = $('.save_data');
 
                 $saveButton.click(function() {
-                    backDrop('show');
 
+                    var full_attended = $('#full_attended').prop('checked');
+
+                    if(!full_attended && !confirm('ВНИМАНИЕ!\nНе установлен флаг "Проставить пропуски"\n(Пропущенные занятия не будут зафиксированы)\n\nПродолжить?')) {
+                        return false;
+                    }
+
+                    backDrop('show');
                     popoverLogic.hide();
 
                     var data_source = $('#lesson_content').find('tr:gt(0)'),
@@ -583,9 +587,6 @@
                     }
 
                     if(!$('#cancel_lesson_inp').prop('checked')) {
-
-                        var full_attended = $('#full_attended').prop('checked');
-
                         data_source.each(function() {
                             var cont = $(this).children(),
                                 lesson = $(cont[1]),
@@ -676,9 +677,6 @@
                     $clickBtn = $popover.find('.debt-write_off-btn');
                     $clickBtn.off('click');
 
-                    console.log($popover);
-                    console.log($clickBtn);
-
                     $clickBtn.click(function() {
 
                         var $td = $(this).parentsUntil('td'),
@@ -690,7 +688,6 @@
                                 if(parseInt(data) == 0) {
                                     $this.remove();
                                 } else {
-                                    console.log('else');
                                     $this.text('долг: '+ data);
                                 }
                             }
@@ -739,7 +736,6 @@
                 });
 
                 $('.modal').on('hidden', function() {
-                console.log(needReload);
                     if(needReload) {
                         needReload = false;
                         reload()
