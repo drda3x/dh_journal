@@ -256,7 +256,6 @@
                         }).done(function(data) {
                             reload();
                         }).error(function(err) {
-                            console.log(err);
                             alert('Не выполнен перенос для следующих учеников:\n\n'+err.responseText+'\n\nна одну дату попадает несколько занятий');
                         })
                     }

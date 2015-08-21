@@ -349,7 +349,7 @@
                     $datepicker.each(function() {
                         dates.push($(this).val());
                     });
-
+                    $freezePass.modal('hide');
                     processData('freezepass',
                             {
                                 ids: JSON.stringify(freezeData),
@@ -358,10 +358,10 @@
                             }, function(err, data) {
                         if(!err) {
                             clearFreeze();
-                            $freezePass.modal('hide');
                             reload();
                         } else {
-                            console.log(err);
+                            alert('Не выполнен перенос для следующих учеников:\n\n'+err.responseText+'\n\nна одну дату попадает несколько занятий');
+                            reload();
                         }
                     });
                 }
