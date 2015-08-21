@@ -563,8 +563,14 @@
                 var $saveButton = $('.save_data');
 
                 $saveButton.click(function() {
-                    backDrop('show');
 
+                    var full_attended = $('#full_attended').prop('checked');
+
+                    if(!full_attended && !confirm('ВНИМАНИЕ!\nНе установлен флаг "Проставить пропуски"\n(Пропущенные занятия не будут зафиксированы)\n\nПродолжить?')) {
+                        return false;
+                    }
+
+                    backDrop('show');
                     popoverLogic.hide();
 
                     var data_source = $('#lesson_content').find('tr:gt(0)'),
@@ -581,9 +587,6 @@
                     }
 
                     if(!$('#cancel_lesson_inp').prop('checked')) {
-
-                        var full_attended = $('#full_attended').prop('checked');
-
                         data_source.each(function() {
                             var cont = $(this).children(),
                                 lesson = $(cont[1]),
