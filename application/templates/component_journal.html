@@ -42,7 +42,7 @@
                         </ul>
                     </div>
                     {% if student.debt %}
-                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt.val }}</strong>
+                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt }}</strong>
                     {% endif %}
                 </td>
                 {% for date in student.calendar %}
@@ -684,11 +684,12 @@
                         function cb(err, data) {
                             if(!err) {
                                 needReload = true;
-                                if(parseInt(data) == 0) {
+                                reload();
+                                /*if(parseInt(data) == 0) {
                                     $this.remove();
                                 } else {
                                     $this.text('долг: '+ data);
-                                }
+                                }*/
                             }
                         }
 

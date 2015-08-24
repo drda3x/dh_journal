@@ -3,6 +3,7 @@
 import datetime, copy
 from application.models import PassTypes, Passes, Groups, Lessons, Students
 
+from django.utils.functional import cached_property
 from django.db.models import Min, Max, Q
 
 
@@ -32,6 +33,10 @@ class BasePass(object):
 
     def __init__(self, obj):
         self.orm_object = obj
+
+    @cached_property
+    def lessons(self):
+        return list(Lessons.objects.filter(group_pass=self.orm_object))
 
     def check_date(self, date):
         max_date = Lessons.objects.filter(group_pass=self.orm_object).aggregate(Max('date'))

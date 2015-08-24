@@ -354,6 +354,7 @@ html, body {
 
 .sub-menu {
     max-width: 160px;
+    display: inline;
 }
 
 .sub-menu .dropdown-toggle {

@@ -446,14 +446,34 @@ def process_lesson(request):
                                 attended_passes.append(wrapped)
 
                     if 'debt' in p.iterkeys():
-                        try:
-                            debt = Debts.objects.get(student__id=p['student_id'], group=group)
+                        if wrapped:
+                            lessons = wrapped.lessons
+                            debt_val = p['debt']
 
-                        except Debts.DoesNotExist:
-                            debt = Debts(student_id=p['student_id'], group=group, date=date)
+                            # Создаем и сохраняем долг
+                            def new_debt(val, _date):
+                                debt = Debts(student_id=p['student_id'], group=group, date=_date, val=val)
+                                debt.save()
 
-                        debt.val = debt.val + p['debt'] if debt.val else p['debt']
-                        debt.save()
+                            # Если сумма долга больше стоимости абонемента
+                            if debt_val >= wrapped.orm_object.pass_type.prise:
+                                debt_val /= float(len(lessons))
+
+                                for lesson in lessons:
+                                    new_debt(debt_val, lesson.date)
+
+                            # Если долг равен или меньше стоимости абонемента
+                            else:
+
+                                for lesson in lessons:
+                                    if debt_val > 0:
+                                        if debt_val > lesson.prise():
+                                            new_debt(lesson.prise(), lesson.date)
+                                            debt_val -= lesson.prise()
+
+                                        else:
+                                            new_debt(debt_val, lesson.date)
+                                            debt_val = 0
 
             if old_passes and date.date() <= group.last_lesson:
                 for pass_orm_object in Passes.objects.select_related().filter(pk__in=old_passes):
@@ -595,19 +615,26 @@ def get_comments(request):
 
 def write_off_debt(request):
     try:
-        debt = Debts.objects.get(
+        debts = Debts.objects.filter(
             student_id=request.GET['sid'],
             group_id=request.GET['gid']
-        )
+        ).order_by('date')
 
-        delta = debt.val - int(request.GET['val'])
+        val = int(request.GET['val'])
 
-        if delta == 0:
-            debt.delete()
+        delta = 0
 
-        else:
-            debt.val = delta
-            debt.save()
+        for debt in debts:
+
+            if debt.val <= val:
+                debt.delete()
+                val -= debt.val
+
+            else:
+                debt.val -= val
+                delta += debt.val
+                debt.save()
+                val = 0
 
         return HttpResponse(delta)
 

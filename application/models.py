@@ -174,7 +174,7 @@ class Debts(models.Model):
     date = models.DateField(verbose_name=u'Дата')
     student = models.ForeignKey(Students)
     group = models.ForeignKey(Groups)
-    val = models.PositiveIntegerField(verbose_name=u'Сумма')
+    val = models.FloatField(verbose_name=u'Сумма')
 
 
 class Comments(models.Model):

@@ -2,7 +2,7 @@
 
 import datetime
 
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
@@ -72,7 +72,7 @@ def get_group_detail(group_id, _date_from, date_to):
         {
             'person': s,
             'calendar': [get_student_lesson_status(s, group, dt) for dt in calendar],  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
-            'debt': check_debt(s, group),
+            'debt': get_student_total_debt(s, group),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
             'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to)),
             'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
@@ -90,7 +90,8 @@ def get_group_detail(group_id, _date_from, date_to):
 
             flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
 
-            buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])), 0) if flag else ''
+            buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])), 0)\
+                               - (int(Debts.objects.filter(date=_day['date'], group=group).aggregate(total=Sum('val'))['total'] or 0)) if flag else ''
             buf['dance_hall'] = group.dance_hall.prise if flag else ''
             buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0) if flag else ''
             buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0) if flag else ''
@@ -140,7 +141,7 @@ def get_group_detail(group_id, _date_from, date_to):
     }
 
 
-def check_debt(student, group):
+def get_student_total_debt(student, group):
 
     u'''
     Проверить наличие долгов у студента
@@ -150,7 +151,7 @@ def check_debt(student, group):
     '''
 
     try:
-        return Debts.objects.get(student=student, group=group)
+        return Debts.objects.filter(student=student, group=group).aggregate(total_debt=Sum('val'))['total_debt']
 
     except Debts.DoesNotExist:
         return None
@@ -233,10 +234,15 @@ def get_student_lesson_status(student, group, _date):
             key: val for val, key in get_color_classes()
         }
 
+        try:
+            debt = Debts.objects.get(student=student, group=group, date=date)
+        except Debts.DoesNotExist:
+            debt = None
+
         buf = {
             'pass': True,
-            'sign': lesson.sign,
-            'sign_type': 'n' if isinstance(lesson.sign, int) else 's',
+            'sign': 'долг (%d)' % debt.val if debt else lesson.sign,
+            'sign_type': 's' if debt or isinstance(lesson.sign, str) else 'n',
             'attended': lesson.status == Lessons.STATUSES['attended'],
             'pid': lesson.group_pass.id
         }
