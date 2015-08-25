@@ -56,7 +56,7 @@
             {% endfor %}
         </table>
         {% else %}
-             <table class="table table-bordered table-striped table-hover" style="width: 284mm; height: 180mm">
+             <table class="table table-bordered table-striped table-hover" style="max-width: 284mm; max-height: 180mm">
                 <tr class="shotcard-disabled">
                     <th>№</th>
                     <th>Фамилия</th>
@@ -75,7 +75,12 @@
                     <td>+{{ student.person.phone }}</td>
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
-                    <td>{{ student.pass_remaining }}</td>
+                    <td>
+                        {{ student.pass_remaining }}
+                        {% if student.debt %}
+                            <strong class="text-error">ДОЛГ ({{ student.debt }})</strong>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if student.last_comment %}
                             {{ student.last_comment.text }}
