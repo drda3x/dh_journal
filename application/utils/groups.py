@@ -221,16 +221,22 @@ def get_teacher_students_list(teacher):
 
 def get_student_lesson_status(student, group, _date):
 
-    date = _date['date']
+    if isinstance(_date, dict):
+        date = _date['date']
 
-    if _date['canceled']:
-        return {
-            'pass': False,
-            'color': '',
-            'sign': '',
-            'attended': False,
-            'canceled': True
-        }
+        if _date['canceled']:
+            return {
+                'pass': False,
+                'color': '',
+                'sign': '',
+                'attended': False,
+                'canceled': True
+            }
+    elif isinstance(_date, (datetime.datetime, datetime.date)):
+        date = _date
+
+    else:
+        raise TypeError('wrong arguments')
 
     try:
         lesson = Lessons.objects.get(student=student, group=group, date=date)

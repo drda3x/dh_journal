@@ -6,6 +6,9 @@
                 background-color: {{ color_class.val }} !important;
             }
         {% endfor %}
+        table, th, td {
+            border: 1px solid #000000 !important;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -16,7 +19,11 @@
             {% for student in students %}
                 <tr>
                     <td class="student_data">{{ student.info.last_name }} {{ student.info.first_name }}</td>
-                    <td class="lesson_data"></td>
+                    <td class="lesson_data {{ student.data.color }}">
+                        {% if student.data.attended %}
+                            {{ student.data.sign }}
+                        {% endif %}
+                    </td>
                 </tr>
 
             {% endfor %}

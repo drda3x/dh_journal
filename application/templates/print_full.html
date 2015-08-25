@@ -8,10 +8,12 @@
         {% endfor %}
         table {
             font-size: 10pt;
+            border: 1px solid #000000 !important;
         }
         th, td {
             padding: 0 !important;
             text-align: center !important;
+            border: 1px solid #000000 !important;
         }
     </style>
 {% endblock %}
@@ -21,7 +23,7 @@
         <p>
             <strong>{{ group_detail.name }} - {{ date_str }}</strong>
         </p>
-         <table id="journal" class="table table-bordered table-striped" style="width: 294mm; height: 180mm">
+         <table id="journal" class="table table-bordered table-striped" style="max-width: 294mm; max-height: 180mm">
             <tr>
                 <th>№</th>
                 <th style="max-width: 200px">

@@ -158,9 +158,14 @@ def print_lesson(request):
     template = 'print_lesson.html'
     date_format = '%d%m%Y'
 
-    date = datetime.datetime.strptime(request.GET['date'], date_format)
+    date = datetime.datetime.strptime(request.GET['date'], date_format).date()
     group = Groups.objects.get(pk=request.GET['id'])
-
+    html_color_classes = {
+        key: val for val, key in get_color_classes()
+    }
+    context['passes_color_classes'] = [
+            {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
+        ]
     context['group_name'] = group.name
     context['date'] = date.strftime('%d.%m.%Y')
     context['students'] = map(lambda s: dict(data=get_student_lesson_status(s, group, date), info=s), get_group_students_list(group))
