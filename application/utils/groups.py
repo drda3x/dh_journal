@@ -156,7 +156,8 @@ def get_student_total_debt(student, group):
     '''
 
     try:
-        return Debts.objects.filter(student=student, group=group).aggregate(total_debt=Sum('val'))['total_debt']
+        #return Debts.objects.filter(student=student, group=group).aggregate(total_debt=Sum('val'))['total_debt']
+        return len(Debts.objects.filter(student=student, group=group))
 
     except Debts.DoesNotExist:
         return None
@@ -239,20 +240,20 @@ def get_student_lesson_status(student, group, _date):
         raise TypeError('wrong arguments')
 
     try:
+        debt = Debts.objects.get(student=student, group=group, date=date)
+    except Debts.DoesNotExist:
+        debt = None
+
+    try:
         lesson = Lessons.objects.get(student=student, group=group, date=date)
 
         html_color_classes = {
             key: val for val, key in get_color_classes()
         }
 
-        try:
-            debt = Debts.objects.get(student=student, group=group, date=date)
-        except Debts.DoesNotExist:
-            debt = None
-
         buf = {
             'pass': True,
-            'sign': 'долг (%d)' % debt.val if debt else lesson.sign,
+            'sign': 'долг' if debt else lesson.sign,
             'sign_type': 's' if debt or isinstance(lesson.sign, str) else 'n',
             'attended': lesson.status == Lessons.STATUSES['attended'],
             'pid': lesson.group_pass.id
@@ -272,8 +273,9 @@ def get_student_lesson_status(student, group, _date):
     except Lessons.DoesNotExist:
         return {
             'pass': False,
-            'color': '',
-            'sign': '',
+            'color': 'text-error' if debt else '',
+            'sign': 'долг' if debt else '',
+            'sign_type': 's' if debt else '',
             'attended': False,
             'canceled': False
         }

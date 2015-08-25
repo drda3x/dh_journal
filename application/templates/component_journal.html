@@ -42,12 +42,13 @@
                         </ul>
                     </div>
                     {% if student.debt %}
-                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt }}</strong>
+{#                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt }}</strong>#}
+                        <strong data-id="{{ student.person.id }}" class="text-error">долг: {{ student.debt }}</strong>
                     {% endif %}
                 </td>
                 {% for date in student.calendar %}
                 <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
-                    {% if date.pass and date.sign %}
+                    {% if date.sign %}
                         <strong>
                             {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
                                 {% if date.sign_type == 's' %}
@@ -137,6 +138,12 @@
                 {% endfor %}
                 <div class="control-group">
                     <label class="radio">
+                        <input id="not_self_pay" type="radio" name="select_pass_type" value="-2">
+                        <span>Долг</span>
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label class="radio">
                         <input id="not_self_pay" type="radio" name="select_pass_type" value="-1">
                         <span>Списать с другого абонемента</span>
                     </label>
@@ -145,13 +152,13 @@
                         <ul id="pass_menu_advanced_content"></ul>
                     </div>
                 </div>
-                <div class="control-group">
+                <!--div class="control-group">
                     <label class="checkbox debt">
                         <input type="checkbox" disabled>
                         <span>долг</span>
                         <input class="pass_menu-debt-inp" type="text" readonly>
                     </label>
-                </div>
+                </div-->
             </div>
         </div>
 

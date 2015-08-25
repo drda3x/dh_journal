@@ -412,6 +412,11 @@ def process_lesson(request):
                         Lessons.objects.filter(group_pass=another_person_pass).order_by('date').last().delete()
                         attended_passes.append(wrapped)
 
+                    elif _pt == -2:
+                        if not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
+                            debt = Debts(student_id=p['student_id'], group=group, date=date, val=0)
+                            debt.save()
+
                     elif 'pass_id' in p.iterkeys():
                         pid = p['pass_id']
                         pass_orm_object = Passes.objects.get(pk=pid)
