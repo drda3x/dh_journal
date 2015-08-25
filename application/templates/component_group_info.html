@@ -26,7 +26,11 @@
                     <td style="min-width: 133px;">{{ student.person.str_phone }}</td>
                     <td style="min-width: 150px;">{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
-                    <td>{{ student.pass_remaining }}</td>
+                    <td>{{ student.pass_remaining }}
+                        {% if student.debt %}
+                            <strong class="text-error">ДОЛГ ({{ student.debt }})</strong>
+                        {% endif %}
+                    </td>
                     <td class="comment" style="min-width: 120px;">{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
                 </tr>
                 {% endfor %}
@@ -526,7 +530,7 @@
                     $('#first_name').val($($children[3]).text());
                     $('#phone').val($($children[4]).text());
                     $('#e_mail').val($($children[5]).text());
-                    $('#is_org').prop('checked', $($children[5]).text() == 'ОРГ' ? 'checked' : false);
+                    $('#is_org').prop('checked', $($children[6]).text() == 'ОРГ' ? 'checked' : false);
 
                     var $submit = $studentForm.find('.btn.btn-primary');
                     $submit.off('click');
@@ -725,7 +729,6 @@
 
                             function cb(err, data) {
                                 if(!err) {
-                                    console.log('success');
                                     _container.find('.comment-buffer').remove();
                                     _textarea.attr('readonly', true);
 
@@ -733,8 +736,21 @@
                                     _cancelBtn.hide();
                                     _saveBtn.hide();
 
-                                    $alert.show('Сохранено', 'green', 2500, 1500);
+                                    var firstComment;
+                                    try {
+                                        firstComment = $('.comment-content').first();
+                                    } catch (e) {
 
+                                    } finally {
+                                        if(firstComment != undefined) {
+                                            firstComment.css('border', '0px');
+                                            changeCommentInMainTable(firstComment.find('textarea').val())
+                                        } else {
+                                            changeCommentInMainTable('')
+                                        }
+                                    }
+
+                                    $alert.show('Сохранено', 'green', 2500, 1500);
                                 } else {
                                     $alert.show('Не сохранено. Ошибка!', 'red', 2500, 1500);
                                 }
@@ -773,11 +789,10 @@
                                 if(!err) {
                                     var firstComment;
                                     try {
-                                        firstComment = $(_container.siblings()[0]);
+                                        firstComment = $(_container.siblings().first());
                                     } catch (e) {
-
                                     } finally {
-                                        if(firstComment != undefined) {
+                                        if(firstComment.length > 0) {
                                             firstComment.css('border', '0px');
                                             changeCommentInMainTable(firstComment.find('textarea').val())
                                         } else {

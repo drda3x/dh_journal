@@ -6,6 +6,13 @@
                 background-color: {{ color_class.val }} !important;
             }
         {% endfor %}
+        table {
+            font-size: 10pt;
+        }
+        th, td {
+            padding: 0 !important;
+            text-align: center !important;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -14,20 +21,23 @@
         <p>
             <strong>{{ group_detail.name }} - {{ date_str }}</strong>
         </p>
-         <table id="journal" class="table table-bordered table-striped">
+         <table id="journal" class="table table-bordered table-striped" style="width: 294mm; height: 180mm">
             <tr>
-                <th>
+                <th>№</th>
+                <th style="max-width: 200px">
                     Фамилия Имя
                 </th>
                 {% for date in group_detail.calendar %}
-                <th class="hover-able">{{ date }}</th>
+                <th>{{ date.date }}</th>
                 {% endfor %}
+                <th>Коментарий</th>
             </tr>
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
-                <td class="hover-able fio_cell">{{ student.person.last_name }} {{ student.person.first_name }}</td>
+                <td>{{ forloop.counter }}</td>
+                <td style="width: 200px">{{ student.person.last_name }} {{ student.person.first_name }}</td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.sign }}">
+                <td class="{{ date.color }}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-sign="{{ date.sign }}">
                     {% if date.pass and date.sign %}
                         <strong>{{ date.sign }}</strong>
                     {% else %}
@@ -35,31 +45,46 @@
                     {% endif %}
                 </td>
                 {% endfor %}
+                <td>
+                {% if student.last_comment %}
+                    {{ student.last_comment.text }}
+                {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </table>
         {% else %}
-             <table class="table table-bordered table-striped table-hover">
+             <table class="table table-bordered table-striped table-hover" style="width: 284mm; height: 180mm">
                 <tr class="shotcard-disabled">
+                    <th>№</th>
                     <th>Фамилия</th>
                     <th>Имя</th>
                     <th>Телефон</th>
                     <th>E-mail</th>
                     <th>ОРГ-статус</th>
                     <th>Остаток по абонементу</th>
+                    <th>Коментарий</th>
                 </tr>
                 {% for student in group_detail.students %}
                 <tr data-id="{{ student.person.id }}">
+                    <td>{{ forloop.counter }}</td>
                     <td>{{ student.person.last_name }}</td>
                     <td>{{ student.person.first_name }}</td>
                     <td>+{{ student.person.phone }}</td>
                     <td>{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}</td>
+                    <td>
+                        {% if student.last_comment %}
+                            {{ student.last_comment.text }}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
         {% endif %}
-        <a class="btn" onclick="window.print()">Печать</a>
+        <script type="text/javascript">
+            window.print();
+        </script>
     {% endblock %}
 {% endblock %}

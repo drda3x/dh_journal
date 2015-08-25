@@ -48,7 +48,7 @@ def get_groups_list(user):
     }
 
 
-def get_group_detail(group_id, _date_from, date_to):
+def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
 
     u"""
     Получить детальную информацию о группе
@@ -85,18 +85,23 @@ def get_group_detail(group_id, _date_from, date_to):
     for _day in calendar:
         buf = dict()
 
-        if not _day['canceled']:
-            qs = Lessons.objects.filter(group=group, date=_day['date'])
+        qs = Lessons.objects.filter(group=group, date=_day['date'])
+        flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
 
-            flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
+        if not _day['canceled'] and flag:
 
-            buf['day_total'] = reduce(lambda _sum, l: _sum + l.prise(), qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])), 0)\
-                               - (int(Debts.objects.filter(date=_day['date'], group=group).aggregate(total=Sum('val'))['total'] or 0)) if flag else ''
-            buf['dance_hall'] = group.dance_hall.prise if flag else ''
-            buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0) if flag else ''
-            buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0) if flag else ''
-            buf['half_balance'] = round(buf['balance'] / 2, 1) if isinstance(buf['balance'], (float, int)) else ''
-            buf['date'] = _day if flag else ''
+            buf['day_total'] = reduce(
+                lambda _sum, l: _sum + l.prise(),
+                qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])),
+                0
+            ) - int(Debts.objects.filter(date=_day['date'], group=group).aggregate(total=Sum('val'))['total'] or 0)
+
+
+            buf['dance_hall'] = group.dance_hall.prise
+            buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
+            buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0)
+            buf['half_balance'] = round(buf['balance'] / 2, 1)
+            buf['date'] = _day
             buf['canceled'] = False
 
             for key in money_total.iterkeys():
@@ -109,7 +114,7 @@ def get_group_detail(group_id, _date_from, date_to):
             buf['balance'] = ''
             buf['half_balance'] = ''
             buf['date'] = ''
-            buf['canceled'] = True
+            buf['canceled'] = _day['canceled'] is True
 
         moneys.append(buf)
 
@@ -124,7 +129,7 @@ def get_group_detail(group_id, _date_from, date_to):
     # money['balance'] = round(money['total'] - money['dance_hall'] - money['club'], 0)
 
     def to_iso(elem):
-        elem['date'] = elem['date'].strftime('%d.%m.%Y')
+        elem['date'] = elem['date'].strftime(date_format)
 
         return elem
 

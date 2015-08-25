@@ -143,7 +143,7 @@ def print_full(request):
         {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
     ]
     context['date_str'] = '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
-    context['group_detail'] = get_group_detail(group_id, date_from, date_to)
+    context['group_detail'] = get_group_detail(group_id, date_from, date_to, date_format='%d.%m.%y')
 
     context['subtype'] = request.GET.get('subtype', None)
 
