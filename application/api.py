@@ -385,12 +385,12 @@ def process_lesson(request):
         attended_passes_ids = []
         error = []
 
-        now = datetime.datetime.combine(datetime.datetime.now(), datetime.datetime.min.time())
-
         if not canceled:
             if new_passes:
                 for p in new_passes:
                     _pt = int(p['pass_type'])
+
+                    # Списываем с другого абонемента
                     if _pt == -1:
 
                         another_person_pass = Passes.objects.get(pk=p['from_another'])
@@ -412,17 +412,20 @@ def process_lesson(request):
                         Lessons.objects.filter(group_pass=another_person_pass).order_by('date').last().delete()
                         attended_passes.append(wrapped)
 
+                    # Проставляем долг
                     elif _pt == -2:
                         if not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
                             debt = Debts(student_id=p['student_id'], group=group, date=date, val=0)
                             debt.save()
 
+                    # Мультикарта
                     elif 'pass_id' in p.iterkeys():
                         pid = p['pass_id']
                         pass_orm_object = Passes.objects.get(pk=pid)
                         wrapped = PassLogic.wrap(pass_orm_object)
                         attended_passes.append(wrapped)
 
+                    # Любой другой абонемент
                     else:
                         pt = PassTypes.objects.get(pk=_pt)
                         st_id = p['student_id']
@@ -450,6 +453,14 @@ def process_lesson(request):
                             if date.date() <= group.last_lesson:
                                 attended_passes.append(wrapped)
 
+                            try:
+                                #Убираем долги, если они есть.
+                                map(lambda d: d.delete(), Debts.objects.filter(group=group, student_id=st_id, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
+
+                            except Debts.DoesNotExist:
+                                pass
+
+                    # old
                     if 'debt' in p.iterkeys():
                         if wrapped:
                             lessons = wrapped.lessons
