@@ -3,6 +3,7 @@
 from django.contrib import auth
 from django.contrib.sessions.backends.db import SessionStore
 from application.models import User
+from django.http.response import HttpResponseNotAllowed
 
 
 def check_auth(request):
@@ -41,7 +42,7 @@ def auth_decorator(func):
             return func(request)
 
         else:
-            pass
+            return HttpResponseNotAllowed('User does not authorized. Please logout and login again')
 
     return process
 
