@@ -1,0 +1,9 @@
+
+.header {
+    padding: 5px 0;
+}
+
+.header div {
+    display: inline-block;
+    margin-right: 10px;
+}

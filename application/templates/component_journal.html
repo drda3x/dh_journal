@@ -218,6 +218,9 @@
     {% block script %}
         <script type="text/javascript">
             (function() {
+
+                var multipassName = 'Клубная карта';
+
                 var matrix = new window.View.Matrix(),
                     popoverLogic = new window.vidgetsLogic.Popover({{ group_detail.id }});
 
@@ -395,8 +398,8 @@
                                     if ($this.attr('data-multipass_id')) {
                                         $('.popover-content').find('.control-group').each(function() {
                                             var $label = $(this).find('label span');
-                                            if($label.text().toLowerCase().indexOf('мультикарта') >= 0) {
-                                                $label.html('<strong>Мультикарта ('+$this.data('multipass_lessons')+')</strong>')
+                                            if($label.text().toLowerCase().indexOf(multipassName.toLowerCase()) >= 0) {
+                                                $label.html('<strong>Клубная карта ('+$this.data('multipass_lessons')+')</strong>')
                                             }
                                         });
                                     }
@@ -614,7 +617,7 @@
                                             scnt: lesson.data('scnt')
                                         };
 
-                                        if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName('Мультикарта').id) {
+                                        if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName(multipassName).id) {
                                             values.pass_id = lesson.data('multipass_id');
                                         }
                                         json.checked.push(values);

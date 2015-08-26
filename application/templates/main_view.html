@@ -11,7 +11,14 @@
             }
 
             $('.group').click(function() {
-                window.location.hash = 'g'+$(this).data('id');
+                var group_id = $(this).data('id');
+                if(group_id != undefined) {
+                    window.location.hash = 'g'+group_id;
+                } else {
+                    console.log($(this).href());
+                    //window.location.hash = '__' + $(this).href();
+                }
+
                 $frame.attr('src', $(this).attr('href'));
                 $('#dateControl').show();
                 return false;
