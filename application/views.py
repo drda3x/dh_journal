@@ -10,6 +10,7 @@ from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 from application.models import Lessons, User, Passes
+from application.auth import auth_decorator
 
 from models import Groups, Students, User, PassTypes
 
@@ -30,7 +31,7 @@ def index_view(request):
     login_template = 'login.html'
 
     if user:
-        context = {}
+        context = dict()
         context['user'] = user
         context['groups'] = get_groups_list(user)
 
@@ -47,6 +48,7 @@ def user_log_out(request):
     return redirect('/')
 
 
+@auth_decorator
 def group_detail_view(request):
 
     context = {}
@@ -55,10 +57,10 @@ def group_detail_view(request):
 
     try:
         group_id = int(request.GET['id'])
-        date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-            else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        date_to = get_last_day_of_month(date_from)
         now = datetime.datetime.now()
+        date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+            else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        date_to = get_last_day_of_month(date_from)
 
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
 
@@ -176,7 +178,26 @@ def print_lesson(request):
 def club_cards(request):
     context = {}
     template = 'club_cards.html'
+    date_format = '%d%m%Y'
 
-    passes = Passes.objects.filter(pass_type=CLUB_CARD_ID)
+    now = datetime.datetime.now()
+    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+        else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    date_to = get_last_day_of_month(date_from)
+
+    last_pass = Passes.objects.filter(pass_type=CLUB_CARD_ID).order_by('end_date').last()
+
+    context['control_data'] = {
+        'constant': {
+            'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
+            'current_date_numval': date_from.strftime(date_format)
+        },
+        'date_control': map(
+            lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+            map(lambda x: get_month_offset(last_pass.date if last_pass else date_from, x), xrange(0, 3))
+        )
+    }
+
+    context['passes'] = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from)
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

@@ -213,7 +213,7 @@ class BasePass(object):
 
             new_pass = Passes.objects.filter(student=new_owner, lessons__gt=0, group=group).order_by('start_date').last()
             if not new_pass:
-                new_pass = Passes(student=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=group.last_lesson)
+                new_pass = Passes(student=new_owner, group=group, pass_type=self.orm_object.pass_type, skips=self.orm_object.skips, lessons=self.orm_object.lessons, start_date=group.last_lesson, opener=self.orm_object.opener)
                 new_pass.save()
                 next_lesson_date = new_pass.start_date
             else:

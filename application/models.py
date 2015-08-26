@@ -296,6 +296,7 @@ class Passes(models.Model):
     frozen_date = models.DateField(verbose_name=u'Дата окончания заморозки', null=True, blank=True)
     lessons_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных занятий')
     skips_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных пропусков', null=True, blank=True)
+    opener = models.ForeignKey(User, null=True, blank=True)
 
     @property
     def shown_value(self):

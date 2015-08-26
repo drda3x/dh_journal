@@ -3,8 +3,42 @@
 {% endblock %}
 {% block body %}
     {% block content %}
-
-
+    <div class="journal-header">
+        <div id="dateControl" class="dropdown">
+            <strong class="text-info">
+                Месяц:
+            </strong>
+                <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown">
+                    {{ control_data.constant.current_date_str }}
+                </a>
+                <b class="caret"></b>
+            <ul class="dropdown-menu usr">
+                {% for month in control_data.date_control %}
+                    <li><a href="/clubcards?date={{ month.val }}" tabindex="-1">{{ month.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <table class="table table-bordered table-striped table-hover">
+        <tr>
+            <th>№</th>
+            <th>Фамилия Имя</th>
+            <th>Дата начала</th>
+            <th>Дата окончания</th>
+            <th>Преподаватель</th>
+            <th>Остаток</th>
+        </tr>
+        {% for p in passes %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
+                <td>{{ p.start_date }}</td>
+                <td>{{ p.end_date }}</td>
+                <td>{{ p.opener.last_name }} {{ p.opener.first_name }}</td>
+                <td>{{ p.lessons }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 
     {% endblock %}
     {% block script %}

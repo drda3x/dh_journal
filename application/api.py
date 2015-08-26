@@ -14,6 +14,7 @@ from application.utils.groups import get_group_students_list
 from application.utils.phones import check_phone
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
+from application.auth import auth_decorator
 
 
 # todo Сделать чтобы абонементы не могли пересекаться!!!!!
@@ -360,7 +361,7 @@ def get_passes(request):
         print format_exc()
         return HttpResponseServerError('failed')
 
-
+@auth_decorator
 def process_lesson(request):
 
     """
@@ -400,7 +401,8 @@ def process_lesson(request):
                             pass_type=another_person_pass.pass_type,
                             start_date=date,
                             lessons=1,
-                            skips=0
+                            skips=0,
+                            user=request.user
                         )
 
                         pass_orm_object.save()
@@ -442,7 +444,8 @@ def process_lesson(request):
                                 lessons=lessons_count,
                                 skips=skips_count,
                                 lessons_origin=lessons_count,
-                                skips_origin=skips_count
+                                skips_origin=skips_count,
+                                opener=request.user
                             )
                             pass_orm_object.save()
 
@@ -457,7 +460,7 @@ def process_lesson(request):
                                 #Убираем долги, если они есть.
                                 map(lambda d: d.delete(), Debts.objects.filter(group=group, student_id=st_id, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
 
-                            except Debts.DoesNotExist:
+                            except Exception:
                                 pass
 
                     # old
