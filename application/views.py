@@ -24,10 +24,9 @@ def custom_proc(request):
     }
 
 
-@auth_decorator
 def index_view(request):
 
-    user = request.user
+    user = check_auth(request)
     main_template = 'main_view.html'
     login_template = 'login.html'
 

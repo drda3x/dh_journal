@@ -52,5 +52,6 @@ urlpatterns += [
     url(r'^restorelesson', api.restore_lesson),
     url(r'writeoffdebt', api.write_off_debt),
     url(r'clubcards', views.club_cards),
+    url(r'createmulty', api.create_multipass),
     url(r'', views.index_view)
 ]

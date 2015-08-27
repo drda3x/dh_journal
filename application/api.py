@@ -15,6 +15,7 @@ from application.utils.phones import check_phone
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
 from application.auth import auth_decorator
+from project.settings import CLUB_CARD_ID
 
 
 # todo Сделать чтобы абонементы не могли пересекаться!!!!!
@@ -659,4 +660,30 @@ def write_off_debt(request):
 
     except Exception:
         format_exc()
+        return HttpResponseServerError('failed')
+
+@auth_decorator
+def create_multipass(request):
+    try:
+        group = Groups.objects.get(pk=request.GET['group'])
+        student = Students.objects.get(pk=request.GET['student'])
+        date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
+
+        if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
+
+            pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
+
+            _pass = Passes(
+                student=student,
+                pass_type=pt,
+                start_date=date,
+                opener=request.user
+            )
+            _pass.save()
+            PassLogic.wrap(_pass)
+
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
         return HttpResponseServerError('failed')

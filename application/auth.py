@@ -42,7 +42,7 @@ def auth_decorator(func):
             return func(request)
 
         else:
-            return HttpResponseNotAllowed('User does not authorized. Please logout and login again')
+            return index_view(request)
 
     return process
 

@@ -6,8 +6,13 @@
             var $frame = $('iframe');
 
             if(window.location.hash != '') {
-                var group_id = window.location.hash.replace('#g','');
-                $frame.attr('src', '/group?id='+group_id);
+                var param = window.location.hash.replace(/#g?/,'');
+                if(!isNaN(parseInt(param))) {
+                    $frame.attr('src', '/group?id='+param);
+                } else {
+                    $frame.attr('src', '/'+param);
+                }
+
             }
 
             $('.group').click(function() {
@@ -16,7 +21,7 @@
                 if(group_id != undefined) {
                     window.location.hash = 'g'+group_id;
                 } else {
-                    window.location.hash = '__' + $(this).attr('href');
+                    window.location.hash = $(this).attr('href');
                 }
 
                 $frame.attr('src', $(this).attr('href'));
