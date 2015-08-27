@@ -24,9 +24,10 @@ def custom_proc(request):
     }
 
 
+@auth_decorator
 def index_view(request):
 
-    user = check_auth(request)
+    user = request.user
     main_template = 'main_view.html'
     login_template = 'login.html'
 
@@ -175,11 +176,13 @@ def print_lesson(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+@auth_decorator
 def club_cards(request):
     context = {}
     template = 'club_cards.html'
     date_format = '%d%m%Y'
 
+    user = request.user
     now = datetime.datetime.now()
     date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
         else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -198,6 +201,8 @@ def club_cards(request):
         )
     }
 
+    context['groups'] = get_groups_list(user)
     context['passes'] = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from)
+    context['students'] = map(lambda x: {'id': x['id'], 'list': get_group_students_list(x['id'])}, context['groups']['self'])
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

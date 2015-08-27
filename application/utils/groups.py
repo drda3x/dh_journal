@@ -184,14 +184,16 @@ def get_student_multi_pass(student, date_from, date_to):
         return None
 
 
-def get_group_students_list(group):
+def get_group_students_list(_group):
 
     u"""
     Получить список учеников из группы
     """
 
-    if not isinstance(group, Groups):
-        raise TypeError('Expected Groups instance!')
+    if not isinstance(_group, Groups) and not isinstance(_group, int):
+        raise TypeError('Expected Groups instance or group id!')
+
+    group = _group if isinstance(_group, Groups) else Groups.objects.get(pk=_group)
 
     return Students.objects.filter(
         pk__in=GroupList.objects.filter(group=group, active=True).values('student_id'),

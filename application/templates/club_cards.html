@@ -5,7 +5,7 @@
 {% block body %}
     {% block content %}
     <div class="header">
-        <div class="btn btn-primary">Добавить</div>
+        <a href="#multicard-add-menu" role="button" data-toggle="modal" class="btn btn-primary">Добавить</a>
         <div id="dateControl" class="dropdown">
             <strong class="text-info">
                 Месяц:
@@ -42,7 +42,47 @@
         {% endfor %}
     </table>
 
+    <div id="multicard-add-menu" class="modal hide">
+        <div class="modal-header"></div>
+        <div>
+            <div class="groups">
+                <ul>
+                {% for group in groups.self %}
+                    <li><a data-id="g{{ group.id }}">{{ group.name }}</a></li>
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="students_lists">
+                {% for group in students %}
+                    <ul id="g{{ group.id }}" class="hide">
+                        {% for student in group.list %}
+                            <li>{{ student.last_name }} {{ student.first_name }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+            </div>
+            <div>
+
+            </div>
+        </div>
+        <div class="modal-footer"></div>
+    </div>
+
     {% endblock %}
     {% block script %}
+
+    <script type="text/javascript">
+    (function() {
+        $('#multicard-add-menu .groups a').click(function() {
+
+            var $this = $(this),
+                $id = $this.data('id');
+console.log($('#multicard-add-menu .students_lists ul #'+$id));
+            $('#multicard-add-menu .students_lists ul').addClass('hide');
+            $('#multicard-add-menu .students_lists ul#'+$id).removeClass('hide');
+        });
+    })();
+    </script>
+
     {% endblock %}
 {% endblock %}

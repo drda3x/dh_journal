@@ -7,3 +7,28 @@
     display: inline-block;
     margin-right: 10px;
 }
+
+.modal-backdrop{
+    background-color: inherit;
+    opacity: 0.6;
+}
+
+#multicard-add-menu .groups ul {
+    list-style: none;
+}
+
+#multicard-add-menu .groups li {
+    cursor: pointer;
+}
+
+#multicard-add-menu .groups li a {
+    text-decoration: none;
+}
+
+#multicard-add-menu .groups li a:hover {
+    background-color: #eeeeee;
+}
+
+.active {
+    background-color: #eeeeee;
+}
