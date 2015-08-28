@@ -119,6 +119,9 @@
             <div>30% клубу: <strong>{{ group_detail.money_total.club }}</strong></div>
             <div>ИТОГО: <strong>{{ group_detail.money_total.balance }}</strong></div>
             <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
+            {% if group_detail.money_total.next_month_balance %}
+                <div>На следующий месяц: <strong>{{ group_detail.money_total.next_month_balance }}</strong></div>
+            {% endif %}
         </div>
 
         <!-- Форма выбора абонемента -->

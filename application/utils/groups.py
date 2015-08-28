@@ -122,6 +122,24 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
     money_total['balance'] = round(money_total['day_total'] - money_total['dance_hall'] - abs(money_total['club']), 0)
     money_total['half_balance'] = round(money_total['balance'] / 2, 1)
 
+    try:
+        if buf['balance']:
+
+            money_total['next_month_balance'] = reduce(
+                lambda acc, l: acc + l.prise(),
+                Lessons.objects.filter(
+                    group=group,
+                    date__gt=date_to,
+                    group_pass__start_date__lt=date_to
+                ),
+                0
+            )
+
+    except Exception:
+        from traceback import format_exc
+        print format_exc()
+
+
     # money = dict()
     # money['dance_hall'] = group.dance_hall.prise
     # money['total'] = reduce(lambda _sum, l: _sum + l.prise(), Lessons.objects.filter(group=group, date__range=[date_from, date_to]).exclude(status=Lessons.STATUSES['moved']), 0)
