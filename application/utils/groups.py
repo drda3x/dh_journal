@@ -23,14 +23,14 @@ def get_groups_list(user):
     if user.is_superuser:
         return {
             'self': [
-                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'orm': g}
                 for g in Groups.objects.filter(
                     Q(teacher_leader=user) | Q(teacher_follower=user),
                     Q(is_opened=True)
                 )
             ],
             'other': [
-                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else ''}
+                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', 'orm': g}
                 for g in Groups.objects.filter(is_opened=True).exclude(
                     Q(teacher_leader=user) | Q(teacher_follower=user)
                 )
@@ -39,7 +39,7 @@ def get_groups_list(user):
 
     return {
         'self': [
-            {'id': g.id, 'name': g.name, 'days': ' '.join(g.days)}
+            {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'orm': g}
             for g in Groups.objects.filter(
                 Q(teacher_leader=user) | Q(teacher_follower=user),
                 Q(is_opened=True)

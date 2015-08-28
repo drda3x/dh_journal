@@ -21,7 +21,7 @@
             </ul>
         </div>
     </div>
-    <table class="table table-bordered table-striped table-hover">
+    <table id="all_passes" class="table table-bordered table-striped table-hover">
         <tr>
             <th>№</th>
             <th>Фамилия Имя</th>
@@ -31,7 +31,7 @@
             <th>Остаток</th>
         </tr>
         {% for p in passes %}
-            <tr>
+            <tr data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
                 <td>{{ forloop.counter }}</td>
                 <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
                 <td>{{ p.start_date }}</td>
@@ -51,7 +51,7 @@
                 <h4>Группа</h4>
                 <ul>
                 {% for group in groups.self %}
-                    <li data-id="{{ group.id }}">{{ group.name }}</li>
+                    <li data-id="{{ group.id }}">{{ group.name }} - {{ group.days }}</li>
                 {% endfor %}
                 </ul>
             </div>
@@ -76,25 +76,52 @@
         </div>
     </div>
 
-
+    <div id="multicard-pass-menu" class="modal hide">
+        <div class="modal-header">
+            <h4></h4>
+        </div>
+        <div>
+            <div class="groups">
+                <h4>Группа</h4>
+                <ul>
+                {% for group in groups.self %}
+                    <li data-id="{{ group.id }}" class="{{ group.students }} hide">{{ group.name }} - {{ group.days }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="dates">
+                <h4>Дата</h4>
+                <ul>
+                    {% for lst in date_list %}
+                        <li class="{{ lst.val }} hide">{{ lst.label }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger delete_pass" data-dismiss="modal">Удалить абонемент</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+            <button class="btn btn-primary save_data" data-dismiss="modal" aria-hidden="true">Списать занятие</button>
+        </div>
+    </div>
 
     {% endblock %}
     {% block script %}
 
     <script type="text/javascript">
     (function() {
-        $('#multicard-add-menu .groups li').click(function() {
+        $('.modal .groups li').click(function() {
 
             var $this = $(this),
                 $id = $this.data('id');
-            $('#multicard-add-menu .students_lists ul').addClass('hide');
-            $('#multicard-add-menu .students_lists ul#'+$id).removeClass('hide');
+            $('.modal .students_lists ul').addClass('hide');
+            $('.modal .students_lists ul#'+$id).removeClass('hide');
         });
 
-        $('#multicard-add-menu li').click(function() {
+        $('.modal li').click(function() {
             var $this = $(this);
             if($this.parents('.groups').length > 0) {
-                $('#multicard-add-menu .students_lists li').removeClass('active');
+                $('.modal .students_lists li').removeClass('active');
             }
             $this.siblings().removeClass('active');
             $this.addClass('active');
@@ -121,6 +148,69 @@
             }).error(function() {
                 console.log('error');
             })
+        });
+
+        var pass, student, group;
+
+        $('#all_passes tr').click(function() {
+
+            var $this = $(this);
+            pass = $this.data('pid');
+            student = $this.data('stid');
+
+            $('#multicard-pass-menu h4').first().text($($this.children()[1]).text());
+            $('#multicard-pass-menu .groups li').addClass('hide');
+            $('#multicard-pass-menu .groups .s'+student).removeClass('hide');
+
+            $('#multicard-pass-menu').modal('show');
+
+        });
+
+        $('#multicard-pass-menu .groups').click(function(event) {
+            var $this = $(event.target);
+            group = $this.data('id');
+
+            $('#multicard-pass-menu .dates li').addClass('hide');
+            $('#multicard-pass-menu .dates .g'+group+'p'+pass).removeClass('hide');
+        });
+
+        $('#multicard-pass-menu').on('hide', function() {
+            $('#multicard-pass-menu h4').text('');
+            $('#multicard-pass-menu .active').removeClass('active');
+            $('#multicard-pass-menu .dates li').addClass('hide');
+        });
+
+        $('#multicard-pass-menu .save_data').click(function() {
+            var $date = $('#multicard-pass-menu .dates .active').text(),
+                json = {
+                    group_id: group,
+                    date: $date,
+                    checked: [{
+                        pass_id: pass
+                    }]
+                };
+
+            $.ajax('processlesson', {
+                data: {
+                    data: JSON.stringify(json)
+                }
+            }).done(function() {
+                window.location.reload();
+            }).error(function(err) {
+                console.log(err.responseText);
+            });
+        });
+
+        $('#multicard-pass-menu .delete_pass').click(function() {
+            $.ajax('deletemultypass', {
+                data: {
+                    ids: JSON.stringify([pass])
+                }
+            }).done(function() {
+                window.location.reload();
+            }).error(function(err) {
+                console.log(err.responseText);
+            });
         });
 
     })();

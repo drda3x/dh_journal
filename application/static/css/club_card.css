@@ -16,17 +16,17 @@
     top: 10px !important;
 }
 
-#multicard-add-menu ul {
+ul {
      list-style: outside none none;
      margin-left: 0;
      margin-right: 0;
 }
 
-#multicard-add-menu li {
+li {
      cursor: pointer;
 }
 
-#multicard-add-menu li:hover {
+li:hover {
      background-color: #eeeeee;
      cursor: pointer;
 }
@@ -40,11 +40,11 @@
 }
 
 .content {
-    height: 500px;
+    height: 400px;
     overflow-y: scroll;
 }
 
-#multicard-add-menu div:nth-of-type(2) div {
+.modal div:nth-of-type(2) div {
      display: inline-block;
      padding: 0 10px;
      vertical-align: top;
@@ -53,13 +53,13 @@
 }
 
 .students_lists {
-    min-width: 170px;
+    min-width: 190px;
 }
 
 .datepicker {
     margin: 0;
     padding: 0;
-    border-right: 0;
+    border-right: 0 !important;
 }
 
 .datepicker input {
@@ -68,4 +68,14 @@
 
 .active {
      background-color: #eeeeee;
+}
+
+#multicard-pass-menu .groups {
+    width: 40%;
+    height: 300px;
+}
+
+#multicard-pass-menu .dates {
+    width: 40%;
+    border-right: 0 !important;
 }

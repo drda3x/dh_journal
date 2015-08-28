@@ -376,9 +376,9 @@ def process_lesson(request):
 
         group = Groups.objects.get(pk=json_data['group_id'])
         date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
-        data = json_data['checked']
-        data1 = json_data['unchecked']
-        canceled = json_data['canceled']
+        data = json_data.get('checked', [])
+        data1 = json_data.get('unchecked', [])
+        canceled = json_data.get('canceled', [])
 
         new_passes = filter(lambda p: isinstance(p, dict), data)
         old_passes = filter(lambda p: isinstance(p, int), data)
@@ -390,8 +390,9 @@ def process_lesson(request):
         if not canceled:
             if new_passes:
                 for p in new_passes:
-                    _pt = int(p['pass_type'])
+                    _pt = int(p['pass_type']) if 'pass_type' in p else None
 
+                    # Списываем с другого абонемента
                     # Списываем с другого абонемента
                     if _pt == -1:
 

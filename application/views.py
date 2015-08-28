@@ -11,6 +11,7 @@ from application.utils.groups import get_groups_list, get_group_detail, get_stud
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 from application.models import Lessons, User, Passes
 from application.auth import auth_decorator
+from application.utils.date_api import get_count_of_weekdays_per_interval
 
 from models import Groups, Students, User, PassTypes
 
@@ -200,8 +201,47 @@ def club_cards(request):
         )
     }
 
-    context['groups'] = get_groups_list(user)
-    context['passes'] = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from)
-    context['students'] = map(lambda x: {'id': x['id'], 'list': get_group_students_list(x['id'])}, context['groups']['self'])
+    all_passes = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from).select_related('student').order_by('student__last_name','student__first_name')
+    ordered = all_passes.order_by('start_date')
+    borders = (ordered.first(), ordered.last())
+    groups = get_groups_list(user)
+    date_group_list = {}
+
+    if borders[0] and borders[1]:
+        for group in groups['self']:
+            days = group['days'].split(' ')
+            count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
+            calendar = group['orm'].get_calendar(count, borders[0].start_date)
+
+            for p in all_passes:
+                for d in filter(lambda x: p.start_date <= x.date() <= p.end_date, calendar):
+                    if d not in date_group_list.iterkeys():
+                        date_group_list[d] = []
+
+                    date_group_list[d].append('g%dp%d' % (group['id'], p.id))
+
+    for group in groups['self']:
+        group['students'] = ' s'.join(
+            [
+                str(s.id)
+                for s in filter(
+                    lambda st: st in [p.student for p in all_passes],
+                    get_group_students_list(group['id'])
+                )
+            ]
+        )
+
+        group['students'] = ('s' if group['students'] else '') + group['students']
+
+    students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in groups['self']]
+
+    context['date_list'] = map(
+        lambda x: {'key':x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
+        date_group_list
+    )
+    context['date_list'].sort(key=lambda x: x['key'])
+    context['groups'] = groups
+    context['passes'] = all_passes
+    context['students'] = students
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
