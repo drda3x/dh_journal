@@ -189,6 +189,7 @@ def club_cards(request):
     date_to = get_last_day_of_month(date_from)
 
     last_pass = Passes.objects.filter(pass_type=CLUB_CARD_ID).order_by('end_date').last()
+    down_border = (now.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
 
     context['control_data'] = {
         'constant': {
@@ -197,7 +198,10 @@ def club_cards(request):
         },
         'date_control': map(
             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
-            map(lambda x: get_month_offset(last_pass.date if last_pass else date_from, x), xrange(0, 3))
+            filter(
+                lambda x: x >= down_border,
+                map(lambda x: get_month_offset(last_pass.end_date if last_pass else date_from, x), xrange(0, 8))
+            )
         )
     }
 
