@@ -684,7 +684,7 @@ def create_multipass(request):
             PassLogic.wrap(_pass)
 
         return HttpResponse(200)
-    
+
     except PassTypes.DoesNotExist:
         return HttpResponseServerError('wrong multypass id, please ste the correct multypass id in the settings file')
 
