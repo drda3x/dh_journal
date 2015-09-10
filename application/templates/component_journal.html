@@ -181,7 +181,7 @@
                     {% for student in group_detail.students %}
                         <tr>
                             <td class="student_data" data-stid="{{ student.person.id }}">{{ student.person.last_name }} {{ student.person.first_name }}</td>
-                            <td class="lesson_data" {% if student.multi_pass %} data-multipass_id="{{ student.multi_pass.id }}" data-multipass_lessons="{{ student.multi_pass.lessons }}"{% endif %}></td>
+                            <td class="lesson_data"></td>
                         </tr>
 
                     {% endfor %}
@@ -620,9 +620,6 @@
                                             scnt: lesson.data('scnt')
                                         };
 
-                                        if(lesson.attr('data-multipass_id') && values.pass_type == getPassTypeByName(multipassName).id) {
-                                            values.pass_id = lesson.data('multipass_id');
-                                        }
                                         json.checked.push(values);
                                     } else {
                                         json.checked.push(lesson.data('pid'));
