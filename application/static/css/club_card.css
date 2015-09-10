@@ -24,6 +24,7 @@ ul {
 
 li {
      cursor: pointer;
+    max-width: 149px;
 }
 
 li:hover {

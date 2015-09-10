@@ -70,7 +70,7 @@ class Groups(models.Model):
         now = datetime.datetime.now()
         _from = datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
         cnt = get_count_of_weekdays_per_interval(self.days, _from, now) + 1
-        return filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
+        return self.start_date if now < _from else filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
 
     def get_calendar(self, count, date_from=None, clean=True):
         start_date = date_from if date_from else self.start_date
@@ -326,7 +326,7 @@ class Passes(models.Model):
 
     @property
     def one_lesson_prise(self):
-        return self.pass_type.prise / self.pass_type.lessons
+        return round(float(self.pass_type.prise) / self.pass_type.lessons, 2)
 
     def __json__(self):
         return dict(
