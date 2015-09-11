@@ -215,7 +215,7 @@ def club_cards(request):
         for group in groups['self']:
             days = group['days'].split(' ')
             count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
-            calendar = group['orm'].get_calendar(count, borders[0].start_date)
+            calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
 
             for p in all_passes:
                 for d in filter(lambda x: p.start_date <= x.date() <= p.end_date, calendar):

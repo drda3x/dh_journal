@@ -74,7 +74,6 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
             'calendar': [get_student_lesson_status(s, group, dt) for dt in calendar],  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
             'debt': get_student_total_debt(s, group),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
-            'multi_pass': (lambda x: {'id': x.id, 'lessons': x.lessons} if x else None)(get_student_multi_pass(s, date_from, date_to)),
             'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
         } for s in get_group_students_list(group)
     ]
@@ -184,22 +183,6 @@ def get_student_total_debt(student, group):
 def get_student_pass_remaining(student, group):
     passes = Passes.objects.filter(student=student, group=group)
     return [l for p in passes for l in Lessons.objects.filter(group_pass=p, status=Lessons.STATUSES['not_processed'])]
-
-
-def get_student_multi_pass(student, date_from, date_to):
-    try:
-        p = Passes.objects.get(
-            pass_type__one_group_pass=False,
-            start_date__lte=date_to,
-            end_date__gte=date_from,
-            student=student,
-            lessons__gt=0
-        )
-
-        return p
-
-    except Passes.DoesNotExist:
-        return None
 
 
 def get_group_students_list(_group):

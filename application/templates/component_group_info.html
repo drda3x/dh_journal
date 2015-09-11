@@ -581,7 +581,11 @@
                                     $studentForm.find('.modal-body').find('input').val('').prop('checked', false);
                                     $alert.show('Сохранено (можно добавить еще одного)', 'green', 2500, 1500);
                                 } else {
-                                    console.log(err);
+                                    if(err.responseText == 'PersonExistedError') {
+                                        $alert.show('ОШИБКА! Человек с таким телефоном уже внесен в эту группу', 'red', 2500, 1500);
+                                    } else {
+                                        $alert.show('ОШИБКА! Не удалось добавить ученика. Попробуйте еще раз', 'red', 2500, 1500);
+                                    }
                                 }
                             })
                         } else {

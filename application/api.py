@@ -68,7 +68,6 @@ def edit_user_profile(request):
 
 
 def add_student(request):
-    #todo нужно проверять группу на наличие добавляемого ученика
     try:
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
@@ -107,6 +106,9 @@ def add_student(request):
         elif not group_list.active:
             group_list.active = True
             group_list.save()
+
+        else:
+            return HttpResponseServerError('PersonExistedError')
 
         return HttpResponse(200)
 
