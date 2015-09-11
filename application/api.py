@@ -146,6 +146,10 @@ def delete_student(request):
 
 
 def edit_student(request):
+    #todo При изменении данных ученика нужно проверить их уникальность.
+    #todo если окажется что данные не уникальны - нужно переписать все данные об абонементах,
+    #todo посещениях и вообще всем где есть student на один id-шник.
+    
     try:
         student = Students.objects.get(pk=request.GET['stid'])
         student.first_name = request.GET['first_name']
