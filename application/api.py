@@ -68,7 +68,7 @@ def edit_user_profile(request):
 
 
 def add_student(request):
-
+    #todo нужно проверять группу на наличие добавляемого ученика
     try:
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
@@ -149,7 +149,16 @@ def edit_student(request):
     #todo При изменении данных ученика нужно проверить их уникальность.
     #todo если окажется что данные не уникальны - нужно переписать все данные об абонементах,
     #todo посещениях и вообще всем где есть student на один id-шник.
-    
+
+    #todo comments
+    #todo debts
+    #todo grouplist
+    #todo lessons
+    #todo passes
+
+    #todo нужно создать пред-деплойный скрипт, который пройдет по всем моделям приложения
+    #todo и сделает список моделей у которых есть поле "студент" дабы не заниматься этим при обреботке запроса
+
     try:
         student = Students.objects.get(pk=request.GET['stid'])
         student.first_name = request.GET['first_name']
