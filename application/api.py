@@ -78,7 +78,7 @@ def add_student(request):
         is_org = request.GET['is_org'] == u'true'
 
         try:
-            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
+            student = Students.objects.get(phone=phone)
             group_list = GroupList.objects.get(student=student, group_id=group_id)
 
         except Students.DoesNotExist:
