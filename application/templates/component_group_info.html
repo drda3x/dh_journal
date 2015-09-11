@@ -45,7 +45,7 @@
             <div id="editStudent" class="modal hide fade">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px;"></div>
+                    <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999;"></div>
                 </div>
                 <div class="form-horizontal" id="editStudentContent">
                     <input type="hidden" name="id" id="stid" />
@@ -134,7 +134,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h3 class="ib">Коментарии - <span></span></h3>
                 </div>
-                <div style="margin: 4px 0 0 170px;" class="alert ib"></div>
+                <div style="margin: 4px 0 0 170px; z-index: 9999;" class="alert ib"></div>
                 <div id="commentWidgetContent">
 
                 </div>
@@ -521,6 +521,10 @@
                     return ids;
                 }
 
+                function checkForm(params) {
+                     return (params.first_name != '') && (params.last_name != '') && (params.phone != '')
+                }
+
                 function showStudentCard(event) {
                     var $this = $row,
                     $children = $this.children();
@@ -535,14 +539,21 @@
                     var $submit = $studentForm.find('.btn.btn-primary');
                     $submit.off('click');
                     $submit.click(function() {
-                        backDrop('show');
-                        processData(editUrl, getStudentFormParams(), function(err, data) {
-                            if(!err) {
-                                reload()
-                            } else {
-                                console.log(err);
-                            }
-                        })
+
+                        var params = getStudentFormParams();
+
+                        if(checkForm(params)) {
+                            backDrop('show');
+                            processData(editUrl, getStudentFormParams(), function (err, data) {
+                                if (!err) {
+                                    reload()
+                                } else {
+                                    console.log(err);
+                                }
+                            })
+                        } else {
+                            $alert.show('ОШИБКА! Не заполнено одно из следующих полей: "Фамилия", "Имя", "Номер телефона"', 'red', 2500, 1500);
+                        }
                     });
 
                     $submit.val('Сохранить');
@@ -561,15 +572,21 @@
 
                     $submit.off('click');
                     $submit.click(function() {
-                        processData(addUrl, getStudentFormParams(), function(err, data) {
-                            if(!err) {
-                                needReload = true;
-                                $studentForm.find('.modal-body').find('input').val('').prop('checked', false);
-                                $alert.show('Сохранено (можно добавить еще одного)', 'green', 2500, 1500);
-                            } else {
-                                console.log(err);
-                            }
-                        })
+                        var params = getStudentFormParams();
+
+                        if(checkForm(params)) {
+                            processData(addUrl, getStudentFormParams(), function(err, data) {
+                                if(!err) {
+                                    needReload = true;
+                                    $studentForm.find('.modal-body').find('input').val('').prop('checked', false);
+                                    $alert.show('Сохранено (можно добавить еще одного)', 'green', 2500, 1500);
+                                } else {
+                                    console.log(err);
+                                }
+                            })
+                        } else {
+                            $alert.show('ОШИБКА! Не заполнено одно из следующих полей: "Фамилия", "Имя", "Номер телефона"', 'red', 2500, 1500);
+                        }
                     });
 
                     $submit.val('Добавить');
