@@ -14,6 +14,7 @@ from application.utils.groups import get_group_students_list
 from application.utils.phones import check_phone
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
+from application.system_api import get_models
 from application.auth import auth_decorator
 from project.settings import CLUB_CARD_ID
 
@@ -162,6 +163,61 @@ def edit_student(request):
     #todo и сделает список моделей у которых есть поле "студент" дабы не заниматься этим при обреботке запроса
 
     try:
+
+        student = Students.objects.filter(pk=request.GET['stid'])
+        phone = check_phone(request.GET['phone'])
+        first_name = request.GET['first_name']
+        last_name = request.GET['last_name']
+
+        # Проверить наличие такого же тлефона
+        try:
+            same_phone_people = Students.objects.filter(phone=phone).exclude(pk=student.id)
+            change_list = []
+            errors = []
+
+            for human in same_phone_people:
+
+                # Если есть совпадение по имени, фамилии и номеру телефона - добавляем запись в список на изменение
+                if human.first_name.lower() == first_name.lower() and human.last_name.lower() == last_name.lower():
+                    change_list.append(human)
+
+                else:
+                    errors.append(human)
+
+            # В списке на изменение что-то есть - проходим по всем моделям у которых есть ForeinKey на Students и
+            # меняем записи для собранного change_list'a
+            if change_list:
+                models = get_models(Students)
+
+                for model in models:
+                    cls = model[1]
+                    field_name = model[0]
+                    params = {field_name + '__in': change_list}
+                    records = cls.objects.filter(**params)
+
+                    for record in records:
+                        setattr(record, field_name, student)
+                        record.save()
+
+            # В списке людей с одинаковыми именами и телефонами что-то есть.
+            # выдаем информацию об этимх записях
+            if errors:
+                pass
+
+        # Совпадений нет
+        except Students.DoesNotExist:
+            student.first_name = request.GET['first_name']
+            student.last_name = request.GET['last_name']
+            student.phone = check_phone(request.GET['phone'])
+            student.e_mail = request.GET.get('e_mail', None)
+            student.org = request.GET['is_org'] == u'true'
+            student.save()
+
+        #   Если есть - проверить совпадение имени и фамилии
+        #       Если есть совпадение - пройти по всем классам где есть поле "Студент" и привести все к одному id
+        #       Если совпадения нет - выдать полную информацию обо всех людях с одинаковым номером телефона
+        #   Если совпадений по телефону нет - просто сохраняем модель
+
         student = Students.objects.get(pk=request.GET['stid'])
         student.first_name = request.GET['first_name']
         student.last_name = request.GET['last_name']
