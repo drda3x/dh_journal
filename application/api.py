@@ -188,7 +188,10 @@ def edit_student(request):
             # меняем записи для собранного change_list'a
             if change_list:
                 models = get_models(Students)
-
+# todo изменить алгоритм
+# todo 1. сделать обход каждого человека отдельно
+# todo перед началом изменения сохранить предыдущее состояние записи и
+# todo в случае падения одного из сохранений - восстановить предыдущее состояние
                 for model in models:
                     cls = model[1]
                     field_name = model[0]
