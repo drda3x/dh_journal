@@ -78,7 +78,7 @@ def add_student(request):
         is_org = request.GET['is_org'] == u'true'
 
         try:
-            student = Students.objects.get(phone=phone)
+            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
             group_list = GroupList.objects.get(student=student, group_id=group_id)
 
         except Students.DoesNotExist:
@@ -164,7 +164,7 @@ def edit_student(request):
 
     try:
 
-        student = Students.objects.filter(pk=request.GET['stid'])
+        student = Students.objects.get(pk=request.GET['stid'])
         phone = check_phone(request.GET['phone'])
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
@@ -198,6 +198,9 @@ def edit_student(request):
                     for record in records:
                         setattr(record, field_name, student)
                         record.save()
+
+                for human in change_list:
+                    human.delete()
 
             # В списке людей с одинаковыми именами и телефонами что-то есть.
             # выдаем информацию об этимх записях
