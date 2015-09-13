@@ -191,6 +191,7 @@ def edit_student(request):
                 models = get_models(Students)
                 
                 for human in change_list:
+                    human_backup = deepcopy(human)
                     back_up = []  # список для сохранения предыдущих состояний базы.
 
                     try:
@@ -212,6 +213,8 @@ def edit_student(request):
                         # для всех записей конкретного человека
                         for record in back_up:
                             record.save()
+
+                        human_backup.save()
 
             # В списке людей с одинаковыми именами и телефонами что-то есть.
             # выдаем информацию об этимх записях
