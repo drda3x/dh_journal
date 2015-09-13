@@ -3,6 +3,7 @@
 import datetime, json, copy
 
 from traceback import format_exc
+from copy import deepcopy
 
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
@@ -188,22 +189,29 @@ def edit_student(request):
             # меняем записи для собранного change_list'a
             if change_list:
                 models = get_models(Students)
-# todo изменить алгоритм
-# todo 1. сделать обход каждого человека отдельно
-# todo перед началом изменения сохранить предыдущее состояние записи и
-# todo в случае падения одного из сохранений - восстановить предыдущее состояние
-                for model in models:
-                    cls = model[1]
-                    field_name = model[0]
-                    params = {field_name + '__in': change_list}
-                    records = cls.objects.filter(**params)
-
-                    for record in records:
-                        setattr(record, field_name, student)
-                        record.save()
-
+                
                 for human in change_list:
-                    human.delete()
+                    back_up = []  # список для сохранения предыдущих состояний базы.
+
+                    try:
+                        for model in models:
+                            cls = model[1]
+                            field_name = model[0]
+                            params = {field_name: human}
+                            records = cls.objects.filter(**params)
+
+                            for record in records:
+                                back_up.append(deepcopy(record))
+                                setattr(record, field_name, student)
+                                record.save()
+
+                        human.delete()
+
+                    except Exception:
+                        # Если одно из сохранений провалилось - восстанавливаем предыдущее состояние
+                        # для всех записей конкретного человека
+                        for record in back_up:
+                            record.save()
 
             # В списке людей с одинаковыми именами и телефонами что-то есть.
             # выдаем информацию об этимх записях
