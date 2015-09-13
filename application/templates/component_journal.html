@@ -649,7 +649,9 @@
                     }).done(function() {
                         reload()
                     }).error(function(err) {
-                        console.log(err);
+                        var json = JSON.parse(err.responseText);
+                        alert('ОШИБКА!\n\nНе удалось сохранить следующие абонементы:\n\n'+json.join('\n')+'\n');
+                        reload();
                     });
                 });
 

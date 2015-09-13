@@ -50,8 +50,16 @@
             <div class="groups">
                 <h4>Группа</h4>
                 <ul>
+                    {% if user.is_superuser %}<strong>Мои группы:</strong>{% endif %}
                 {% for group in groups.self %}
                     <li data-id="{{ group.id }}">{{ group.name }} - {{ group.days }}</li>
+                {% endfor %}
+                    {% if user.is_superuser %}
+                        <br>
+                        <strong>Других преподов:</strong>
+                    {% endif %}
+                {% for group in groups.other %}
+                    <li data-id="{{ group.id }}">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }}</li>
                 {% endfor %}
                 </ul>
             </div>
@@ -84,8 +92,16 @@
             <div class="groups">
                 <h4>Группа</h4>
                 <ul>
+                {% if user.is_superuser %}<strong>Мои группы:</strong>{% endif %}
                 {% for group in groups.self %}
                     <li data-id="{{ group.id }}" class="{{ group.students }} hide">{{ group.name }} - {{ group.days }}</li>
+                {% endfor %}
+                {% if user.is_superuser %}
+                    <br>
+                    <strong>Других преподов:</strong>
+                {% endif %}
+                {% for group in groups.other %}
+                    <li data-id="{{ group.id }}" class="{{ group.students }} hide">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }}</li>
                 {% endfor %}
                 </ul>
             </div>
@@ -175,7 +191,7 @@
         });
 
         $('#multicard-pass-menu').on('hide', function() {
-            $('#multicard-pass-menu h4').text('');
+            $('#multicard-pass-menu h4').first().text('');
             $('#multicard-pass-menu .active').removeClass('active');
             $('#multicard-pass-menu .dates li').addClass('hide');
         });

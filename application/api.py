@@ -524,7 +524,10 @@ def process_lesson(request):
                         lessons_count = p.get('lcnt', None)
                         skips_count = p.get('scnt', None)
                         if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
-                            error.append(st_id)
+                            st = Students.objects.get(pk=st_id)
+                            error.append(
+                                u'%s %s - создаваемый абонемент пересекается с уже созданными абонементами' % (st.last_name, st.first_name)
+                            )
                         elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
                             pass_orm_object = Passes(
                                 student_id=st_id,
