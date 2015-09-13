@@ -223,25 +223,15 @@ def edit_student(request):
 
         # Совпадений нет
         except Students.DoesNotExist:
-            student.first_name = request.GET['first_name']
-            student.last_name = request.GET['last_name']
-            student.phone = check_phone(request.GET['phone'])
-            student.e_mail = request.GET.get('e_mail', None)
-            student.org = request.GET['is_org'] == u'true'
-            student.save()
+            pass
 
-        #   Если есть - проверить совпадение имени и фамилии
-        #       Если есть совпадение - пройти по всем классам где есть поле "Студент" и привести все к одному id
-        #       Если совпадения нет - выдать полную информацию обо всех людях с одинаковым номером телефона
-        #   Если совпадений по телефону нет - просто сохраняем модель
-
-        student = Students.objects.get(pk=request.GET['stid'])
-        student.first_name = request.GET['first_name']
-        student.last_name = request.GET['last_name']
-        student.phone = check_phone(request.GET['phone'])
+        student.first_name = first_name
+        student.last_name = last_name
+        student.phone = phone
         student.e_mail = request.GET.get('e_mail', None)
         student.org = request.GET['is_org'] == u'true'
         student.save()
+        
 
         return HttpResponse(200)
     except Exception:
