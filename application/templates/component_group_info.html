@@ -546,9 +546,10 @@
                             backDrop('show');
                             processData(editUrl, getStudentFormParams(), function (err, data) {
                                 if (!err) {
-                                    reload()
+                                    reload();
                                 } else {
-                                    console.log(err);
+                                    backDrop('hide');
+                                    $alert.show('ОШИБКА! Не удалось сохранить данные', 'red', 2500, 1500);
                                 }
                             })
                         } else {
@@ -660,7 +661,7 @@
                             $('<div class="modal-backdrop">Тут должна быть анимация</div>').appendTo('body')
                         },
                         hide: function() {
-                            $('modal-backdrop').remove()
+                            $('.modal-backdrop').remove()
                         }
                     };
 

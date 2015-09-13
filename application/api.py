@@ -170,6 +170,9 @@ def edit_student(request):
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
 
+        if not phone:
+            raise TypeError('Phone must be a number')
+
         # Проверить наличие такого же тлефона
         try:
             same_phone_people = Students.objects.filter(phone=phone).exclude(pk=student.id)
@@ -231,9 +234,9 @@ def edit_student(request):
         student.e_mail = request.GET.get('e_mail', None)
         student.org = request.GET['is_org'] == u'true'
         student.save()
-        
 
         return HttpResponse(200)
+
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')
@@ -506,6 +509,13 @@ def process_lesson(request):
                         pass_orm_object = Passes.objects.get(pk=pid)
                         wrapped = PassLogic.wrap(pass_orm_object)
                         attended_passes.append(wrapped)
+
+                        try:
+                            #Убираем долги, если они есть.
+                            map(lambda d: d.delete(), Debts.objects.filter(group=group, student=pass_orm_object.student, date=date))
+
+                        except Exception:
+                            pass
 
                     # Любой другой абонемент
                     else:
