@@ -275,6 +275,7 @@
                 }
                 
                 $('#changeStudentData').click(function() {
+                    $(window).scrollTop(0);
                     showStudentCard();
                 });
 
@@ -673,6 +674,7 @@
                 $commentWidget.modal({show: false});
 
                 $('#comment').click(function() {
+                    $(window).scrollTop(0);
                     $commentWidget.modal('show');
                     $commentWidgetContent.empty();
                     $commentWidget.find('h3 span').text($family+' '+$name);
