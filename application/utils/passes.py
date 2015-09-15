@@ -150,7 +150,20 @@ class BasePass(object):
         cross_flag = []
 
         def process_response(crossed_lesson):
-            cross_flag.append(crossed_lesson.group_pass == self.orm_object)
+
+            crossed_pass = crossed_lesson.group_pass
+            crossed_pass_lessons = Lessons.objects.filter(date__gte=crossed_lesson.date, group_pass=crossed_pass)
+
+            if not crossed_pass_lessons.exclude(status=Lessons.STATUSES['not_processed']).exists() and crossed_lesson.group_pass != self.orm_object:
+                mb_new_date = crossed_pass.group.get_calendar(len(crossed_pass_lessons)+1, crossed_lesson.date)[-1]
+
+                wrapped = PassLogic.wrap(crossed_pass)
+                wrapped.check_pass_crossing(mb_new_date, process_response)
+                crossed_lesson.date = mb_new_date
+                crossed_lesson.save()
+
+            else:
+                cross_flag.append(crossed_lesson.group_pass == self.orm_object)
 
         self.orm_object.frozen_date = date_to
 
@@ -160,6 +173,10 @@ class BasePass(object):
                 date_from = datetime.datetime.combine(crossed_lesson.date, datetime.datetime.min.time())
 
         lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_from.date()).order_by('date')
+
+        if date_to.date() > datetime.datetime.now().date():
+            lessons.update(status=Lessons.STATUSES['not_processed'])
+
         cal = self.orm_object.group.get_calendar(len(lessons), date_to)
 
         for day in cal:
