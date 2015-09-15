@@ -249,6 +249,7 @@ def delete_lessons(request):
         count = int(params[1])
         lesson = None
         passes = []
+        to_delete = []
 
         for lesson in Lessons.objects.filter(
             group_id=request.GET['gid'],
@@ -258,25 +259,27 @@ def delete_lessons(request):
             if lesson.group_pass not in passes:
                 passes.append(lesson.group_pass)
 
-            lesson.delete()
+            to_delete.append(lesson)
 
         i_passes = iter(passes)
         while count > 0:
             try:
                 current_pass = i_passes.next()
-                current_count = current_pass.lessons
+                current_count = len(Lessons.objects.filter(group_pass=current_pass))
 
                 if current_count <= count:
                     current_pass.delete()
                     count -= current_count
                 else:
-                    current_pass.lessons -= count
-                    current_pass.lessons_origin -= count
+                    current_pass.lessons -= (count if current_pass.lessons >= count else 0)
+                    current_pass.lessons_origin -= (count if current_pass.lessons >= count else 0)
                     count = 0
                     current_pass.save()
 
             except StopIteration:
                 break
+
+        map(lambda l: l.delete(), to_delete)
 
         return HttpResponse(200)
 
