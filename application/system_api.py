@@ -32,12 +32,3 @@ def get_models(fk_class):
                 pass
 
     return result
-
-
-'''
-from application.system_api import check_models
-check_models()
-'''
-def check_models():
-    from application.models import Students
-    print get_models(Students)

@@ -270,11 +270,11 @@
                             result.push($(this).data('id'));
                         }
                     });
-                    
                     return result;
                 }
                 
                 $('#changeStudentData').click(function() {
+                    $(window).scrollTop(0);
                     showStudentCard();
                 });
 
@@ -546,9 +546,10 @@
                             backDrop('show');
                             processData(editUrl, getStudentFormParams(), function (err, data) {
                                 if (!err) {
-                                    reload()
+                                    reload();
                                 } else {
-                                    console.log(err);
+                                    backDrop('hide');
+                                    $alert.show('ОШИБКА! Не удалось сохранить данные', 'red', 2500, 1500);
                                 }
                             })
                         } else {
@@ -582,7 +583,7 @@
                                     $alert.show('Сохранено (можно добавить еще одного)', 'green', 2500, 1500);
                                 } else {
                                     if(err.responseText == 'PersonExistedError') {
-                                        $alert.show('ОШИБКА! Человек с таким телефоном уже внесен в эту группу', 'red', 2500, 1500);
+                                        $alert.show('ОШИБКА! Человек с такими личными данными уже внесен в эту группу', 'red', 2500, 1500);
                                     } else {
                                         $alert.show('ОШИБКА! Не удалось добавить ученика. Попробуйте еще раз', 'red', 2500, 1500);
                                     }
@@ -660,7 +661,7 @@
                             $('<div class="modal-backdrop">Тут должна быть анимация</div>').appendTo('body')
                         },
                         hide: function() {
-                            $('modal-backdrop').remove()
+                            $('.modal-backdrop').remove()
                         }
                     };
 
@@ -672,6 +673,7 @@
                 $commentWidget.modal({show: false});
 
                 $('#comment').click(function() {
+                    $(window).scrollTop(0);
                     $commentWidget.modal('show');
                     $commentWidgetContent.empty();
                     $commentWidget.find('h3 span').text($family+' '+$name);

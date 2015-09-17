@@ -211,8 +211,10 @@ def club_cards(request):
     groups = get_groups_list(user)
     date_group_list = {}
 
+    all_groups = groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])
+
     if borders[0] and borders[1]:
-        for group in groups['self']:
+        for group in all_groups:
             days = group['days'].split(' ')
             count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
             calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
@@ -224,7 +226,7 @@ def club_cards(request):
 
                     date_group_list[d].append('g%dp%d' % (group['id'], p.id))
 
-    for group in groups['self']:
+    for group in all_groups:
         group['students'] = ' s'.join(
             [
                 str(s.id)
@@ -237,12 +239,13 @@ def club_cards(request):
 
         group['students'] = ('s' if group['students'] else '') + group['students']
 
-    students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in groups['self']]
+    students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in all_groups]
 
     context['date_list'] = map(
         lambda x: {'key':x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
         date_group_list
     )
+    context['user'] = user
     context['date_list'].sort(key=lambda x: x['key'])
     context['groups'] = groups
     context['passes'] = all_passes

@@ -3,6 +3,7 @@
 import datetime, json, copy
 
 from traceback import format_exc
+from copy import deepcopy
 
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
@@ -78,7 +79,7 @@ def add_student(request):
         is_org = request.GET['is_org'] == u'true'
 
         try:
-            student = Students.objects.get(phone=phone)
+            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
             group_list = GroupList.objects.get(student=student, group_id=group_id)
 
         except Students.DoesNotExist:
@@ -164,10 +165,13 @@ def edit_student(request):
 
     try:
 
-        student = Students.objects.filter(pk=request.GET['stid'])
+        student = Students.objects.get(pk=request.GET['stid'])
         phone = check_phone(request.GET['phone'])
         first_name = request.GET['first_name']
         last_name = request.GET['last_name']
+
+        if not phone:
+            raise TypeError('Phone must be a number')
 
         # Проверить наличие такого же тлефона
         try:
@@ -188,16 +192,32 @@ def edit_student(request):
             # меняем записи для собранного change_list'a
             if change_list:
                 models = get_models(Students)
+                
+                for human in change_list:
+                    human_backup = deepcopy(human)
+                    back_up = []  # список для сохранения предыдущих состояний базы.
 
-                for model in models:
-                    cls = model[1]
-                    field_name = model[0]
-                    params = {field_name + '__in': change_list}
-                    records = cls.objects.filter(**params)
+                    try:
+                        for model in models:
+                            cls = model[1]
+                            field_name = model[0]
+                            params = {field_name: human}
+                            records = cls.objects.filter(**params)
 
-                    for record in records:
-                        setattr(record, field_name, student)
-                        record.save()
+                            for record in records:
+                                back_up.append(deepcopy(record))
+                                setattr(record, field_name, student)
+                                record.save()
+
+                        human.delete()
+
+                    except Exception:
+                        # Если одно из сохранений провалилось - восстанавливаем предыдущее состояние
+                        # для всех записей конкретного человека
+                        for record in back_up:
+                            record.save()
+
+                        human_backup.save()
 
             # В списке людей с одинаковыми именами и телефонами что-то есть.
             # выдаем информацию об этимх записях
@@ -206,27 +226,17 @@ def edit_student(request):
 
         # Совпадений нет
         except Students.DoesNotExist:
-            student.first_name = request.GET['first_name']
-            student.last_name = request.GET['last_name']
-            student.phone = check_phone(request.GET['phone'])
-            student.e_mail = request.GET.get('e_mail', None)
-            student.org = request.GET['is_org'] == u'true'
-            student.save()
+            pass
 
-        #   Если есть - проверить совпадение имени и фамилии
-        #       Если есть совпадение - пройти по всем классам где есть поле "Студент" и привести все к одному id
-        #       Если совпадения нет - выдать полную информацию обо всех людях с одинаковым номером телефона
-        #   Если совпадений по телефону нет - просто сохраняем модель
-
-        student = Students.objects.get(pk=request.GET['stid'])
-        student.first_name = request.GET['first_name']
-        student.last_name = request.GET['last_name']
-        student.phone = check_phone(request.GET['phone'])
+        student.first_name = first_name
+        student.last_name = last_name
+        student.phone = phone
         student.e_mail = request.GET.get('e_mail', None)
         student.org = request.GET['is_org'] == u'true'
         student.save()
 
         return HttpResponse(200)
+
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')
@@ -500,6 +510,13 @@ def process_lesson(request):
                         wrapped = PassLogic.wrap(pass_orm_object)
                         attended_passes.append(wrapped)
 
+                        try:
+                            #Убираем долги, если они есть.
+                            map(lambda d: d.delete(), Debts.objects.filter(group=group, student=pass_orm_object.student, date=date))
+
+                        except Exception:
+                            pass
+
                     # Любой другой абонемент
                     else:
                         pt = PassTypes.objects.get(pk=_pt)
@@ -507,7 +524,10 @@ def process_lesson(request):
                         lessons_count = p.get('lcnt', None)
                         skips_count = p.get('scnt', None)
                         if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, lessons__gt=0, pass_type__one_group_pass=True)):
-                            error.append(st_id)
+                            st = Students.objects.get(pk=st_id)
+                            error.append(
+                                u'%s %s - создаваемый абонемент пересекается с уже созданными абонементами' % (st.last_name, st.first_name)
+                            )
                         elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
                             pass_orm_object = Passes(
                                 student_id=st_id,
