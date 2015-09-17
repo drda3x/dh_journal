@@ -12,9 +12,8 @@ class Command(BaseCommand):
             {
                 'k': (lesson.student, lesson.group, lesson.date),
                 'o': lesson
-            } for lesson in Lessons.objects.all()
+            } for lesson in Lessons.objects.all().order_by('student', 'group', 'date')
         ]
-        doubles.sort(lambda e: e['k'])
 
         iterator = iter(doubles)
         has_crosses = False
@@ -28,7 +27,7 @@ class Command(BaseCommand):
                 if elem['k'] == prev_elem['k']:
                     has_crosses = True
                     _elem = elem['o']
-                    
+
                     if flag:
                         print '%s student: %s  group: %s %s - %s' % (_elem.date, _elem.student.last_name, _elem.group.name, _elem.group.teacher_leader, _elem.group.teacher_follower)
                         print prev_elem['o'].status
