@@ -408,7 +408,9 @@ html, body {
     padding: 0 3px !important;
 }
 
-
+.popover .arrow {
+    display: none !important;
+}
 
 /*.canceled {*/
     /*background-color: #979997 !important;*/

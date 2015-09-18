@@ -379,7 +379,6 @@
                                 }
 
                                 $this.click(function(event) {
-
                                     var $target = $(event.target);
                                     if(!$target.is('input') && !$target.is('a') && !$target.is('span') && !$target.is('b.caret') && !$target.is('li')) {
                                         var cb = $(this).children().first();
@@ -398,6 +397,7 @@
                                 $this.click(function() {
                                     popoverLogic.hide();
                                     popoverLogic.show($(this));
+
                                     if ($this.attr('data-multipass_id')) {
                                         $('.popover-content').find('.control-group').each(function() {
                                             var $label = $(this).find('label span');
