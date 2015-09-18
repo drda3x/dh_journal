@@ -154,7 +154,7 @@ class Students(models.Model):
     is_deleted = models.BooleanField(verbose_name=u'Удален', default=False)
 
     def __unicode__(self):
-        return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper())
+        return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper() if self.father_name else '')
 
     @property
     def str_phone(self):
