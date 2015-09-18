@@ -220,7 +220,7 @@ def club_cards(request):
             calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
 
             for p in all_passes:
-                for d in filter(lambda x: p.start_date <= x.date() <= p.end_date, calendar):
+                for d in filter(lambda x: p.start_date <= x.date() <= p.end_date and x <= now, calendar):
                     if d not in date_group_list.iterkeys():
                         date_group_list[d] = []
 

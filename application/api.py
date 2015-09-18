@@ -467,6 +467,7 @@ def process_lesson(request):
         attended_passes = []
         attended_passes_ids = []
         error = []
+        now = datetime.datetime.now()
 
         if not canceled:
             if new_passes:
@@ -475,7 +476,7 @@ def process_lesson(request):
 
                     # Списываем с другого абонемента
                     # Списываем с другого абонемента
-                    if _pt == -1:
+                    if date <= now and _pt == -1:
 
                         another_person_pass = Passes.objects.get(pk=p['from_another'])
                         pass_orm_object = Passes(
@@ -499,12 +500,12 @@ def process_lesson(request):
 
                     # Проставляем долг
                     elif _pt == -2:
-                        if not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
+                        if date <= now and not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
                             debt = Debts(student_id=p['student_id'], group=group, date=date, val=0)
                             debt.save()
 
                     # Мультикарта
-                    elif 'pass_id' in p.iterkeys():
+                    elif 'pass_id' in p.iterkeys() and date <= now:
                         pid = p['pass_id']
                         pass_orm_object = Passes.objects.get(pk=pid)
                         wrapped = PassLogic.wrap(pass_orm_object)
@@ -599,7 +600,7 @@ def process_lesson(request):
                             attended_passes.append(wrapped)
 
             for _pass in attended_passes:
-                if _pass:
+                if _pass and date <= now:
                     if not _pass.new_pass or _pass.presence:
                         _pass.set_lesson_attended(date, group=group.id)
                     attended_passes_ids.append(_pass.orm_object.id)
