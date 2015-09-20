@@ -119,6 +119,21 @@ def add_student(request):
         return HttpResponseServerError('failed')
 
 
+def restore_student(request):
+    try:
+        ids = json.loads(request.GET['ids'])
+        gid = request.GET['gid']
+        students = Students.objects.filter(pk__in=ids)
+        errors = []
+
+        GroupList.objects.filter(group__id=gid, student__id__in=ids).update(active=True)
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
 def delete_student(request):
     try:
         ids = json.loads(request.GET['ids'])
@@ -126,23 +141,9 @@ def delete_student(request):
         students = Students.objects.filter(pk__in=ids)
         errors = []
 
-        for gl in GroupList.objects.filter(group__id=gid, student__id__in=ids).select_related('student'):
-            try:
-                gl.active = False
-                gl.save()
+        GroupList.objects.filter(group__id=gid, student__id__in=ids).select_related('student').update(active=False)
 
-            except Exception:
-                errors.append(gl.student.id)
-
-        # for student in students:
-        #     try:
-        #         student.is_deleted = True
-        #         student.save()
-        #
-        #     except Exception:
-        #         errors.append(student.id)
-
-        return HttpResponse(200) if not errors else HttpResponseServerError(json.dumps(errors))
+        return HttpResponse(200)
 
     except Exception:
         print format_exc()

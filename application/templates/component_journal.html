@@ -41,6 +41,9 @@
                             </li>
                         </ul>
                     </div>
+                    {% if student.person.active == 0 %}
+                        <strong class="text-error">УДАЛЕН</strong>
+                    {% endif %}
                     {% if student.debt %}
 {#                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt }}</strong>#}
                         <strong data-id="{{ student.person.id }}" class="text-error">долг: {{ student.debt }}</strong>

@@ -54,5 +54,6 @@ urlpatterns += [
     url(r'writeoffdebt', api.write_off_debt),
     url(r'clubcards', views.club_cards),
     url(r'createmulty', api.create_multipass),
+    url(r'restorestudent', api.restore_student),
     url(r'', views.index_view)
 ]

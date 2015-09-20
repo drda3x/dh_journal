@@ -18,7 +18,7 @@
                     <th style="min-width: 120px;">Коментарий</th>
                 </tr>
                 {% for student in group_detail.students %}
-                <tr data-id="{{ student.person.id }}">
+                <tr data-id="{{ student.person.id }}" data-active="{{ student.person.active }}">
                     <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ forloop.counter }}</td>
                     <td style="min-width: 100px;">{{ student.person.last_name }}</td>
@@ -31,7 +31,13 @@
                             <strong class="text-error">ДОЛГ ({{ student.debt }})</strong>
                         {% endif %}
                     </td>
-                    <td class="comment" style="min-width: 120px;">{% if student.last_comment %}{{ student.last_comment.text }}{% endif %}</td>
+                    <td class="comment" style="min-width: 120px;">
+                        {% if student.person.active == 0 %}
+                            <strong class="text-error">УДАЛЕН</strong>
+                        {% else %}
+                            {% if student.last_comment %}{{ student.last_comment.text }}{% endif %}
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -119,6 +125,7 @@
                 <ul>
                     <li id="changeStudentData">Изменить</li>
                     <li id="deleteStudent">Удалить</li>
+                    <li id="restoreStudent" style="display: none">Восстановить</li>
                     <!--li class="divider"></li>
                     <li id="freezeStudentPass">Перенести абонемент</li>
                     <li id="changePassOwner">Передать абонемент</li>
@@ -224,6 +231,17 @@
                     if(!$(event.target).hasClass('shotcard-disabled') && $(event.target).parentsUntil('.shotcard-disabled').last().is('html')) {
                         event.stopPropagation();
                         var $shortCardMenu = $('#shortCardMenu');
+
+                        if($(this).data('active') == 0) {
+                            $shortCardMenu.find('#changeStudentData').hide();
+                            $shortCardMenu.find('#deleteStudent').hide();
+                            $shortCardMenu.find('#restoreStudent').show();
+                        } else {
+                            $shortCardMenu.find('#changeStudentData').show();
+                            $shortCardMenu.find('#deleteStudent').show();
+                            $shortCardMenu.find('#restoreStudent').hide();
+                        }
+
                         $shortCardMenu.css('top', event.clientY);
                         if(event.clientX + $shortCardMenu.width() + 30 >  $(window).width()) {
                             $shortCardMenu.css('left', event.clientX - $shortCardMenu.width() - 25);
@@ -291,7 +309,21 @@
                         }
                     })
                 });
-                
+
+                $('#restoreStudent').click(function() {
+                    if(!confirm('Восстановить ученика в списке группы?')) {
+                        return;
+                    }
+                    backDrop('show');
+                    processData('restorestudent', {ids: JSON.stringify([$id]), gid: {{ group_detail.id }} }, function(err, data) {
+                        if(!err) {
+                            reload()
+                        } else {
+                            console.log(err);
+                        }
+                    })
+                });
+
                 $('#deleteStudentBtn').click(function() {
                     var toDelete = getIdFromSelectedRows();
 

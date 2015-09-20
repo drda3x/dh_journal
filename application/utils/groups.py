@@ -75,7 +75,7 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
             'debt': get_student_total_debt(s, group),
             'pass_remaining': len(get_student_pass_remaining(s, group)),
             'last_comment': Comments.objects.filter(group=group, student=s).order_by('add_date').last()
-        } for s in get_group_students_list(group)
+        } for s in get_group_students_list(group, date_from, date_to)
     ]
 
     moneys = []
@@ -185,7 +185,7 @@ def get_student_pass_remaining(student, group):
     return [l for p in passes for l in Lessons.objects.filter(group_pass=p, status=Lessons.STATUSES['not_processed'])]
 
 
-def get_group_students_list(_group):
+def get_group_students_list(_group, date_from=None, date_to=None):
 
     u"""
     Получить список учеников из группы
@@ -196,10 +196,23 @@ def get_group_students_list(_group):
 
     group = _group if isinstance(_group, Groups) else Groups.objects.get(pk=_group)
 
-    return Students.objects.filter(
+    students = Students.objects.filter(
         pk__in=GroupList.objects.filter(group=group, active=True).values('student_id'),
         is_deleted=False
-    ).order_by('last_name', 'first_name')
+    ).extra(select={
+        'active': 1
+    }).order_by('last_name', 'first_name')
+
+    if date_from and date_to:
+        all_students = Lessons.objects.filter(date__range=[date_from, date_to], group=group).values_list('student_id', flat=True)
+        active_students = [s.id for s in students]
+        return Students.objects.filter(
+            Q(Q(pk__in=all_students) | Q(pk__in=active_students))
+        ).extra(select={
+            'active': 'case when id in (%s) then 1 else 0 end' % ','.join(map(lambda i: str(i), active_students))
+        }).order_by('last_name', 'first_name')
+
+    return students
 
 
 def get_teacher_students_list(teacher):
