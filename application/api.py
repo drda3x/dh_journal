@@ -249,6 +249,7 @@ def delete_lessons(request):
         count = int(params[1])
         lesson = None
         passes = []
+        to_delete = []
 
         for lesson in Lessons.objects.filter(
             group_id=request.GET['gid'],
@@ -258,25 +259,27 @@ def delete_lessons(request):
             if lesson.group_pass not in passes:
                 passes.append(lesson.group_pass)
 
-            lesson.delete()
+            to_delete.append(lesson)
 
         i_passes = iter(passes)
         while count > 0:
             try:
                 current_pass = i_passes.next()
-                current_count = current_pass.lessons
+                current_count = len(Lessons.objects.filter(group_pass=current_pass))
 
                 if current_count <= count:
                     current_pass.delete()
                     count -= current_count
                 else:
-                    current_pass.lessons -= count
-                    current_pass.lessons_origin -= count
+                    current_pass.lessons -= (count if current_pass.lessons >= count else 0)
+                    current_pass.lessons_origin -= (count if current_pass.lessons >= count else 0)
                     count = 0
                     current_pass.save()
 
             except StopIteration:
                 break
+
+        map(lambda l: l.delete(), to_delete)
 
         return HttpResponse(200)
 
@@ -467,6 +470,7 @@ def process_lesson(request):
         attended_passes = []
         attended_passes_ids = []
         error = []
+        now = datetime.datetime.now()
 
         if not canceled:
             if new_passes:
@@ -475,7 +479,7 @@ def process_lesson(request):
 
                     # Списываем с другого абонемента
                     # Списываем с другого абонемента
-                    if _pt == -1:
+                    if date <= now and _pt == -1:
 
                         another_person_pass = Passes.objects.get(pk=p['from_another'])
                         pass_orm_object = Passes(
@@ -499,12 +503,12 @@ def process_lesson(request):
 
                     # Проставляем долг
                     elif _pt == -2:
-                        if not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
+                        if date <= now and not Debts.objects.filter(student_id=p['student_id'], group=group, date=date).exists():
                             debt = Debts(student_id=p['student_id'], group=group, date=date, val=0)
                             debt.save()
 
                     # Мультикарта
-                    elif 'pass_id' in p.iterkeys():
+                    elif 'pass_id' in p.iterkeys() and date <= now:
                         pid = p['pass_id']
                         pass_orm_object = Passes.objects.get(pk=pid)
                         wrapped = PassLogic.wrap(pass_orm_object)
@@ -599,7 +603,7 @@ def process_lesson(request):
                             attended_passes.append(wrapped)
 
             for _pass in attended_passes:
-                if _pass:
+                if _pass and date <= now:
                     if not _pass.new_pass or _pass.presence:
                         _pass.set_lesson_attended(date, group=group.id)
                     attended_passes_ids.append(_pass.orm_object.id)

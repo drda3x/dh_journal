@@ -153,6 +153,12 @@ class BasePass(object):
             cross_flag.append(crossed_lesson.group_pass == self.orm_object)
 
         self.orm_object.frozen_date = date_to
+
+        if date_to < date_from:
+            crossed_lesson = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_to.date()).order_by('date').first()
+            if crossed_lesson:
+                date_from = datetime.datetime.combine(crossed_lesson.date, datetime.datetime.min.time())
+
         lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date_from.date()).order_by('date')
         cal = self.orm_object.group.get_calendar(len(lessons), date_to)
 

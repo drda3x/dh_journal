@@ -73,6 +73,18 @@ window.vidgetsLogic.Popover = (function($) {
             self.$debtCheckbox = self.$debt.find('input:checkbox');
             self.$debtText = self.$container.find('.pass_menu-debt-inp');
 
+            var lw = $('#lesson_window'),
+                max = lw.position().top,
+                h = lw.height(),
+                popover_window = $target.parent().find('div'),
+                pos = popover_window.position().top;
+
+            if(pos < max) {
+                popover_window.css('top', max);
+            } else if(pos + popover_window.height() > h) {
+                popover_window.css('top', lw.height() + max - popover_window.height() - 25);
+            }
+
             self.$target.passClass = (function($this) {
                 var classes = $this.attr('class'),
                     re = /[pass_type\w]/,

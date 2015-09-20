@@ -31,6 +31,7 @@ html, body {
 
 .highlight {
     position: relative;
+    font-weight: bold;
 }
 
 .highlight:after {
@@ -408,7 +409,9 @@ html, body {
     padding: 0 3px !important;
 }
 
-
+.popover .arrow {
+    display: none !important;
+}
 
 /*.canceled {*/
     /*background-color: #979997 !important;*/
