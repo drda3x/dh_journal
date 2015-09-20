@@ -26,14 +26,16 @@ class Command(BaseCommand):
             while 1:
                 if elem['k'] == prev_elem['k']:
                     has_crosses = True
-                    _elem = elem['o']
+                    elem1 = elem['o']
+                    elem2 = prev_elem['o']
 
                     if flag:
-                        print '%s student: %s  group: %s %s - %s' % (_elem.date, _elem.student.last_name, _elem.group.name, _elem.group.teacher_leader, _elem.group.teacher_follower)
-                        print prev_elem['o'].status
+                        print '%s student: %s  group: %s %s - %s' % (elem1.date, elem1.student.last_name, elem1.group.name, elem1.group.teacher_leader, elem1.group.teacher_follower)
+                        print '%s | %s | %s' % (elem2.group_pass.pass_type.name, elem2.group_pass.start_date, elem2.status)
+
                         flag = False
 
-                    print _elem.status
+                    print '%s | %s | %s' % (elem1.group_pass.pass_type.name, elem1.group_pass.start_date, elem1.status)
 
                 else:
                     flag = True
