@@ -205,9 +205,10 @@ def get_group_students_list(_group, date_from=None, date_to=None):
 
     if date_from and date_to:
         all_students = Lessons.objects.filter(date__range=[date_from, date_to], group=group).values_list('student_id', flat=True)
+        debts = Debts.objects.filter(group=group).values_list('student_id', flat=True)
         active_students = [s.id for s in students]
         return Students.objects.filter(
-            Q(Q(pk__in=all_students) | Q(pk__in=active_students))
+            Q(Q(pk__in=all_students) | Q(pk__in=active_students) | Q(pk__in=debts))
         ).extra(select={
             'active': 'case when id in (%s) then 1 else 0 end' % ','.join(map(lambda i: str(i), active_students))
         }).order_by('last_name', 'first_name')
