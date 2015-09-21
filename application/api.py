@@ -71,10 +71,10 @@ def edit_user_profile(request):
 
 def add_student(request):
     try:
-        first_name = request.GET['first_name']
-        last_name = request.GET['last_name']
+        first_name = request.GET['first_name'].replace(' ', '')
+        last_name = request.GET['last_name'].replace(' ', '')
         phone = check_phone(request.GET['phone'])
-        e_mail = request.GET['e_mail']
+        e_mail = request.GET['e_mail'].replace(' ', '')
         group_id = int(request.GET['id'])
         is_org = request.GET['is_org'] == u'true'
 
@@ -168,8 +168,8 @@ def edit_student(request):
 
         student = Students.objects.get(pk=request.GET['stid'])
         phone = check_phone(request.GET['phone'])
-        first_name = request.GET['first_name']
-        last_name = request.GET['last_name']
+        first_name = request.GET['first_name'].replace(' ', '')
+        last_name = request.GET['last_name'].replace(' ', '')
 
         if not phone:
             raise TypeError('Phone must be a number')
