@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from django import forms
-from application.models import Groups, WEEK
+from application.models import Groups, WEEK, PassTypes
 
 
 class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
@@ -43,6 +43,7 @@ class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
 class GroupsForm(forms.ModelForm):
 
     _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
+    _available_passes = CommaSeparatedSelectInteger(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.all().exclude(one_group_pass=False).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
 
     class Meta:
         model = Groups
