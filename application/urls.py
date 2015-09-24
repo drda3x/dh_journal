@@ -55,5 +55,6 @@ urlpatterns += [
     url(r'clubcards', views.club_cards),
     url(r'createmulty', api.create_multipass),
     url(r'restorestudent', api.restore_student),
+    url(r'history', views.history_view),
     url(r'', views.index_view)
 ]

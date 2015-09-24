@@ -59,13 +59,20 @@ def group_detail_view(request):
     try:
         group_id = int(request.GET['id'])
         now = datetime.datetime.now()
-        date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-            else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        group = Groups.objects.get(pk=group_id)
+
+        if group.end_date:
+            date_from = datetime.datetime.combine(group.end_date, datetime.datetime.min.time()).replace(day=1)
+
+        elif 'date' in request.GET:
+            date_from = datetime.datetime.strptime(request.GET['date'], date_format)
+
+        else:
+            date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
         date_to = get_last_day_of_month(date_from)
-
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
-
-        border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
+        border = datetime.datetime.combine(group.start_date, datetime.datetime.min.time()).replace(day=1)
 
         context['control_data'] = {
             'constant': {
@@ -91,7 +98,6 @@ def group_detail_view(request):
         ]
 
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-        group = Groups.objects.get(pk=group_id)
         context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
 
         for elem in context['pass_detail']:
@@ -258,6 +264,13 @@ def club_cards(request):
 @auth_decorator
 def history_view(request):
 
-    template = ''
+    template = 'history.html'
+    border = datetime.datetime.now().date() - datetime.timedelta(days=90)
+    border.replace(day=1)
+    groups = get_groups_list(request.user, False)
+    context = {
+        'groups': filter(lambda g: g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])),
+        'user': request.user
+    }
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

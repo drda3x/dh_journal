@@ -50,6 +50,7 @@ class Groups(models.Model):
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     start_date = models.DateField(verbose_name=u'Дата начала группы')
+    end_date = models.DateField(verbose_name=u'Дата окончания группы', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
@@ -119,6 +120,15 @@ class Groups(models.Model):
             res = _res
 
         return res
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+
+        if not self.is_opened and not self.end_date:
+            self.end_date = datetime.datetime.now()
+        elif self.is_opened:
+            self.end_date = None
+
+        super(Groups, self).save(force_insert, force_update, using, update_fields)
 
     def __unicode__(self):
 
