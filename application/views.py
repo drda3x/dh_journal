@@ -269,7 +269,7 @@ def history_view(request):
     border.replace(day=1)
     groups = get_groups_list(request.user, False)
     context = {
-        'groups': filter(lambda g: g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])),
+        'groups': filter(lambda g: not g['orm'].end_date or g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])),
         'user': request.user
     }
 
