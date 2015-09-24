@@ -29,6 +29,7 @@
             <th>Дата окончания</th>
             <th>Преподаватель</th>
             <th>Остаток</th>
+            {% if user.is_superuser %}<th>Списано за предыдущий месяц</th>{% endif %}
         </tr>
         {% for p in passes %}
             <tr data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
@@ -38,6 +39,7 @@
                 <td>{{ p.end_date }}</td>
                 <td>{{ p.opener.last_name }} {{ p.opener.first_name }}</td>
                 <td>{{ p.lessons }}</td>
+                {% if user.is_superuser %}<td>{{ p.prev_month }}</td>{% endif %}
             </tr>
         {% endfor %}
     </table>

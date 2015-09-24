@@ -321,6 +321,9 @@ class Passes(models.Model):
     def date(self):
         return self.frozen_date or self.start_date
 
+    def get_lessons_before_date(self, date):
+        return Lessons.objects.filter(group_pass=self, date__lt=date)
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.lessons is None:
             self.lessons = self.pass_type.lessons
