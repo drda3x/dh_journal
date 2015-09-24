@@ -70,8 +70,8 @@ def group_detail_view(request):
         else:
             date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        if date_from < group.start_date:
-            date_from = group.start_date
+        if date_from.date() < group.start_date:
+            date_from = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
 
         date_to = get_last_day_of_month(date_from)
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
