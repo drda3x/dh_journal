@@ -253,3 +253,11 @@ def club_cards(request):
     context['students'] = students
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+@auth_decorator
+def history_view(request):
+
+    template = ''
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
