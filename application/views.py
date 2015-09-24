@@ -61,7 +61,7 @@ def group_detail_view(request):
         now = datetime.datetime.now()
         group = Groups.objects.get(pk=group_id)
 
-        if group.end_date:
+        if group.end_date and not group.is_opened:
             date_from = datetime.datetime.combine(group.end_date, datetime.datetime.min.time()).replace(day=1)
 
         elif 'date' in request.GET:
@@ -69,6 +69,9 @@ def group_detail_view(request):
 
         else:
             date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if date_from < group.start_date:
+            date_from = group.start_date
 
         date_to = get_last_day_of_month(date_from)
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
