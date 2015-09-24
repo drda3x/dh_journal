@@ -395,10 +395,12 @@ class Lessons(models.Model):
     @property
     def sign(self):
 
-        if self.status in [Lessons.STATUSES['moved'], Lessons.STATUSES['not_processed']]:
+        if self.status == Lessons.STATUSES['not_processed']:
             return ''
+        elif self.status == Lessons.STATUSES['moved']:
+            return Lessons.STATUSES_RUS['moved']
         elif self.status == Lessons.STATUSES['attended']:
-            return self.group_pass.shown_value or self.prise()
+            return self.group_pass.shown_value or str(self.prise()) + 'р'
         else:
             return '--' + self.group_pass.shown_value if self.group_pass.shown_value else self.prise() * -1
 
