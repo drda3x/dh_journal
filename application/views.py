@@ -212,7 +212,7 @@ def club_cards(request):
         )
     }
 
-    first_day_of_month = datetime.datetime(now.year, now.month, 1)
+    first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
     all_passes = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from).select_related('student').order_by('student__last_name','student__first_name')
     for _p in all_passes:
         _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
