@@ -314,6 +314,10 @@ class Passes(models.Model):
     opener = models.ForeignKey(User, null=True, blank=True)
 
     @property
+    def one_group_pass(self):
+        return self.pass_type.one_group_pass
+
+    @property
     def shown_value(self):
         return self.pass_type.shown_value
 

@@ -266,15 +266,24 @@ def delete_lessons(request):
         while count > 0:
             try:
                 current_pass = i_passes.next()
-                current_count = len(Lessons.objects.filter(group_pass=current_pass))
 
-                if current_count <= count:
-                    current_pass.delete()
-                    count -= current_count
+                # Если удаляемые занятия не относятся к мультикарте
+                if current_pass.one_group_pass:
+                    current_count = len(Lessons.objects.filter(group_pass=current_pass))
+
+                    if current_count <= count:
+                        current_pass.delete()
+                        count -= current_count
+                    else:
+                        current_pass.lessons -= (count if current_pass.lessons >= count else 0)
+                        current_pass.lessons_origin -= (count if current_pass.lessons >= count else 0)
+                        count = 0
+                        current_pass.save()
+
+                # Если относятся
                 else:
-                    current_pass.lessons -= (count if current_pass.lessons >= count else 0)
-                    current_pass.lessons_origin -= (count if current_pass.lessons >= count else 0)
-                    count = 0
+                    current_count = len(filter(lambda x: x.group_pass == current_pass, to_delete))
+                    current_pass.lessons += current_count
                     current_pass.save()
 
             except StopIteration:
