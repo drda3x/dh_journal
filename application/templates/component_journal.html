@@ -263,6 +263,7 @@
 
                 $('.li-content .move-btn').click(function() {
                     if(confirm('Подтвердите перенос')) {
+                        backDrop('show');
                         $.ajax('freezepass', {
                             data: {
                                 group: {{ group_detail.id }},
@@ -273,12 +274,14 @@
                             reload();
                         }).error(function(err) {
                             alert('Не выполнен перенос для следующих учеников:\n\n'+err.responseText+'\n\nна одну дату попадает несколько занятий');
+                            backDrop('hide');
                         })
                     }
                 });
 
                 $('.li-content .del-btn').click(function() {
                     if(confirm('Подтвердите удаление')) {
+                        backDrop('show');
                         $.ajax('deletepass', {
                             data: {
                                 gid: {{ group_detail.id }},
@@ -289,6 +292,7 @@
                             reload();
                         }).error(function(err) {
                             alert('error');
+                            backDrop('hide');
                         })
                     }
                 });
