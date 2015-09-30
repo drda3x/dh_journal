@@ -40,11 +40,21 @@ class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
         return value
 
 
+class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
+
+    def __init__(self, *args, **kwargs):
+        super(CommaSeparatedSelectIntegerWithUpdate, self).__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        self.choices = ((i.id, unicode(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence'))
+        return value.split(',')
+
+
 class GroupsForm(forms.ModelForm):
 
     _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-    _available_passes = CommaSeparatedSelectInteger(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.all().exclude(one_group_pass=False).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
+    _available_passes = CommaSeparatedSelectIntegerWithUpdate(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
 
     class Meta:
         model = Groups
-        fields = ['name', 'start_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']
+        fields = ['name', 'start_date', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']

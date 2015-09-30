@@ -59,13 +59,23 @@ def group_detail_view(request):
     try:
         group_id = int(request.GET['id'])
         now = datetime.datetime.now()
-        date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-            else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        group = Groups.objects.get(pk=group_id)
+
+        if group.end_date and not group.is_opened:
+            date_from = datetime.datetime.combine(group.end_date, datetime.datetime.min.time()).replace(day=1)
+
+        elif 'date' in request.GET:
+            date_from = datetime.datetime.strptime(request.GET['date'], date_format)
+
+        else:
+            date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if date_from.date() < group.start_date:
+            date_from = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
+
         date_to = get_last_day_of_month(date_from)
-
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
-
-        border = datetime.datetime.combine(Groups.objects.get(pk=group_id).start_date, datetime.datetime.min.time()).replace(day=1)
+        border = datetime.datetime.combine(group.start_date, datetime.datetime.min.time()).replace(day=1)
 
         context['control_data'] = {
             'constant': {
@@ -91,7 +101,6 @@ def group_detail_view(request):
         ]
 
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-        group = Groups.objects.get(pk=group_id)
         context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
 
         for elem in context['pass_detail']:
@@ -206,7 +215,11 @@ def club_cards(request):
         )
     }
 
+    first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
     all_passes = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from).select_related('student').order_by('student__last_name','student__first_name')
+    for _p in all_passes:
+        _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
+
     ordered = all_passes.order_by('start_date')
     borders = (ordered.first(), ordered.last())
     groups = get_groups_list(user)
@@ -251,5 +264,20 @@ def club_cards(request):
     context['groups'] = groups
     context['passes'] = all_passes
     context['students'] = students
+
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+@auth_decorator
+def history_view(request):
+
+    template = 'history.html'
+    border = datetime.datetime.now().date() - datetime.timedelta(days=90)
+    border.replace(day=1)
+    groups = get_groups_list(request.user, False)
+    context = {
+        'groups': filter(lambda g: not g['orm'].end_date or g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])),
+        'user': request.user
+    }
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

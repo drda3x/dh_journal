@@ -57,14 +57,14 @@
                                 {% if date.sign_type == 's' %}
                                     {{ date.sign }}
                                 {% else %}
-                                    {{ date.sign }} р
+                                    {{ date.sign }}
                                 {% endif %}
                             {% else %}
                                 <span style="color: #f00000">
                                     {% if date.sign|slice:":2" == '--' %}
                                         {{ date.sign|slice:"2:" }}
                                     {% else %}
-                                        {{ date.sign|stringformat:"+d"|slice:"1:" }} р
+                                        {{ date.sign|stringformat:"+d"|slice:"1:" }}
                                     {% endif %}
                                 </span>
                             {% endif %}

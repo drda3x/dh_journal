@@ -11,7 +11,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval, get_w
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
 
-def get_groups_list(user):
+def get_groups_list(user, opened=True):
 
     u"""
     Получить список групп для конкретного пользоваетля
@@ -26,12 +26,12 @@ def get_groups_list(user):
                 {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'orm': g}
                 for g in Groups.objects.filter(
                     Q(teacher_leader=user) | Q(teacher_follower=user),
-                    Q(is_opened=True)
+                    Q(is_opened=opened)
                 )
             ],
             'other': [
                 {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', 'orm': g}
-                for g in Groups.objects.filter(is_opened=True).exclude(
+                for g in Groups.objects.filter(is_opened=opened).exclude(
                     Q(teacher_leader=user) | Q(teacher_follower=user)
                 )
             ]
@@ -42,7 +42,7 @@ def get_groups_list(user):
             {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'orm': g}
             for g in Groups.objects.filter(
                 Q(teacher_leader=user) | Q(teacher_follower=user),
-                Q(is_opened=True)
+                Q(is_opened=opened)
             )
         ]
     }
