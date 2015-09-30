@@ -343,7 +343,7 @@ class MultiPass(BasePass):
         if not wright_type(self.orm_object.start_date) <= wright_type(date) <= wright_type(self.orm_object.end_date):
             return
 
-        if not Lessons.objects.filter(group_pass=self.orm_object, date=date).exists():
+        if not Lessons.objects.filter(group=kwargs['group'], student=self.orm_object.student, date=date).exists():
             lessons = super(MultiPass, self).create_lessons(date, 1, **kwargs)
 
             for lesson in lessons:
