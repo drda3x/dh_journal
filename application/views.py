@@ -102,6 +102,7 @@ def group_detail_view(request):
 
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
         context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        context['other_groups'] = Groups.objects.exclude(id=group.id).exclude(is_opened=False)
 
         for elem in context['pass_detail']:
             elem['skips'] = '' if elem['skips'] is None else elem['skips']

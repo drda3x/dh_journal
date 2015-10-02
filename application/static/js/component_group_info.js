@@ -778,6 +778,52 @@
 
     $('#changeGroupContent .datepicker').datepicker({
         format: 'dd.mm.yyyy'
+    }).on('changeDate', function() {
+        $(this).datepicker('hide');
+    });
+
+    $('#changeGroup .btn-primary').click(function() {
+
+        var group = $('#changeGroupContent select').val(),
+            date = $('#changeGroupContent .datepicker').val(),
+            students = $('table').find('input:gt(0):checked').map(function() {
+                return $(this).val();
+            });
+
+        if(group == -1) {
+            $alert.show('Не выбрана группа', 'red', 2500, 1500);
+            return
+        }
+
+        if(date == '') {
+            $alert.show('Не выбрана дата', 'red', 2500, 1500);
+            return
+        }
+
+        var params = {
+            group: group,
+            date: date,
+            students: students
+        };
+
+        $('#changeGroup').hide();
+        backDrop('show');
+        processData(
+            'changegroup',
+            {
+                data: JSON.stringify(params)
+            },
+            function(err, data) {
+                if(!err) {
+                    reload();
+                } else {
+                    backDrop('hide');
+                    $('#changeGroup').show();
+                    $alert.show('Не удалось выполнить перенос', 2500, 1500);
+                }
+            }
+        )
+
     });
 
 })();
