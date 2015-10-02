@@ -225,6 +225,9 @@
         <script type="text/javascript">
             if(!window.group) window.group = {};
             if(!window.group.id) window.group.id = {{ group_detail.id }};
+            if(!window.group.name) window.group.name = '{{ group_detail.name }}';
+            if(!window.controlData) window.controlData = {};
+            if(!window.controlData.currentDate) window.controlData.currentDate = {{ control_data.constant.current_date_numval }};
         </script>
         <script type="text/javascript" src="../static/js/component_journal.js"></script>
     {% endblock %}

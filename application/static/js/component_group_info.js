@@ -208,7 +208,7 @@
         if(freezeData.length > 0) {
             $datepicker.datepicker('setValue', now);
             $datepicker.attr('data-date', now.valueOf());
-            $freezePass.find('.modal-header h4').text('{{ group_detail.name }} - заморозка абонементов (выбрано: '+freezeData.length+')');
+            $freezePass.find('.modal-header h4').text(window.group.name + ' - заморозка абонементов (выбрано: '+freezeData.length+')');
             $freezePass.modal('show');
         }
     });
@@ -510,16 +510,14 @@
         }
 
         if($inputs.filter(':checked').length > 0) {
-            $('#deleteStudentBtn').removeClass('disabled');
-            $('#freezePassBtn').removeClass('disabled');
+            $('.allowdisable').removeClass('disabled');
         } else {
-            $('#deleteStudentBtn').addClass('disabled');
-            $('#freezePassBtn').addClass('disabled');
+            $('.allowdisable').addClass('disabled');
         }
     });
 
     function reload() {
-        window.location.pathname = 'group?id=window.group.id&date={{ control_data.constant.current_date_numval }}';
+        window.location.pathname = 'group?id=window.group.id&date=' + window.window.controlData.currentDate;
     }
 
     function backDrop(param) {
@@ -776,6 +774,10 @@
     $commentWidget.find('.close').click(function() {
         hideCommentSaveBlock();
         $currentElement = null;
+    });
+
+    $('#changeGroupContent .datepicker').datepicker({
+        format: 'dd.mm.yyyy'
     });
 
 })();

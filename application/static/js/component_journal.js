@@ -291,7 +291,7 @@
             alert('Возникла ошибка при восстановлении отмененного занятия');
            backDrop('hide');
         }).done(function(data) {
-            window.location.pathname = 'group?id=window.group.id&date={{ control_data.constant.current_date_numval }}'
+            window.location.pathname = 'group?id=window.group.id&date=' + window.controlData.currentDate;
         });
     });
 
@@ -482,7 +482,6 @@
     var needReload = false;
 
     function reload() {
-        //window.location.pathname = 'group?id=window.group.id&date={{ control_data.constant.current_date_numval }}';
         window.location.reload();
     }
 

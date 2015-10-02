@@ -43,8 +43,9 @@
             </table>
             <a style="margin-right: 20px;" role="button" class="btn" onclick="window.open('/print?id={{ group_detail.id }}&type=full&subtype=info&date={{ control_data.constant.current_date_numval }}', '', 'width=1200, height=768, location=no')">Печать</a>
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
-            <a id="deleteStudentBtn" role="button" class="btn disabled">Удалить</a>
-            <a id="freezePassBtn" role="button" class="btn disabled">Перенести абонемент(ы)</a>
+            <a id="deleteStudentBtn" role="button" class="btn disabled allowdisable">Удалить</a>
+            <a id="freezePassBtn" role="button" class="btn disabled allowdisable">Перенести абонемент(ы)</a>
+            <a id="changeGroupBtn" role="button" class="btn disabled allowdisable" href="#changeGroup" data-toggle="modal">Перевести в другую группу</a>
 
 
             <!-- Форма "Карточка ученика" -->
@@ -157,12 +158,39 @@
                 </div>
             </div>
 
+            <div id="changeGroup" class="modal hide fade">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3 class="ib">Перевести в другую группу</h3>
+                </div>
+                <div id="changeGroupContent">
+                    <div>
+                        <select>
+                            <option class="muted" value="-1">Выберите группу</option>
+                            <option>Группа 1</option>
+                            <option>Группа 2</option>
+                            <option>Группа 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Выберите дату" class="datepicker" name="calendar">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn">Перевести</button>
+                    <button class="btn">Отмена</button>
+                </div>
+            </div>
+
     {% endblock %}
 
     {% block script %}
         <script type="text/javascript">
             if(!window.group) window.group = {};
             if(!window.group.id) window.group.id = {{ group_detail.id }};
+            if(!window.group.name) window.group.name = '{{ group_detail.name }}';
+            if(!window.controlData) window.controlData = {};
+            if(!window.controlData.currentDate) window.controlData.currentDate = {{ control_data.constant.current_date_numval }};
         </script>
 
         <script type="text/javascript" src="../static/js/component_group_info.js"></script>

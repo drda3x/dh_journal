@@ -413,6 +413,14 @@ html, body {
     display: none !important;
 }
 
+#changeGroupContent {
+    padding-top: 10px;
+}
+
+#changeGroupContent div {
+    text-align: center;
+}
+
 /*.canceled {*/
     /*background-color: #979997 !important;*/
 /*}*/
