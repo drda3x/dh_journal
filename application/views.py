@@ -198,7 +198,7 @@ def club_cards(request):
         else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     date_to = get_last_day_of_month(date_from)
 
-    last_pass = Passes.objects.filter(pass_type=CLUB_CARD_ID).order_by('end_date').last()
+    last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
     down_border = (now.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
 
     context['control_data'] = {
@@ -216,7 +216,7 @@ def club_cards(request):
     }
 
     first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
-    all_passes = Passes.objects.filter(pass_type=CLUB_CARD_ID, start_date__lte=date_to, end_date__gte=date_from).select_related('student').order_by('student__last_name','student__first_name')
+    all_passes = Passes.objects.filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from).select_related('student').order_by('student__last_name','student__first_name')
     for _p in all_passes:
         _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
 
@@ -263,6 +263,7 @@ def club_cards(request):
     context['date_list'].sort(key=lambda x: x['key'])
     context['groups'] = groups
     context['passes'] = all_passes
+    context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
     context['students'] = students
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
