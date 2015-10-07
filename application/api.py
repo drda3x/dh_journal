@@ -797,3 +797,19 @@ def create_multipass(request):
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')
+
+
+@auth_decorator
+def change_group(request):
+    try:
+        _json = json.loads(request.GET['data'])
+        old_group = Groups.objects.get(pk=int(_json['old_group']))
+        new_group = Groups.objects.get(pk=int(_json['new_group']))
+        date = datetime.datetime.strptime(_json['date'], '%d.%m.%Y')
+        students = map(int, _json['students'])
+
+        return HttpResponse(200)
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')

@@ -56,5 +56,6 @@ urlpatterns += [
     url(r'createmulty', api.create_multipass),
     url(r'restorestudent', api.restore_student),
     url(r'history', views.history_view),
+    url(r'changegroup', api.change_group),
     url(r'', views.index_view)
 ]
