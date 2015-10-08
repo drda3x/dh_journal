@@ -775,18 +775,17 @@ def create_multipass(request):
         student = Students.objects.get(pk=request.GET['student'])
         date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
 
-        if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
+        # if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
 
-            pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
-
-            _pass = Passes(
-                student=student,
-                pass_type=pt,
-                start_date=date,
-                opener=request.user
-            )
-            _pass.save()
-            PassLogic.wrap(_pass)
+        pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
+        _pass = Passes(
+            student=student,
+            pass_type=pt,
+            start_date=date,
+            opener=request.user
+        )
+        _pass.save()
+        PassLogic.wrap(_pass)
 
         return HttpResponse(200)
 
