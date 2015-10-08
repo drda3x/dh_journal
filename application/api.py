@@ -774,9 +774,11 @@ def create_multipass(request):
         group = Groups.objects.get(pk=request.GET['group'])
         student = Students.objects.get(pk=request.GET['student'])
         date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
+        ptid = request.GET.get('ptid')
 
         # if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
 
+        # pt = PassTypes.objects.get(pk=ptid)
         pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
         _pass = Passes(
             student=student,
@@ -791,6 +793,22 @@ def create_multipass(request):
 
     except PassTypes.DoesNotExist:
         return HttpResponseServerError('wrong multypass id, please ste the correct multypass id in the settings file')
+
+    except Exception:
+        print format_exc()
+        return HttpResponseServerError('failed')
+
+
+@auth_decorator
+def change_group(request):
+    try:
+        _json = json.loads(request.GET['data'])
+        old_group = Groups.objects.get(pk=int(_json['old_group']))
+        new_group = Groups.objects.get(pk=int(_json['new_group']))
+        date = datetime.datetime.strptime(_json['date'], '%d.%m.%Y')
+        students = map(int, _json['students'])
+
+        return HttpResponse(200)
 
     except Exception:
         print format_exc()

@@ -517,7 +517,7 @@
     });
 
     function reload() {
-        window.location.pathname = 'group?id=window.group.id&date=' + window.window.controlData.currentDate;
+        window.location.pathname = 'group?id='+window.group.id+'&date=' + window.window.controlData.currentDate;
     }
 
     function backDrop(param) {
@@ -801,9 +801,10 @@
         }
 
         var params = {
-            group: group,
+            old_group: group,
+            new_group: window.group.id,
             date: date,
-            students: students
+            students: students.toArray()
         };
 
         $('#changeGroup').hide();
