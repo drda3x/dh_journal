@@ -517,7 +517,7 @@
     });
 
     function reload() {
-        window.location.pathname = 'group?id='+window.group.id+'&date=' + window.window.controlData.currentDate;
+        window.location.pathname = 'group?id='+window.group.id+'&date=' + window.controlData.currentDate;
     }
 
     function backDrop(param) {
@@ -786,7 +786,7 @@
 
         var group = $('#changeGroupContent select').val(),
             date = $('#changeGroupContent .datepicker').val(),
-            students = $('table').find('input:gt(0):checked').map(function() {
+            students = $('#info table').find('input:gt(0):checked').map(function() {
                 return $(this).val();
             });
 
