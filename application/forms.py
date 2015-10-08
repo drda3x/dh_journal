@@ -57,4 +57,4 @@ class GroupsForm(forms.ModelForm):
 
     class Meta:
         model = Groups
-        fields = ['name', 'start_date', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']
+        fields = ['name', 'start_date', 'time', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']

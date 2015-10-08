@@ -51,6 +51,7 @@ class Groups(models.Model):
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     start_date = models.DateField(verbose_name=u'Дата начала группы')
     end_date = models.DateField(verbose_name=u'Дата окончания группы', null=True, blank=True, default=None)
+    time = models.TimeField(verbose_name=u'Время начала занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
@@ -130,13 +131,17 @@ class Groups(models.Model):
 
         super(Groups, self).save(force_insert, force_update, using, update_fields)
 
+    @property
+    def time_repr(self):
+        return str(self.time or '')[0:-3]
+
     def __unicode__(self):
 
         leader = self.teacher_leader.last_name if self.teacher_leader else ''
         follower = self.teacher_follower.last_name if self.teacher_follower else ''
         days = '-'.join(self.days)
 
-        return u'%s - %s %s - %s' % (self.name, leader, follower, days) + (u' - ЗАКРЫТА' if not self.is_opened else '')
+        return u'%s - %s %s - %s %s' % (self.name, leader, follower, days, self.time_repr) + (u' - ЗАКРЫТА' if not self.is_opened else '')
 
     class Meta:
         app_label = u'application'
