@@ -18,7 +18,7 @@
             {% for student in group_detail.students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td style="width: 15px">{{ forloop.counter }}</td>
-                <td {% if student.debt %} style="min-width: 200px;" {% else %} style="min-width: 150px;" {% endif %} class="fio_cell">
+                <td {% if student.debt %} style="min-width: 200px; line-height: 1" {% else %} style="min-width: 150px; line-height: 1" {% endif %} class="fio_cell">
                     <div class="dropdown sub-menu">
                         <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
                         <!--b class="caret"></b-->

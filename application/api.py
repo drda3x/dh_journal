@@ -819,9 +819,7 @@ def change_group(request):
                 'id': int(_json['new_group'])
             }
 
-            add_status = add_student(request)
-            #
-            # if add_status.status_code == 200:
+            add_student(request)
             lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
             last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
             passes = []
@@ -842,6 +840,13 @@ def change_group(request):
             # if isinstance(add_status, HttpResponseServerError):
             #     return HttpResponseServerError('failed adding')
         # Собрать информацию по передаваемым абонементам, добавить ее в request и передать на вход process_lesson
+
+            request.GET = {
+                'group_id': new_group.id,
+                'stid': student,
+                'msg': u'Переведен из группы: %s - %s c %s' % (old_group.name, '-'.join(old_group.days), date.strftime('%d.%m.%Y'))
+            }
+            add_or_edit_comment(request)
 
         request.GET = request_backup
         return HttpResponse(200)
