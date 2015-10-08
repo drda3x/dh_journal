@@ -74,9 +74,9 @@ def add_student(request):
         first_name = request.GET['first_name'].replace(' ', '')
         last_name = request.GET['last_name'].replace(' ', '')
         phone = check_phone(request.GET['phone'])
-        e_mail = request.GET['e_mail'].replace(' ', '')
+        e_mail = request.GET['e_mail'].replace(' ', '') if 'e_mail' in request.GET.iterkeys() else None
         group_id = int(request.GET['id'])
-        is_org = request.GET['is_org'] == u'true'
+        is_org = request.GET.get('is_org') == u'true'
 
         try:
             student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
@@ -806,8 +806,44 @@ def change_group(request):
         old_group = Groups.objects.get(pk=int(_json['old_group']))
         new_group = Groups.objects.get(pk=int(_json['new_group']))
         date = datetime.datetime.strptime(_json['date'], '%d.%m.%Y')
-        students = map(int, _json['students'])
+        now = datetime.datetime.now().date()
+        request_backup = request.GET
 
+        # Собрать информацию по ученику, добавить ее в request и передать на вход add_student
+        for student in _json['students']:
+            student_orm = Students.objects.get(pk=int(student))
+            request.GET = {
+                'first_name': student_orm.first_name,
+                'last_name': student_orm.last_name,
+                'phone': student_orm.phone,
+                'id': int(_json['new_group'])
+            }
+
+            add_status = add_student(request)
+            #
+            # if add_status.status_code == 200:
+            lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
+            last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
+            passes = []
+            map(lambda x: passes.append(x.group_pass) if x.group_pass not in passes else None, lessons)
+            calendar = new_group.get_calendar(len(lessons), last_lesson.date + datetime.timedelta(days=1) if last_lesson else date)
+
+            for p in passes:
+                p1 = copy.deepcopy(p)
+                p1.group = new_group
+                p1.save()
+                Lessons.objects.filter(group_pass=p, date__gte=date).update(group=new_group, group_pass=p1)
+
+            for rec in zip(calendar, lessons):
+                rec[1].date = rec[0]
+                rec[1].group = new_group
+                rec[1].save()
+
+            # if isinstance(add_status, HttpResponseServerError):
+            #     return HttpResponseServerError('failed adding')
+        # Собрать информацию по передаваемым абонементам, добавить ее в request и передать на вход process_lesson
+
+        request.GET = request_backup
         return HttpResponse(200)
 
     except Exception:

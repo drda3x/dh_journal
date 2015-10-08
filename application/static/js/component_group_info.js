@@ -801,8 +801,8 @@
         }
 
         var params = {
-            old_group: group,
-            new_group: window.group.id,
+            old_group: window.group.id,
+            new_group: group,
             date: date,
             students: students.toArray()
         };

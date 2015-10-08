@@ -47,7 +47,7 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
 
     def prepare_value(self, value):
         self.choices = ((i.id, unicode(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence'))
-        return value.split(',')
+        return value.split(',') if value else value
 
 
 class GroupsForm(forms.ModelForm):
