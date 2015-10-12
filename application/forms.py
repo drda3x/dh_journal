@@ -2,6 +2,7 @@
 
 from django import forms
 from application.models import Groups, WEEK, PassTypes
+from django.core.exceptions import ValidationError
 
 
 class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
@@ -22,14 +23,14 @@ class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
         Validates that the input is a string of integers separeted by comma.
         """
         if self.required and not value:
-            raise ValueError(
+            raise ValidationError(
                 self.error_messages['required'], code='required'
             )
 
         # Validate that each value in the value list is in self.choices.
         for val in value.split(','):
             if not self.valid_value(val):
-                raise ValueError(
+                raise ValidationError(
                     self.error_messages['invalid_choice'],
                     code='invalid_choice',
                     params={'value': val},
