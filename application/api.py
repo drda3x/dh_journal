@@ -823,7 +823,7 @@ def change_group(request):
             lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
             last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
             passes = []
-            map(lambda x: passes.append(x.group_pass) if x.group_pass not in passes and p.one_group_pass else None, lessons)
+            map(lambda x: passes.append(x.group_pass) if x.group_pass not in passes and x.one_group_pass else None, lessons)
             calendar = new_group.get_calendar(len(lessons), last_lesson.date + datetime.timedelta(days=1) if last_lesson else date)
 
             for p in passes:
