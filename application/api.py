@@ -262,6 +262,14 @@ def delete_lessons(request):
 
             to_delete.append(lesson)
 
+        # passes += [
+        #     Passes.objects.filter(
+        #         group_id=request.GET['gid'],
+        #         student_id=request.GET['stid'],
+        #         start_date__gte=date,
+        #         lessons=0)
+        # ]
+
         i_passes = iter(passes)
         while count > 0:
             try:
@@ -827,10 +835,21 @@ def change_group(request):
             calendar = new_group.get_calendar(len(lessons), last_lesson.date + datetime.timedelta(days=1) if last_lesson else date)
 
             for p in passes:
-                p1 = copy.deepcopy(p)
-                p1.group = new_group
-                p1.save()
-                Lessons.objects.filter(group_pass=p, date__gte=date).update(group=new_group, group_pass=p1)
+                pass_lessons = Lessons.objects.filter(group_pass=p, date__gte=date)
+                pass_lessons_len = len(pass_lessons)
+                if pass_lessons_len > 0:
+                    p1 = copy.deepcopy(p)
+                    p1.pk = None
+                    p1.group = new_group
+                    p1.lessons = len(pass_lessons)
+                    p1.save()
+                    pass_lessons.update(group=new_group, group_pass=p1)
+
+                    p.lessons -= pass_lessons_len
+                    if p.lessons <= 0:
+                        p.delete()
+                    else:
+                        p.save()
 
             for rec in zip(calendar, lessons):
                 rec[1].date = rec[0]
