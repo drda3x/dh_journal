@@ -11,7 +11,7 @@ from django.http.response import HttpResponse, HttpResponseNotFound, HttpRespons
 from django.db.models import Q
 
 from application.utils.passes import PassLogic
-from application.utils.groups import get_group_students_list
+from application.utils.groups import get_group_students_list, get_student_lesson_status
 from application.utils.phones import check_phone
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
@@ -406,10 +406,11 @@ def freeze_pass(request):
             try:
                 p = Lessons.objects.get(student=student, group=group, date=date_from).group_pass
 
-                if p.lessons > 0:
-                    wrapped = PassLogic.wrap(p)
-                    if not wrapped.freeze(date_from, date_to):
-                        errors.append('%s %s' % (student.last_name, student.first_name))
+                # todo пока сделаю так, когда будет менюшка позволяющая снять отметки с занятий, это надо будет убрать.
+                # if p.lessons > 0:
+                wrapped = PassLogic.wrap(p)
+                if not wrapped.freeze(date_from, date_to):
+                    errors.append('%s %s' % (student.last_name, student.first_name))
 
             except Lessons.DoesNotExist:
                 errors.append('%s %s' % (student.last_name, student.first_name))
@@ -542,17 +543,17 @@ def process_lesson(request):
                     # Любой другой абонемент
                     else:
                         pt = PassTypes.objects.get(pk=_pt)
-                        st_id = p['student_id']
+                        st = Students.objects.get(pk=p['student_id'])
                         lessons_count = p.get('lcnt', None)
                         skips_count = p.get('scnt', None)
-                        if pt.lessons > 1 and any(p.date > date.date() for p in Passes.objects.filter(student_id=st_id, group=group, pass_type__one_group_pass=True)):
-                            st = Students.objects.get(pk=st_id)
+                        lessons_exist = map(lambda dt: get_student_lesson_status(st, group, dt)['pass'], group.get_calendar(lessons_count, date))
+                        if lessons_count > 1 and any(lessons_exist):
                             error.append(
                                 u'%s %s - создаваемый абонемент пересекается с уже созданными абонементами' % (st.last_name, st.first_name)
                             )
-                        elif not Passes.objects.filter(student_id=st_id, group=group, pass_type=pt, start_date=date).exists():
+                        elif not Passes.objects.filter(student=st, group=group, pass_type=pt, start_date=date).exists():
                             pass_orm_object = Passes(
-                                student_id=st_id,
+                                student=st,
                                 group=group,
                                 pass_type=pt,
                                 start_date=date,
@@ -573,7 +574,7 @@ def process_lesson(request):
 
                             try:
                                 #Убираем долги, если они есть.
-                                map(lambda d: d.delete(), Debts.objects.filter(group=group, student_id=st_id, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
+                                map(lambda d: d.delete(), Debts.objects.filter(group=group, student=st, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
 
                             except Exception:
                                 pass
