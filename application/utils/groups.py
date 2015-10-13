@@ -159,7 +159,8 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
         'last_lesson': group.last_lesson,
         'calendar': map(to_iso, calendar),
         'moneys': moneys,
-        'money_total': money_total
+        'money_total': money_total,
+        'full_teachers': group.teacher_leader and group.teacher_follower
     }
 
 
