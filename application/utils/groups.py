@@ -238,6 +238,10 @@ def get_teacher_students_list(teacher):
     return res
 
 
+def get_student_groups(student):
+    return [dt.group for dt in GroupList.objects.select_related().filter(student=student, group__is_opened=True)]
+
+
 def get_student_lesson_status(student, group, _date):
 
     if isinstance(_date, dict):

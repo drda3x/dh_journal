@@ -11,8 +11,9 @@ from django.http.response import HttpResponse, HttpResponseNotFound, HttpRespons
 from django.db.models import Q
 
 from application.utils.passes import PassLogic
-from application.utils.groups import get_group_students_list, get_student_lesson_status
+from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
+from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
 from application.views import group_detail_view
 from application.system_api import get_models
@@ -873,4 +874,42 @@ def change_group(request):
 
     except Exception:
         print format_exc()
+        return HttpResponseServerError('failed')
+
+
+@auth_decorator
+def get_club_card_detail(request):
+
+    try:
+        _pass = Passes.objects.get(pk=int(request.GET['pid']))
+        student = _pass.student
+        result_json = list()
+        now = datetime.datetime.now().date()
+
+        def get_lesson(date):
+            lesson = get_student_lesson_status(student, group, date)
+            lesson['available'] = not lesson['attended'] and date.date() <= now
+            return lesson
+
+        for group in get_student_groups(student):
+            days = get_count_of_weekdays_per_interval(group.days, _pass.start_date, _pass.end_date)
+            group_calendar = group.get_calendar(days, _pass.start_date)
+            lessons_statuses = map(get_lesson, group_calendar)
+            lessons = zip(map(lambda d: d.strftime('%d.%m.%Y'), group_calendar), lessons_statuses)
+
+            group_json = {
+                'group': {
+                    'id': group.id,
+                    'name': group.name
+                },
+                'lessons': lessons
+            }
+
+            result_json.append(group_json)
+
+        _json = json.dumps(result_json)
+        return HttpResponse(_json)
+
+    except Exception:
+        format_exc()
         return HttpResponseServerError('failed')

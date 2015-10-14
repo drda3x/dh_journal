@@ -2,6 +2,18 @@ window.ClubCards = {};
 
 window.ClubCards.init = function() {
 
+    function processData(url, params, callback) {
+        $.ajax({
+            method: 'GET',
+            url: url,
+            data: params
+        }).error(function(err) {
+            callback(err, null)
+        }).done(function(data) {
+            callback(null, JSON.parse(data))
+        });
+    }
+
     $('.modal .groups li').click(function() {
 
         var $this = $(this),
@@ -44,17 +56,27 @@ window.ClubCards.init = function() {
 
     var pass, student, group;
 
+    /**
+     * Отрисовка данных в виджете.
+     * @param data
+     */
+    function drawWidget(data) {
+        alert('Данные пришли, но рисовать пока нечем');
+    }
+
     $('#all_passes tr').click(function() {
 
         var $this = $(this);
         pass = $this.data('pid');
         student = $this.data('stid');
 
-        $('#multicard-pass-menu h4').first().text($($this.children()[1]).text());
-        $('#multicard-pass-menu .groups li').addClass('hide');
-        $('#multicard-pass-menu .groups .s'+student).removeClass('hide');
-
-        $('#multicard-pass-menu').modal('show');
+        processData('getmcdetai', {pid: pass}, function(err, data) {
+            if(err) {
+                alert('Выполнение завершилось с ошибкой');
+            } else {
+                drawWidget(data);
+            }
+        });
 
     });
 

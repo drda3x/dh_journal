@@ -90,31 +90,7 @@
         <div class="modal-header">
             <h4></h4>
         </div>
-        <div>
-            <div class="groups">
-                <h4>Группа</h4>
-                <ul>
-                {% if user.is_superuser %}<strong>Мои группы:</strong>{% endif %}
-                {% for group in groups.self %}
-                    <li data-id="{{ group.id }}" class="{{ group.students }} hide">{{ group.name }} - {{ group.days }}</li>
-                {% endfor %}
-                {% if user.is_superuser %}
-                    <br>
-                    <strong>Других преподов:</strong>
-                {% endif %}
-                {% for group in groups.other %}
-                    <li data-id="{{ group.id }}" class="{{ group.students }} hide">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }}</li>
-                {% endfor %}
-                </ul>
-            </div>
-            <div class="dates">
-                <h4>Дата</h4>
-                <ul>
-                    {% for lst in date_list %}
-                        <li class="{{ lst.val }} hide">{{ lst.label }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+        <div id="pass-detail-container">
         </div>
         <div class="modal-footer">
             <button class="btn btn-danger delete_pass" data-dismiss="modal">Удалить абонемент</button>
