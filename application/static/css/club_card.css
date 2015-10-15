@@ -49,7 +49,7 @@ li:hover {
      display: inline-block;
      padding: 0 10px;
      vertical-align: top;
-     border-right: 1px solid #dddddd;
+     /*border-right: 1px solid #dddddd;*/
      height: inherit;
 }
 
@@ -69,6 +69,32 @@ li:hover {
 
 .active {
      background-color: #eeeeee;
+}
+
+#multicard-pass-menu {
+    width: 950px;
+    left: 300px;
+}
+
+.disabled {
+    background-color: #cccccc;
+}
+
+.write_off {
+    display: none;
+    cursor: pointer;
+}
+
+#multicard-pass-menu td:hover {
+    padding: 0 8px !important;
+}
+
+#multicard-pass-menu td {
+    padding: 10px 8px;
+}
+
+#multicard-pass-menu td:hover .write_off {
+    display: block;
 }
 
 #multicard-pass-menu .groups {

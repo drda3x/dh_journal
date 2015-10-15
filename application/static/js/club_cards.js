@@ -61,7 +61,41 @@ window.ClubCards.init = function() {
      * @param data
      */
     function drawWidget(data) {
-        alert('Данные пришли, но рисовать пока нечем');
+        var htmlContainer = $('#pass-detail-container');
+        htmlContainer.empty();
+
+        // Формируем таблички групп
+        for(var i= 0, j= data.length; i<j; i++) {
+            // html
+            var div = $('<div></div>'),
+                table = $('<table class="table table-bordered table-striped"></table>').appendTo(div),
+                headers = $('<tr></tr>').appendTo(table),
+                body = $('<tr></tr>').appendTo(table);
+
+            // data
+            var group = data[i].group,
+                lessons = data[i].lessons;
+
+            div.prepend('<h4>'+group.name+'</h4');
+
+            for(var k= 0, m= lessons.length; k<m; k++) {
+                var th = $('<th>'+ lessons[k][0] +'</th>'), // дата
+                    td = $('<td></td>');
+
+                if(lessons[k][1].available) {
+                    td.append('<span class="write_off">списать</span>');
+                } else {
+                    td.addClass('disabled');
+                }
+
+                headers.append(th);
+                body.append(td);
+            }
+
+            htmlContainer.append(div);
+        }
+
+        $('#multicard-pass-menu').modal('show');
     }
 
     $('#all_passes tr').click(function() {
