@@ -412,7 +412,7 @@
     function backDrop(param) {
         var handlers = {
             show: function() {
-                $('<div class="modal-backdrop">Тут должна быть анимация</div>').appendTo('body')
+                $('<div class="modal-backdrop" style="text-align: center;"><img src="../static/img/loader.gif" /><br>Обработка.</div>').appendTo('body')
             },
             hide: function() {
                 $('modal-backdrop').remove()
