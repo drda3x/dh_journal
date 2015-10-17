@@ -59,10 +59,14 @@ window.ClubCards.init = function() {
     /**
      * Отрисовка данных в виджете.
      * @param data
+     * @param tableData
      */
-    function drawWidget(data) {
+    function drawWidget(data, info) {
         var htmlContainer = $('#pass-detail-container');
         htmlContainer.empty();
+        $('#multicard-pass-menu .modal-header h4').text(
+            info.tr.find('td:eq(1)').text()
+        );
 
         // Формируем таблички групп
         for(var i= 0, j= data.length; i<j; i++) {
@@ -79,10 +83,15 @@ window.ClubCards.init = function() {
             div.prepend('<h4>'+group.name+'</h4');
 
             for(var k= 0, m= lessons.length; k<m; k++) {
+
+                // Формируем html
                 var th = $('<th>'+ lessons[k][0] +'</th>'), // дата
-                    td = $('<td></td>');
+                    td = $('<td data-date="'+lessons[k][0]+'"></td>');
 
                 if(lessons[k][1].available) {
+                    // todo сделать подсвечивание отмеченных по мультикарте занятий
+                    // todo и написать на них "удалить"
+                    // todo к ячейке добавить классы "добавление" и "удаление"
                     td.append('<span class="write_off">списать</span>');
                 } else {
                     td.addClass('disabled');
@@ -90,6 +99,11 @@ window.ClubCards.init = function() {
 
                 headers.append(th);
                 body.append(td);
+
+                // Добавляем event'ы
+                if(lessons[k][1].available) {
+                    td.click(function() {});
+                }
             }
 
             htmlContainer.append(div);
@@ -100,15 +114,22 @@ window.ClubCards.init = function() {
 
     $('#all_passes tr').click(function() {
 
-        var $this = $(this);
+        var $this, pass, student, info;
+
+        $this = $(this);
         pass = $this.data('pid');
         student = $this.data('stid');
+        info = {
+            pass: pass,
+            student: student,
+            tr: $this
+        };
 
         processData('getmcdetai', {pid: pass}, function(err, data) {
             if(err) {
                 alert('Выполнение завершилось с ошибкой');
             } else {
-                drawWidget(data);
+                drawWidget(data, info);
             }
         });
 
