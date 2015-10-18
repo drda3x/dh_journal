@@ -919,7 +919,7 @@ def get_club_card_detail(request):
             group_json = {
                 'group': {
                     'id': group.id,
-                    'name': group.name
+                    'name': '%s - %s c %s' % (group.name, ' '.join(group.days), group.time_repr)
                 },
                 'lessons': lessons
             }
