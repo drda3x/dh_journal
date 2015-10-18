@@ -85,6 +85,14 @@ li:hover {
     cursor: pointer;
 }
 
+.in_process_white {
+    background-image: url('../img/preloader_mini_white.GIF');
+}
+
+.in_process_colored {
+    background-image: url('../img/preloader_mini_colored.GIF');
+}
+
 #multicard-pass-menu td:hover {
     padding: 0 8px !important;
 }

@@ -292,7 +292,7 @@ def delete_lessons(request):
                 # Если относятся
                 else:
                     current_count = len(filter(lambda x: x.group_pass == current_pass, to_delete))
-                    current_pass.lessons += current_count
+                    current_pass.lessons = current_pass.lessons_origin - (Lessons.objects.filter(group_pass=current_pass).count() - current_count)
                     current_pass.save()
 
             except StopIteration:
@@ -300,7 +300,12 @@ def delete_lessons(request):
 
         map(lambda l: l.delete(), to_delete)
 
-        return HttpResponse(200)
+        return HttpResponse(json.dumps([
+            {
+                'pid': p.id,
+                'cnt': p.lessons
+            } for p in passes
+        ]))
 
     except Exception:
         print format_exc()
@@ -531,6 +536,10 @@ def process_lesson(request):
                     elif 'pass_id' in p.iterkeys() and date <= now:
                         pid = p['pass_id']
                         pass_orm_object = Passes.objects.get(pk=pid)
+
+                        if pass_orm_object.lessons == 0:
+                            return HttpResponseServerError('no lessons')
+
                         wrapped = PassLogic.wrap(pass_orm_object)
                         attended_passes.append(wrapped)
 
@@ -888,7 +897,17 @@ def get_club_card_detail(request):
 
         def get_lesson(date):
             lesson = get_student_lesson_status(student, group, date)
-            lesson['available'] = not lesson['attended'] and date.date() <= now
+
+            # Состояние урока: 1 - доступен для отметки
+            #                  0 - отмечен по этому абонементу, не доступен для отметки
+            #                  -1 - отмечен по другому абонементу, не доступен для отметки
+            if not lesson['attended'] and date.date() <= now:
+                lesson['status'] = 1
+            elif 'pid' in lesson.iterkeys() and lesson['pid'] == _pass.id:
+                lesson['status'] = 0
+            else:
+                lesson['status'] = -1
+
             return lesson
 
         for group in get_student_groups(student):

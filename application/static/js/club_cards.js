@@ -56,6 +56,96 @@ window.ClubCards.init = function() {
 
     var pass, student, group;
 
+    function getLessons(tr) {
+        return parseInt(tr.find('td:eq(5)').text())
+    }
+
+    function setLessons(tr, val) {
+        var v = (val > 0) ? val : 0;
+        tr.find('td:eq(5)').text(v)
+    }
+
+    // Универсальная функция, должна сама определять что ей надо сделать с ячейкой...
+    function get_handler(inc_context) {
+        var context = inc_context;
+
+        return function() {
+
+            function getPassCnt(arr) {
+                for(var i=arr.length-1; i>=0; i--) {
+                    if(arr[i].pid == context.pid) {
+                        return arr[i].cnt;
+                    }
+                }
+
+                return NaN;
+            }
+
+            function clear_processes() {
+                context.td.removeClass('in_process_colored');
+                context.td.removeClass('in_process_white');
+            }
+            clear_processes();
+
+            var data;
+            if(!context.del) {
+                context.td.addClass('in_process_white');
+                data = {
+                    group_id: context.gid,
+                    date: context.date,
+                    checked: [{pass_id: context.pid}]
+                };
+
+                var current_cnt = getLessons(context.tr);
+
+                if(current_cnt - 1 < 0) {
+                    clear_processes();
+                    return
+                }
+
+                setLessons(context.tr, current_cnt - 1);
+
+                processData('processlesson',
+                    {
+                        data: JSON.stringify(data)
+                    },
+                    function(err, data) {
+                        clear_processes();
+                        if(!err) {
+                            context.td.css('background-color', '#ffd700');
+                            context.td.find('span').text('удалить');
+                            context.del = !context.del;
+                        } else {
+                            setLessons(context.tr, current_cnt + 1);
+                        }
+                    }
+                );
+            } else {
+                context.td.addClass('in_process_colored');
+
+                data = {
+                    gid: context.gid,
+                    stid: context.stid,
+                    params: JSON.stringify([context.date, 1])
+                };
+
+                processData('deletepass', data, function(err, data) {
+                    clear_processes();
+                    if(!err) {
+                        context.td.css('background-color', '#ffffff');
+                        context.td.find('span').text('списать');
+                        context.del = !context.del;
+                        setLessons(
+                            context.tr,
+                            getPassCnt(data)
+                        )
+                    }
+                });
+            }
+        }
+    }
+
+
     /**
      * Отрисовка данных в виджете.
      * @param data
@@ -85,25 +175,48 @@ window.ClubCards.init = function() {
             for(var k= 0, m= lessons.length; k<m; k++) {
 
                 // Формируем html
-                var th = $('<th>'+ lessons[k][0] +'</th>'), // дата
-                    td = $('<td data-date="'+lessons[k][0]+'"></td>');
+                var th = $('<th>' + lessons[k][0] + '</th>'), // дата
+                    td = $('<td data-date="' + lessons[k][0] + '"></td>');
 
-                if(lessons[k][1].available) {
-                    // todo сделать подсвечивание отмеченных по мультикарте занятий
-                    // todo и написать на них "удалить"
-                    // todo к ячейке добавить классы "добавление" и "удаление"
-                    td.append('<span class="write_off">списать</span>');
-                } else {
-                    td.addClass('disabled');
+                switch (lessons[k][1].status) {
+                    case 1:
+                        // Занятие доступно для списания
+                        td.append('<span class="write_off">списать</span>');
+                        td.click(get_handler({
+                            tr: info.tr,
+                            td: td,
+                            date: lessons[k][0],
+                            pid: info.pass,
+                            gid: group.id,
+                            stid: info.student,
+                            del: false
+                        }));
+                        break;
+
+                    case 0:
+                        // Занятие можно удалить
+                        td.append('<span class="write_off">удалить</span>');
+                        td.css('background-color', '#ffd700');
+                        td.click(get_handler({
+                            tr: info.tr,
+                            td: td,
+                            date: lessons[k][0],
+                            pid: info.pass,
+                            gid: group.id,
+                            stid: info.student,
+                            del: true
+                        }));
+                        break;
+
+                    case -1:
+                        // Занятие не доступно для списания
+                        td.addClass('disabled');
+                        break;
                 }
 
                 headers.append(th);
                 body.append(td);
 
-                // Добавляем event'ы
-                if(lessons[k][1].available) {
-                    td.click(function() {});
-                }
             }
 
             htmlContainer.append(div);
