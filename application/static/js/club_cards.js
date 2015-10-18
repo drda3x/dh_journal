@@ -224,6 +224,8 @@ window.ClubCards.init = function() {
 
     $('#all_passes tr').click(function() {
 
+        resetWidget();
+
         var $this, pass, student, info, htmlContainer;
 
         $this = $(this);
@@ -250,10 +252,11 @@ window.ClubCards.init = function() {
 
     });
 
-    $('#multicard-pass-menu').on('hidden', function() {
-       $(this).find('h4').text('Загрузка...');
-       $(this).find('img').show();
-    });
+    function resetWidget() {
+        var widget = $('#multicard-pass-menu');
+        widget.find('h4').text('Загрузка данных...');
+        widget.find('img').show();
+    }
 
     $('#multicard-pass-menu .groups').click(function(event) {
         var $this = $(event.target);
