@@ -793,12 +793,12 @@ def create_multipass(request):
         group = Groups.objects.get(pk=request.GET['group'])
         student = Students.objects.get(pk=request.GET['student'])
         date = datetime.datetime.strptime(request.GET['date'], '%d.%m.%Y')
-        ptid = request.GET.get('ptid')
+        ptid = int(request.GET.get('ptid'))
 
         # if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
 
-        # pt = PassTypes.objects.get(pk=ptid)
-        pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
+        pt = PassTypes.objects.get(pk=ptid)
+        # pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
         _pass = Passes(
             student=student,
             pass_type=pt,

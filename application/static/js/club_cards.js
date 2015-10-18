@@ -14,38 +14,56 @@ window.ClubCards.init = function() {
         });
     }
 
-    $('.modal .groups li').click(function() {
-
+    $('.modal .groups option').click(function() {
         var $this = $(this),
-            $id = $this.data('id');
-        $('.modal .students_lists ul').addClass('hide');
-        $('.modal .students_lists ul#'+$id).removeClass('hide');
+            $id = $this.val();
+
+        var all, target;
+
+        all = $('.modal .students_lists select');
+        target = $('.modal .students_lists select#'+$id);
+
+        all.addClass('hide');
+        all.removeClass('active');
+
+        target.removeClass('hide');
+        target.addClass('active');
     });
 
-    $('.modal li').click(function() {
-        var $this = $(this);
-        if($this.parents('.groups').length > 0) {
-            $('.modal .students_lists li').removeClass('active');
-        }
-        $this.siblings().removeClass('active');
-        $this.addClass('active');
+    $('#multicard-add-menu').on('hidden', function () {
+        var all, target;
+
+        $('.modal .groups select').val('def');
+
+        all = $('.modal .students_lists select');
+        target = $('.modal .students_lists select#def');
+
+        all.addClass('hide');
+        all.removeClass('active');
+
+        target.removeClass('hide');
+        target.addClass('active');
     });
 
     var datepicker = $('#multicard-add-menu .datepicker input').datepicker({
         format: 'dd.mm.yyyy',
         weekStart: 1
+    }).on('changeDate', function() {
+        $(this).datepicker('hide');
     });
 
     $('#multicard-add-menu .save_data').click(function() {
-        var group = $('.groups').find('.active').first().data('id'),
-            student = $('.students_lists').find('.active').first().data('stid'),
-            date = datepicker.val();
+        var group = $('.groups select').val(),
+            student = $('.students_lists').find('.active').first().val(),
+            date = datepicker.val(),
+            pass_type = $('.pass_types select').val();
 
         $.ajax('createmulty', {
             data: {
                 group: group,
                 student: student,
-                date: date
+                date: date,
+                ptid: pass_type
             }
         }).done(function() {
             window.location.reload();
@@ -222,11 +240,15 @@ window.ClubCards.init = function() {
         }
     }
 
+    // todo ТАК ДЕЛАТЬ НЕ НАДО!!!!
+    // todo ЭТО НАДО ПЕРЕДЕЛАТЬ, НО СЕЙЧАС МНЕ ЛЕНЬ!!!!
+    var pass;
+
     $('#all_passes tr').click(function() {
 
         resetWidget();
 
-        var $this, pass, student, info, htmlContainer;
+        var $this, student, info, htmlContainer;
 
         $this = $(this);
         pass = $this.data('pid');

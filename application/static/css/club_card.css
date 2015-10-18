@@ -13,7 +13,9 @@
 }
 
 #multicard-add-menu {
-    top: 10px !important;
+    left: 305px !important;
+    top: 40px !important;
+    width: 250px;
 }
 
 ul {
@@ -41,8 +43,7 @@ li:hover {
 }
 
 .content {
-    height: 400px;
-    overflow-y: scroll;
+    padding: 0 10px;
 }
 
 .modal div:nth-of-type(2) div {
@@ -67,8 +68,12 @@ li:hover {
      width: 150px;
 }
 
-.active {
-     background-color: #eeeeee;
+/*.active {*/
+     /*background-color: #eeeeee;*/
+/*}*/
+
+.popover .arrow {
+    display: none;
 }
 
 #multicard-pass-menu {

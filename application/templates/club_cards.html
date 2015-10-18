@@ -5,7 +5,7 @@
 {% block body %}
     {% block content %}
     <div class="header">
-        <a href="#multicard-add-menu" role="button" data-toggle="modal" class="btn btn-primary">Добавить</a>
+        <a id="add_card" role="dialog" data-target="#multicard-add-menu" data-toggle="modal" class="btn btn-primary">Добавить</a>
         <div id="dateControl" class="dropdown">
             <strong class="text-info">
                 Месяц:
@@ -27,6 +27,7 @@
             <th>Фамилия Имя</th>
             <th>Дата начала</th>
             <th>Дата окончания</th>
+            <th>Цена</th>
             <th>Преподаватель</th>
             <th>Остаток</th>
             {% if user.is_superuser %}<th>Списано за предыдущий месяц</th>{% endif %}
@@ -37,6 +38,7 @@
                 <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
                 <td>{{ p.start_date }}</td>
                 <td>{{ p.end_date }}</td>
+                <td>{{ p.pass_type.prise }}</td>
                 <td>{{ p.opener.last_name }} {{ p.opener.first_name }}</td>
                 <td>{{ p.lessons }}</td>
                 {% if user.is_superuser %}<td>{{ p.prev_month }}</td>{% endif %}
@@ -45,34 +47,43 @@
     </table>
 
     <div id="multicard-add-menu" class="modal hide">
-        <div class="modal-header">
-            <h4>Добавление клубной карты</h4>
-        </div>
         <div class="content">
+            <div class="pass_types">
+                <h4>Тип абонемента</h4>
+                <select>
+                    {% for typ in pass_types %}
+                        <option value="{{ typ.id }}">{{ typ.name }}({{ typ.prise }})</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="groups">
                 <h4>Группа</h4>
-                <ul>
-                    {% if user.is_superuser %}<strong>Мои группы:</strong>{% endif %}
-                {% for group in groups.self %}
-                    <li data-id="{{ group.id }}">{{ group.name }} - {{ group.days }}</li>
+                <select class="default">
+                    <option value="def">Выберите группу</option>
+                    {% for group in groups.self %}
+                        {% if user.is_superuser %}
+                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }}</option>
+                        {% else %}
+                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    {% for group in groups.other %}
+                        <option value="{{ group.id }}">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }}</option>
                 {% endfor %}
-                    {% if user.is_superuser %}
-                        <br>
-                        <strong>Других преподов:</strong>
-                    {% endif %}
-                {% for group in groups.other %}
-                    <li data-id="{{ group.id }}">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }}</li>
-                {% endfor %}
-                </ul>
+                </select>
             </div>
             <div class="students_lists">
                 <h4>Ученик</h4>
+                    <select id="def">
+                        <option value="-1">Выберите ученика</option>
+                    </select>
                 {% for group in students %}
-                    <ul id="{{ group.id }}" class="hide">
+                    <select id="{{ group.id }}" class="hide">
+                        <option value="-1">Выберите ученика</option>
                         {% for student in group.list %}
-                            <li data-stid="{{ student.id }}">{{ student.last_name }} {{ student.first_name }}</li>
+                            <option value="{{ student.id }}">{{ student.last_name }} {{ student.first_name }}</option>
                         {% endfor %}
-                    </ul>
+                    </select>
                 {% endfor %}
             </div>
             <div class="datepicker">
