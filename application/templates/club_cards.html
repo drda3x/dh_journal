@@ -64,7 +64,7 @@
                         {% if user.is_superuser %}
                             <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}</option>
                         {% else %}
-                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }}</option>
+                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}</option>
                         {% endif %}
                     {% endfor %}
                     {% for group in groups.other %}
