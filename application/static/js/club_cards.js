@@ -151,8 +151,7 @@ window.ClubCards.init = function() {
      * @param data
      * @param tableData
      */
-    function drawWidget(data, info) {
-        var htmlContainer = $('#pass-detail-container');
+    function drawWidget(htmlContainer, data, info) {
         htmlContainer.empty();
         $('#multicard-pass-menu .modal-header h4').text(
             info.tr.find('td:eq(1)').text()
@@ -221,13 +220,11 @@ window.ClubCards.init = function() {
 
             htmlContainer.append(div);
         }
-
-        $('#multicard-pass-menu').modal('show');
     }
 
     $('#all_passes tr').click(function() {
 
-        var $this, pass, student, info;
+        var $this, pass, student, info, htmlContainer;
 
         $this = $(this);
         pass = $this.data('pid');
@@ -238,14 +235,24 @@ window.ClubCards.init = function() {
             tr: $this
         };
 
+        htmlContainer = $('#pass-detail-container');
+        htmlContainer.hide();
+        $('#multicard-pass-menu').modal('show');
         processData('getmcdetai', {pid: pass}, function(err, data) {
             if(err) {
                 alert('Выполнение завершилось с ошибкой');
             } else {
-                drawWidget(data, info);
+                drawWidget(htmlContainer, data, info);
+                htmlContainer.show();
+                htmlContainer.siblings('img').hide()
             }
         });
 
+    });
+
+    $('#multicard-pass-menu').on('hidden', function() {
+       $(this).find('h4').text('Загрузка...');
+       $(this).find('img').show();
     });
 
     $('#multicard-pass-menu .groups').click(function(event) {
