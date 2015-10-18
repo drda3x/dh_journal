@@ -75,12 +75,12 @@ window.ClubCards.init = function() {
     var pass, student, group;
 
     function getLessons(tr) {
-        return parseInt(tr.find('td:eq(5)').text())
+        return parseInt(tr.find('td:eq(6)').text())
     }
 
     function setLessons(tr, val) {
         var v = (val > 0) ? val : 0;
-        tr.find('td:eq(5)').text(v)
+        tr.find('td:eq(6)').text(v)
     }
 
     // Универсальная функция, должна сама определять что ей надо сделать с ячейкой...
