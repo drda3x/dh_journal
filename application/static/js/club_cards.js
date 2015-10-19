@@ -14,7 +14,7 @@ window.ClubCards.init = function() {
         });
     }
 
-    $('.modal .groups option').click(function() {
+    $('.modal .groups select').click(function() {
         var $this = $(this),
             $id = $this.val();
 
