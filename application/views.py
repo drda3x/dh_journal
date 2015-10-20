@@ -35,6 +35,7 @@ def index_view(request):
         context = dict()
         context['user'] = user
         context['groups'] = get_groups_list(user)
+        context['now'] = datetime.datetime.now().date()
 
         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 

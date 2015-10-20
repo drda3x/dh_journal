@@ -74,12 +74,12 @@
                 <ul class="nav nav nav-list">
                     <li class="nav-header"><h5 style="margin: 0">{% if groups.other %}Мои группы:{% else %}Группы:{% endif %}</h5></li>
                     {% for group in groups.self %}
-                        <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }} {{ group.time }}</a></li>
+                        <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
                     {% endfor %}
                     {% if groups.other %}
                     <li class="nav-header"><h5 style="margin: 0">Группы других преподавателей:</h5></li>
                         {% for group in groups.other %}
-                            <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}"><strong>{{ group.t1 }}-{{ group.t2 }}</strong> {{ group.name }} - {{ group.days }} {{ group.time }}</a></li>
+                            <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}"><strong>{{ group.t1 }}-{{ group.t2 }}</strong> {{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
                         {% endfor %}
                     {% endif %}
                     <li class="nav-header"><h5 style="margin: 0">Клуб:</h5></li>

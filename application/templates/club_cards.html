@@ -62,13 +62,13 @@
                     <option value="def">Выберите группу</option>
                     {% for group in groups.self %}
                         {% if user.is_superuser %}
-                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}</option>
+                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}</option>
                         {% else %}
-                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}</option>
+                            <option value="{{ group.id }}">{{ group.name }} - {{ group.days }} с {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}</option>
                         {% endif %}
                     {% endfor %}
                     {% for group in groups.other %}
-                        <option value="{{ group.id }}">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }} с {{ group.time }}</option>
+                        <option value="{{ group.id }}">{{ group.t1 }} {{ group.t2 }} - {{ group.name }} - {{ group.days }} с {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}</option>
                 {% endfor %}
                 </select>
             </div>
