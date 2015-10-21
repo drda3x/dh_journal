@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import datetime
+import re
 from django.shortcuts import render_to_response, redirect
 from auth import check_auth, log_out
 from django.template import RequestContext
@@ -56,7 +57,7 @@ def index_view(request):
 
         try:
             for prev, cur in prev_cur(context['groups']['other']):
-                if prev['name'].replace('[\s-]', '').lower() != cur['name'].replace('[\s-]', '').lower():
+                if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
                     context['groups']['other'].insert(context['groups']['other'].index(cur), {'name': 'divider'})
         except TypeError:
             pass
