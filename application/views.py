@@ -25,6 +25,20 @@ def custom_proc(request):
     }
 
 
+def prev_cur(arr):
+    itr = iter(arr[:])
+    prev = None
+
+    try:
+        prev = itr.next()
+    except StopIteration:
+        yield None
+
+    for elem in itr:
+        yield prev, elem
+        prev = elem
+
+
 def index_view(request):
 
     user = check_auth(request)
@@ -33,23 +47,19 @@ def index_view(request):
 
     if user:
 
-        # group_sort = {}
-        #
-        # def append(elem):
-        #     name = elem['name'].replace('[\s-]', '')
-        #     lst = group_sort.get(name)
-        #
-        #     if lst:
-        #         lst.append(elem)
-        #     else:
-        #         group_sort.update({name: [elem]})
-
         context = dict()
         context['user'] = user
         context['groups'] = get_groups_list(user)
         context['now'] = datetime.datetime.now().date()
 
-        # map(append, context['groups']['other'])
+        context['groups']['other'].sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+
+        try:
+            for prev, cur in prev_cur(context['groups']['other']):
+                if prev['name'].replace('[\s-]', '').lower() != cur['name'].replace('[\s-]', '').lower():
+                    context['groups']['other'].insert(context['groups']['other'].index(cur), {'name': 'divider'})
+        except TypeError:
+            pass
 
         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
