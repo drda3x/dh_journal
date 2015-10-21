@@ -32,10 +32,24 @@ def index_view(request):
     login_template = 'login.html'
 
     if user:
+
+        # group_sort = {}
+        #
+        # def append(elem):
+        #     name = elem['name'].replace('[\s-]', '')
+        #     lst = group_sort.get(name)
+        #
+        #     if lst:
+        #         lst.append(elem)
+        #     else:
+        #         group_sort.update({name: [elem]})
+
         context = dict()
         context['user'] = user
         context['groups'] = get_groups_list(user)
         context['now'] = datetime.datetime.now().date()
+
+        # map(append, context['groups']['other'])
 
         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
