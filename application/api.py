@@ -18,7 +18,6 @@ from application.models import Students, Passes, Groups, GroupList, PassTypes, L
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
-from project.settings import CLUB_CARD_ID
 
 
 # todo Сделать чтобы абонементы не могли пересекаться!!!!!
