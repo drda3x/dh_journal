@@ -18,6 +18,9 @@ from application.models import Students, Passes, Groups, GroupList, PassTypes, L
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
+from project.settings import CLUB_CARD_ID
+
+from application.system_api import delete_lessons as _delete_lessons
 
 
 # todo Сделать чтобы абонементы не могли пересекаться!!!!!
@@ -248,68 +251,8 @@ def delete_lessons(request):
         params = json.loads(request.GET['params'])
         date = datetime.datetime.strptime(params[0], '%d.%m.%Y')
         count = int(params[1])
-        lesson = None
-        passes = []
-        to_delete = []
-
-        for lesson in Lessons.objects.filter(
-            group_id=request.GET['gid'],
-            student_id=request.GET['stid'],
-            date__gte=date).order_by('date')[:count]:
-
-            try:
-                if lesson.group_pass not in passes:
-                    passes.append(lesson.group_pass)
-
-            except Exception:
-                pass
-
-            to_delete.append(lesson)
-
-        # passes += [
-        #     Passes.objects.filter(
-        #         group_id=request.GET['gid'],
-        #         student_id=request.GET['stid'],
-        #         start_date__gte=date,
-        #         lessons=0)
-        # ]
-
-        i_passes = iter(passes)
-        while count > 0:
-            try:
-                current_pass = i_passes.next()
-
-                # Если удаляемые занятия не относятся к мультикарте
-                if current_pass.one_group_pass:
-                    current_count = len(Lessons.objects.filter(group_pass=current_pass))
-
-                    if current_count <= count:
-                        current_pass.delete()
-                        count -= current_count
-                    else:
-                        current_pass.lessons -= (count if current_pass.lessons >= count else 0)
-                        current_pass.lessons_origin -= (count if current_pass.lessons >= count else 0)
-                        count = 0
-                        current_pass.save()
-
-                # Если относятся
-                else:
-                    current_count = len(filter(lambda x: x.group_pass == current_pass, to_delete))
-                    current_pass.lessons = current_pass.lessons_origin - (Lessons.objects.filter(group_pass=current_pass).count() - current_count)
-                    current_pass.save()
-
-            except StopIteration:
-                break
-
-        map(lambda l: l.delete(), to_delete)
-
-        return HttpResponse(json.dumps([
-            {
-                'pid': p.id,
-                'cnt': p.lessons
-            } for p in passes
-        ]))
-
+        result = _delete_lessons(request.GET['gid'], request.GET['stid'], date, count)
+        return HttpResponse(json.dumps(result))
     except Exception:
         print format_exc()
         return HttpResponseServerError('failed')
@@ -852,24 +795,23 @@ def change_group(request):
                 pass_lessons = Lessons.objects.filter(group_pass=p, date__gte=date)
                 pass_lessons_len = len(pass_lessons)
                 if pass_lessons_len > 0:
-                    p1 = copy.deepcopy(p)
-                    p1.pk = None
-                    p1.group = new_group
-                    p1.lessons = len(pass_lessons)
-                    p1.save()
-                    pass_lessons.update(group=new_group, group_pass=p1)
+                    new_pass = Passes(
+                        student=p.student,
+                        group=new_group,
+                        pass_type=p.pass_type,
+                        start_date=calendar[0],
+                        lessons=pass_lessons_len,
+                        skips=p.skips,
+                        lessons_origin=pass_lessons.filter(status=Lessons.STATUSES['not_processed']).count(),
+                        skips_origin=p.skips_origin,
+                        opener=request.user
+                    )
+                    new_pass.save()
 
-                    #todo Вот он - косяк!!!! Надо убрать это, или придумать нормальное определение кол-ва уроков 
-                    p.lessons -= pass_lessons_len
-                    if p.lessons <= 0:
-                        p.delete()
-                    else:
-                        p.save()
+                    wrapped = PassLogic.wrap(new_pass)
+                    wrapped.create_lessons(calendar[0], pass_lessons_len)
 
-            for rec in zip(calendar, lessons):
-                rec[1].date = rec[0]
-                rec[1].group = new_group
-                rec[1].save()
+                    _delete_lessons(p.group.id, p.student.id, calendar[0], pass_lessons_len)
 
             # if isinstance(add_status, HttpResponseServerError):
             #     return HttpResponseServerError('failed adding')
