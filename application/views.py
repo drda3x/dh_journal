@@ -5,7 +5,6 @@ from django.shortcuts import render_to_response, redirect
 from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
-from project.settings import CLUB_CARD_ID
 
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
