@@ -258,8 +258,12 @@ def delete_lessons(request):
             student_id=request.GET['stid'],
             date__gte=date).order_by('date')[:count]:
 
-            if lesson.group_pass not in passes:
-                passes.append(lesson.group_pass)
+            try:
+                if lesson.group_pass not in passes:
+                    passes.append(lesson.group_pass)
+
+            except Exception:
+                pass
 
             to_delete.append(lesson)
 
