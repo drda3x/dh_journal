@@ -859,6 +859,7 @@ def change_group(request):
                     p1.save()
                     pass_lessons.update(group=new_group, group_pass=p1)
 
+                    #todo Вот он - косяк!!!! Надо убрать это, или придумать нормальное определение кол-ва уроков 
                     p.lessons -= pass_lessons_len
                     if p.lessons <= 0:
                         p.delete()

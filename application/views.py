@@ -55,14 +55,14 @@ def index_view(request):
         other_groups = context['groups'].get('other')
 
         if other_groups:
-	        other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+            other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
 
-	        try:
-	            for prev, cur in prev_cur(other_groups):
-	                if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-	                    other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-	        except TypeError:
-	            pass
+            try:
+                for prev, cur in prev_cur(other_groups):
+                    if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
+                        other_groups.insert(other_groups.index(cur), {'name': 'divider'})
+            except TypeError:
+                pass
 
         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
