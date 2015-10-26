@@ -840,7 +840,7 @@ def get_club_card_detail(request):
         result_json = list()
         now = datetime.datetime.now().date()
 
-        if _pass.end_date < now - datetime.timedelta(days=14):
+        if not request.user.is_superuser and _pass.end_date < now - datetime.timedelta(days=14):
             return HttpResponseServerError('Club card out of date')
 
         def get_lesson(date):

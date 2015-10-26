@@ -69,7 +69,7 @@
         </tr>
         {% for p in passes %}
             {% if p.end_date < now %}
-            <tr {% if p.end_date < expire %} class="disabled" {% endif %} data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
+            <tr {% if not user.is_superuser and p.end_date < expire %} class="disabled" {% endif %} data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
                 <td class="cnt"></td>
                 <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
                 <td>{{ p.start_date }}</td>
