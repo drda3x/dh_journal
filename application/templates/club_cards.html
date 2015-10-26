@@ -29,7 +29,8 @@
             <th>Дата окончания</th>
             <th>Цена</th>
             <th>Преподаватель</th>
-            <th>Остаток</th>
+            <th>Остаток занятий</th>
+            <th>Остаток средств</th>
             {% if user.is_superuser %}<th>Списано за предыдущий месяц</th>{% endif %}
         </tr>
         {% for p in passes %}
@@ -40,7 +41,8 @@
                 <td>{{ p.end_date }}</td>
                 <td>{{ p.pass_type.prise }}</td>
                 <td>{{ p.opener.last_name }} {{ p.opener.first_name }}</td>
-                <td>{{ p.lessons }}</td>
+                <td data-prise="{{ p.one_lesson_prise }}">{{ p.lessons }}</td>
+                <td>{{ p.money }} р.</td>
                 {% if user.is_superuser %}<td>{{ p.prev_month }}</td>{% endif %}
             </tr>
         {% endfor %}

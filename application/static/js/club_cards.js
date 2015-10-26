@@ -79,8 +79,12 @@ window.ClubCards.init = function() {
     }
 
     function setLessons(tr, val) {
-        var v = (val > 0) ? val : 0;
-        tr.find('td:eq(6)').text(v)
+        var v = (val > 0) ? val : 0,
+            elem = tr.find('td:eq(6)'),
+            prise = parseFloat(elem.data('prise'));
+
+        elem.text(v);
+        elem.next().text((prise * val).toFixed(1).toString().replace('\.',',') + ' p.');
     }
 
     // Универсальная функция, должна сама определять что ей надо сделать с ячейкой...
