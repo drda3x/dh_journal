@@ -21,6 +21,9 @@
             </ul>
         </div>
     </div>
+
+    <!-- Действующие карты -->
+    <h4>Действующие карты</h4>
     <table id="all_passes" class="table table-bordered table-striped table-hover">
         <tr>
             <th>№</th>
@@ -34,8 +37,9 @@
             {% if user.is_superuser %}<th>Списано за предыдущий месяц</th>{% endif %}
         </tr>
         {% for p in passes %}
+            {% if p.end_date >= now %}
             <tr data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
-                <td>{{ forloop.counter }}</td>
+                <td class="cnt"></td>
                 <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
                 <td>{{ p.start_date }}</td>
                 <td>{{ p.end_date }}</td>
@@ -45,8 +49,49 @@
                 <td>{{ p.money }} р.</td>
                 {% if user.is_superuser %}<td>{{ p.prev_month }}</td>{% endif %}
             </tr>
+            {% endif %}
         {% endfor %}
     </table>
+
+    <!-- Истекшие карты -->
+    <h4>Истекшие карты</h4>
+    <table class="table table-bordered striped">
+        <tr>
+            <th>№</th>
+            <th>Фамилия Имя</th>
+            <th>Дата начала</th>
+            <th>Дата окончания</th>
+            <th>Цена</th>
+            <th>Преподаватель</th>
+            <th>Остаток занятий</th>
+            <th>Остаток средств</th>
+            {% if user.is_superuser %}<th>Списано за предыдущий месяц</th>{% endif %}
+        </tr>
+        {% for p in passes %}
+            {% if p.end_date < now %}
+            <tr {% if p.end_date < expire %} class="disabled" {% endif %} data-pid="{{ p.id }}" data-stid="{{ p.student.id }}">
+                <td class="cnt"></td>
+                <td>{{ p.student.last_name }} {{ p.student.first_name }}</td>
+                <td>{{ p.start_date }}</td>
+                <td>{{ p.end_date }}</td>
+                <td>{{ p.pass_type.prise }}</td>
+                <td>{{ p.opener.last_name }} {{ p.opener.first_name }}</td>
+                <td data-prise="{{ p.one_lesson_prise }}">{{ p.lessons }}</td>
+                <td>{{ p.money }} р.</td>
+                {% if user.is_superuser %}<td>{{ p.prev_month }}</td>{% endif %}
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+
+    <script type="text/javascript">
+        (function() {
+            var i = 1;
+            $('.cnt').map(function() {
+                $(this).text(i++);
+            })
+        })()
+    </script>
 
     <div id="multicard-add-menu" class="modal hide">
         <div class="content">

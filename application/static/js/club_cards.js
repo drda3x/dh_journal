@@ -248,7 +248,11 @@ window.ClubCards.init = function() {
     // todo ЭТО НАДО ПЕРЕДЕЛАТЬ, НО СЕЙЧАС МНЕ ЛЕНЬ!!!!
     var pass;
 
-    $('#all_passes tr').click(function() {
+    $('table tr').click(function() {
+
+        if($(this).hasClass('disabled')) {
+            return;
+        }
 
         resetWidget();
 

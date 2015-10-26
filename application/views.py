@@ -247,7 +247,8 @@ def club_cards(request):
     first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
     all_passes = Passes.objects\
         .filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from)\
-        .select_related('student').order_by('student__last_name', 'student__first_name')
+        .select_related('student').order_by('student__last_name', 'student__first_name')\
+        .order_by('-start_date')
     for _p in all_passes:
         _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
         _p.money = _p.lessons * _p.one_lesson_prise
@@ -291,6 +292,8 @@ def club_cards(request):
         lambda x: {'key':x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
         date_group_list
     )
+    context['expire'] = (now - datetime.timedelta(days=14)).date()
+    context['now'] = now.date()
     context['user'] = user
     context['date_list'].sort(key=lambda x: x['key'])
     context['groups'] = groups
