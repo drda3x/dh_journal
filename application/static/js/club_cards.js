@@ -250,7 +250,7 @@ window.ClubCards.init = function() {
 
     $('table tr').click(function() {
 
-        if($(this).hasClass('disabled')) {
+        if($(this).hasClass('disabled') || $(this).data('pid') == undefined) {
             return;
         }
 
