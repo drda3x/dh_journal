@@ -351,7 +351,8 @@ class MultiPass(BasePass):
     def set_lesson_attended(self, date, person=None, **kwargs):
 
         try:
-            kwargs['group'] = Groups.objects.get(pk=kwargs['group']) if isinstance(kwargs['group'], int) else kwargs['group']
+            if not isinstance(kwargs['group'], Groups):
+                kwargs['group'] = Groups.objects.get(pk=kwargs['group'])
 
         except Exception:
             raise TypeError('Expected group or group.id in kwargs')

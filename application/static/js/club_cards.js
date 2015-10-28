@@ -175,9 +175,18 @@ window.ClubCards.init = function() {
      */
     function drawWidget(htmlContainer, data, info) {
         htmlContainer.empty();
+
         $('#multicard-pass-menu .modal-header h4').text(
             info.tr.find('td:eq(1)').text()
         );
+
+        if(!info.tr.available) {
+            $('#multicard-pass-menu .modal-header').prepend(
+                '<strong class="text-error">только просмотр</strong>'
+            );
+
+            $('.delete_pass').hide();
+        }
 
         // Формируем таблички групп
         for(var i= 0, j= data.length; i<j; i++) {
@@ -191,7 +200,8 @@ window.ClubCards.init = function() {
             var group = data[i].group,
                 lessons = data[i].lessons;
 
-            div.prepend('<h4>'+group.name+'</h4');
+            div.prepend('<h4>'+group.name+'</h4>');
+
 
             for(var k= 0, m= lessons.length; k<m; k++) {
 
@@ -202,31 +212,35 @@ window.ClubCards.init = function() {
                 switch (lessons[k][1].status) {
                     case 1:
                         // Занятие доступно для списания
-                        td.append('<span class="write_off">списать</span>');
-                        td.click(get_handler({
-                            tr: info.tr,
-                            td: td,
-                            date: lessons[k][0],
-                            pid: info.pass,
-                            gid: group.id,
-                            stid: info.student,
-                            del: false
-                        }));
+                        if(info.tr.available) {
+                            td.append('<span class="write_off">списать</span>');
+                            td.click(get_handler({
+                                tr: info.tr,
+                                td: td,
+                                date: lessons[k][0],
+                                pid: info.pass,
+                                gid: group.id,
+                                stid: info.student,
+                                del: false
+                            }));
+                        }
                         break;
 
                     case 0:
                         // Занятие можно удалить
-                        td.append('<span class="write_off">удалить</span>');
+                        if(info.tr.available) {
+                            td.append('<span class="write_off">удалить</span>');
+                            td.click(get_handler({
+                                tr: info.tr,
+                                td: td,
+                                date: lessons[k][0],
+                                pid: info.pass,
+                                gid: group.id,
+                                stid: info.student,
+                                del: true
+                            }));
+                        }
                         td.css('background-color', '#ffd700');
-                        td.click(get_handler({
-                            tr: info.tr,
-                            td: td,
-                            date: lessons[k][0],
-                            pid: info.pass,
-                            gid: group.id,
-                            stid: info.student,
-                            del: true
-                        }));
                         break;
 
                     case -1:
@@ -250,7 +264,7 @@ window.ClubCards.init = function() {
 
     $('table tr').click(function() {
 
-        if($(this).hasClass('disabled') || $(this).data('pid') == undefined) {
+        if($(this).data('pid') == undefined) {
             return;
         }
 
@@ -266,6 +280,8 @@ window.ClubCards.init = function() {
             student: student,
             tr: $this
         };
+
+        $this.available = !$this.hasClass('disabled');
 
         htmlContainer = $('#pass-detail-container');
         htmlContainer.hide();
@@ -284,8 +300,10 @@ window.ClubCards.init = function() {
 
     function resetWidget() {
         var widget = $('#multicard-pass-menu');
+        $('#multicard-pass-menu .modal-header strong').remove();
         widget.find('h4').text('Загрузка данных...');
         widget.find('img').show();
+        $('.delete_pass').show();
     }
 
     $('#multicard-pass-menu .groups').click(function(event) {
@@ -324,6 +342,9 @@ window.ClubCards.init = function() {
     });
 
     $('#multicard-pass-menu .delete_pass').click(function() {
+
+
+
         $.ajax('deletemultypass', {
             data: {
                 ids: JSON.stringify([pass])

@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
 
+from django.utils.functional import cached_property
+
 from django import forms
-from application.models import Groups, WEEK, PassTypes
 from django.core.exceptions import ValidationError
+from application.models import Groups, WEEK, PassTypes
 
 
 class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
@@ -54,11 +56,24 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
         return value.split(',') if value and hasattr(value, 'split') else value
 
 
-class GroupsForm(forms.ModelForm):
+# При выполненнии syncdb код падал ибо не находил таблицу PassTypes
+# заменим класс в случае если не найдем таблицу
+try:
+    class GroupsForm(forms.ModelForm):
 
-    _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-    _available_passes = CommaSeparatedSelectIntegerWithUpdate(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
+        _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
+        _available_passes = CommaSeparatedSelectIntegerWithUpdate(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
 
-    class Meta:
-        model = Groups
-        fields = ['name', 'start_date', 'time', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']
+        class Meta:
+            model = Groups
+            fields = ['name', 'start_date', 'time', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']
+
+except Exception:
+        class GroupsForm(forms.ModelForm):
+
+            _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
+            _available_passes = None
+
+            class Meta:
+                model = Groups
+                fields = ['name', 'start_date', 'time', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']

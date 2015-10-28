@@ -95,8 +95,7 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
                 0
             ) - int(Debts.objects.filter(date=_day['date'], group=group).aggregate(total=Sum('val'))['total'] or 0)
 
-
-            buf['dance_hall'] = group.dance_hall.prise
+            buf['dance_hall'] = int(group.dance_hall.prise)
             buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
             buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0)
             buf['half_balance'] = round(buf['balance'] / 2, 1)
@@ -192,7 +191,7 @@ def get_group_students_list(_group, date_from=None, date_to=None):
     Получить список учеников из группы
     """
 
-    if not isinstance(_group, Groups) and not isinstance(_group, int):
+    if not isinstance(_group, Groups) and not isinstance(_group, int) and not isinstance(_group, long):
         raise TypeError('Expected Groups instance or group id!')
 
     group = _group if isinstance(_group, Groups) else Groups.objects.get(pk=_group)

@@ -93,8 +93,8 @@ li:hover {
     background-color: #cccccc !important;
 }
 
-.disabled:hover {
-    background-color: #cccccc !important;
+.tmain .disabled:hover {
+    background-color: #808080 !important;
 }
 
 .write_off {
