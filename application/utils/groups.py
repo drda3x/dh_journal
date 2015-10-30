@@ -195,9 +195,13 @@ def get_group_students_list(_group, date_from=None, date_to=None):
         raise TypeError('Expected Groups instance or group id!')
 
     group = _group if isinstance(_group, Groups) else Groups.objects.get(pk=_group)
+    group_list_qs = GroupList.objects.filter(group=group, active=True)
+
+    if not group_list_qs.exists():
+        return []
 
     students = Students.objects.filter(
-        pk__in=GroupList.objects.filter(group=group, active=True).values('student_id'),
+        pk__in=group_list_qs.values('student_id'),
         is_deleted=False
     ).extra(select={
         'active': 1

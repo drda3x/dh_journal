@@ -74,10 +74,10 @@ class Groups(models.Model):
 
     @property
     def last_lesson(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         _from = datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
         cnt = get_count_of_weekdays_per_interval(self.days, _from, now) + 1
-        return self.start_date if now < _from else filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
+        return self.start_date if now <= _from else filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
 
     def get_calendar(self, count, date_from=None, clean=True):
         start_date = date_from if date_from else self.start_date
