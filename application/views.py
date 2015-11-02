@@ -228,7 +228,7 @@ def club_cards(request):
     date_to = get_last_day_of_month(date_from)
 
     last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
-    down_border = (now.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+    down_border = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)).replace(day=1)
 
     context['control_data'] = {
         'constant': {

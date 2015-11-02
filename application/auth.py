@@ -42,6 +42,7 @@ def auth_decorator(func):
             return func(request)
 
         else:
+            from application.views import index_view
             return index_view(request)
 
     return process
