@@ -416,6 +416,17 @@ def get_passes(request):
         print format_exc()
         return HttpResponseServerError('failed')
 
+
+def delete_debt(group, student, date):
+    try:
+        debt = Debts.objects.get(group=group, student=student, date=date)
+        debt.delete()
+        return True
+
+    except Debts.DoesNotExist:
+        return False
+
+
 @auth_decorator
 def process_lesson(request):
 
@@ -487,13 +498,7 @@ def process_lesson(request):
 
                         wrapped = PassLogic.wrap(pass_orm_object)
                         attended_passes.append(wrapped)
-
-                        try:
-                            #Убираем долги, если они есть.
-                            map(lambda d: d.delete(), Debts.objects.filter(group=group, student=pass_orm_object.student, date=date))
-
-                        except Exception:
-                            pass
+                        delete_debt(group, pass_orm_object.student, date)
 
                     # Любой другой абонемент
                     else:
@@ -527,12 +532,13 @@ def process_lesson(request):
                             if date.date() <= group.last_lesson:
                                 attended_passes.append(wrapped)
 
-                            try:
-                                #Убираем долги, если они есть.
-                                map(lambda d: d.delete(), Debts.objects.filter(group=group, student=st, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
+                            #Убираем долги, если они есть.
+                            for _lesson in wrapped.lessons:
+                                if delete_debt(group, st, _lesson.date):
+                                    _lesson.status = Lessons.STATUSES['attended']
+                                    _lesson.save()
 
-                            except Exception:
-                                pass
+                                # map(lambda d: d.delete(), Debts.objects.filter(group=group, student=st, date__range=[wrapped.lessons[0].date, wrapped.lessons[-1].date]))
 
                     # old
                     if 'debt' in p.iterkeys():
