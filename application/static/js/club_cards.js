@@ -2,6 +2,34 @@ window.ClubCards = {};
 
 window.ClubCards.init = function() {
 
+    // Алерт
+    var $alert = $('.alert');
+    $alert.hide();
+    $alert.types = ['red', 'green'];
+    $alert.show = function(msg, type, hideAfter, fadeOut) {
+        this.text(msg);
+        this.css('display', 'inline-block');
+
+        for(var i= this.types.length - 1; i>=0; i--) {
+            this.removeClass(this.types[i]);
+        }
+
+        this.addClass(type);
+
+        if(hideAfter != undefined) {
+            if(fadeOut != undefined) {
+                setTimeout((function(context) {
+                    return function() {
+                        context.fadeOut(fadeOut);
+                    }
+                })(this), hideAfter)
+            } else {
+                setTimeout(this.hide, hideAfter)
+            }
+
+        }
+    };
+
     function processData(url, params, callback) {
         $.ajax({
             method: 'GET',
@@ -256,6 +284,24 @@ window.ClubCards.init = function() {
 
             htmlContainer.append(div);
         }
+
+      var clear_pass = $('.clear_pass');
+      clear_pass.off('click');
+
+      clear_pass.click(function() {
+        if(!confirm('Подтвердите списание остатка!')) {
+          return
+        }
+        processData('writeoffpass', {ids: JSON.stringify([info.pass])}, function(err, data) {
+          if(err) {
+            $alert.show('Не удалось списать остаток', 'red', 2500, 1500);
+          }
+          info.tr.find('td:eq(6)').text('0');
+          info.tr.find('td:eq(7)').text('0,0 р.');
+          $alert.show('Остаток списан', 'green', 2500, 1500);
+        })
+      });
+
     }
 
     // todo ТАК ДЕЛАТЬ НЕ НАДО!!!!
@@ -355,5 +401,7 @@ window.ClubCards.init = function() {
             console.log(err.responseText);
         });
     });
+
+
 
 }

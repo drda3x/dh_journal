@@ -122,12 +122,16 @@ class Groups(models.Model):
 
         return res
 
+    @property
+    def end_datetime(self):
+        return datetime.datetime.combine(self.end_date, datetime.datetime.min.time()) if self.end_date else None
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
 
         if not self.is_opened and not self.end_date:
             self.end_date = datetime.datetime.now()
-        elif self.is_opened:
-            self.end_date = None
+        # elif self.is_opened:
+        #     self.end_date = None
 
         super(Groups, self).save(force_insert, force_update, using, update_fields)
 

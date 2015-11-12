@@ -330,7 +330,7 @@ def write_off_the_pass(request):
     """
 
     try:
-        ids=json.loads(request.GET['ids'])
+        ids = json.loads(request.GET['ids'])
         passes = Passes.objects.filter(pk__in=ids)
         processed = ((p.id, PassLogic.wrap(p).write_off()) for p in passes)
 

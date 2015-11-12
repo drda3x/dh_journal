@@ -131,3 +131,19 @@ li:hover {
     width: 40%;
     border-right: 0 !important;
 }
+
+.red {
+    background-color: #f2dede;
+    border-color: #eed3d7;
+    color: #b94a48;
+}
+
+.green {
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+    color: #468847;
+}
+
+.ib {
+    display: inline-block;
+}

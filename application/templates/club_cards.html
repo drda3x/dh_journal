@@ -147,12 +147,15 @@
     <div id="multicard-pass-menu" class="modal hide">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4></h4>
+            <h4 style="width: 300px; display: inline-block"></h4><div class="alert ib" style="width: 200px; z-index: 9999; margin-bottom: 0; text-align: center"></div>
         </div>
         <img style="margin: 10px auto; display: block" src="../static/img/loader.GIF">
         <div id="pass-detail-container">
         </div>
         <div class="modal-footer">
+            {% if user.is_superuser %}
+            <button class="btn clear_pass">Списать остатки</button>
+            {% endif %}
             <button class="btn btn-danger delete_pass" data-dismiss="modal">Удалить абонемент</button>
             <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
         </div>

@@ -101,7 +101,7 @@ def group_detail_view(request):
         if date_from.date() < group.start_date:
             date_from = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
 
-        date_to = get_last_day_of_month(date_from)
+        date_to = group.end_datetime or get_last_day_of_month(date_from)
         forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
         border = datetime.datetime.combine(group.start_date, datetime.datetime.min.time()).replace(day=1)
 
