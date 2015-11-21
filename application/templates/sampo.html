@@ -15,7 +15,7 @@
                 <div class="control-group">
                     <label class="control-label" for="inputTime">Время</label>
                     <div class="controls">
-                        <input class="input-small" id="inputTime" type="time" />
+                        <input class="input-small time" id="inputTime" type="time" />
                     </div>
                 </div>
                 <div class="control-group">
@@ -41,16 +41,16 @@
             <h4>Абонементы</h4>
 
             <form class="form-search to_fd center">
-                <div class="input-append">
-                    <input type="text" class="input-large search-query">
-                    <button type="submit" class="btn">Найти</button>
+                <div class="input-prepend">
+                    <span style="font-size: 12pt;" class="add-on">Поиск</span>
+                    <input class="input-large" id="prependedInput" size="16" type="text">
                 </div>
                 <button id="addButton" style="color: #2e8b57" type="button" class="btn extra_big_font">+</button>
             </form>
             <ul id="sampo_passes" class="form-horizontal to_fd offset3">
-                {% for num in '123456789' %}
+                {% for pass in passes %}
                     <li><label class="inline checkbox">
-                      <input type="checkbox"> Абонемент {{ num }}
+                      <input type="checkbox"> {{ pass }}
                     </label></li>
                 {% endfor %}
             </ul>
@@ -60,7 +60,7 @@
                         <label class="control-label" for="inputTime">Время</label>
 
                         <div class="controls">
-                            <input class="input-small" id="inputTime" type="text"/>
+                            <input class="input-small time" id="inputTime" type="time"/>
                         </div>
                     </div>
                     <div class="control-group">
