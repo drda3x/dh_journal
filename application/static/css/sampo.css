@@ -1,0 +1,26 @@
+h4 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#sampo_passes {
+    list-style: none;
+    font-size: 15pt;
+}
+
+#sampo_passes li {
+    margin: 15px 0;
+}
+
+.extra_big_font {
+    font-size: 25pt;
+}
+
+.center {
+    text-align: center !important;
+}
+
+.inline {
+    display: inline !important;
+    padding: 0 !important;
+}

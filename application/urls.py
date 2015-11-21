@@ -58,5 +58,6 @@ urlpatterns += [
     url(r'history', views.history_view),
     url(r'changegroup', api.change_group),
     url(r'getmcdetai', api.get_club_card_detail),
+    url(r'sampo', views.sampo_view),
     url(r'', views.index_view)
 ]

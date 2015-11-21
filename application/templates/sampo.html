@@ -1,5 +1,90 @@
 {% block head %}
+    <link rel="stylesheet" href="../static/css/sampo.css" />
+    <script type="text/javascript" src="../static/js/sampo.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            window.sampoLogic();
+        }
+    </script>
 {% endblock %}
 {% block body %}
-    <p>Интерфейс админа сампо</p>
+    <div class="row-fluid">
+        <div class="span4 offset2">
+            <h4>Оплата наличными</h4>
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputTime">Время</label>
+                    <div class="controls">
+                        <input class="input-small" id="inputTime" type="time" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputCount">Кол-во людей</label>
+                    <div class="controls">
+                        <input class="input-small" id="inputCount" type="number" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputMoney">Сумма</label>
+                    <div class="controls">
+                        <input class="input-small" id="inputMoney" type="number" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button type="submit" class="btn">Внести</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="span4">
+            <h4>Абонементы</h4>
+
+            <form class="form-search to_fd center">
+                <div class="input-append">
+                    <input type="text" class="input-large search-query">
+                    <button type="submit" class="btn">Найти</button>
+                </div>
+                <button id="addButton" style="color: #2e8b57" type="button" class="btn extra_big_font">+</button>
+            </form>
+            <ul id="sampo_passes" class="form-horizontal to_fd offset3">
+                {% for num in '123456789' %}
+                    <li><label class="inline checkbox">
+                      <input type="checkbox"> Абонемент {{ num }}
+                    </label></li>
+                {% endfor %}
+            </ul>
+            <div id="addSampoPass" style="display: none">
+                <form class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" for="inputTime">Время</label>
+
+                        <div class="controls">
+                            <input class="input-small" id="inputTime" type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputSurname">Фамилия</label>
+
+                        <div class="controls">
+                            <input class="input-large" id="inputSurname" type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputName">Имя</label>
+
+                        <div class="controls">
+                            <input class="input-large" id="inputName" type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="submit" class="btn btn-primary">Внести</button>
+                            <button id="cancelButton" class="btn offset1">Отмена</button>
+                        </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}

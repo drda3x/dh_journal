@@ -320,3 +320,12 @@ def history_view(request):
     }
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+@auth_decorator
+def sampo_view(request):
+
+    context = dict()
+    context['load_in_frame'] = True
+    template = 'sampo_full.html'
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
