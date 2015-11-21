@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
+    {% if user.teacher %}
     <script type="text/javascript">
         $(document).ready(function() {
 
@@ -43,6 +44,7 @@
             $frame.height(h);
         }
     </script>
+    {% endif %}
 {% endblock %}
 {% block body %}
     <div class="navbar navbar-fixed-top">
@@ -68,6 +70,7 @@
             </div>
         </div>
     </div>
+    {% if user.teacher %}
     <div style="padding-top: 20px; margin: 35px" class="container-fluid">
         <div class="row-fluid">
             <div class="span2">
@@ -89,6 +92,9 @@
                     <li class="nav-header"><h5 style="margin: 0">Клуб:</h5></li>
                     <li><a class="group" href="clubcards">Клубные карты</a></li>
                     <li><a class="group" href="history">Закрытые группы</a></li>
+                    {% if user.sampo_admin %}
+                        <li><a class="group" href="sampo">САМПО</a></li>
+                    {% endif %}
                 </ul>
             </div>
             <div class="span10">
@@ -96,4 +102,9 @@
             </div>
         </div>
     </div>
+    {% elif user.sampo_admin %}
+        <div style="padding-top: 20px; margin: 35px" class="container-fluid">
+            {% include "sampo.html" %}
+        </div>
+    {% endif %}
 {% endblock %}
