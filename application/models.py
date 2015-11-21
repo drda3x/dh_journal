@@ -18,6 +18,8 @@ class User(UserOrigin):
         return '%s %s' % (self.last_name, self.first_name)
 
     objects = UserManager
+    teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
+    sampo_admin = models.BooleanField(verbose_name=u'Администратор САМПО', default=False)
 
     class Meta:
         app_label = u'application'

@@ -40,9 +40,9 @@ class CustomUserAdmin(UserAdmin):
         (u'Personal_info', {'fields': (
                 'first_name', 'last_name', 'email'
             )}),
-        (u'Roles', {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_permissions')}),
-        (u'Dates', {'fields': ('last_login', 'date_joined')}),
-        (u'Groups', {'fields': ('groups',)}),
+        (u'Roles', {'fields': ('is_active', 'is_staff', 'teacher', 'sampo_admin', 'is_superuser', 'user_permissions')}),
+        # (u'Dates', {'fields': ('last_login', 'date_joined')}),
+        # (u'Groups', {'fields': ('groups',)}),
     )
 
 admin.site.unregister(User)
