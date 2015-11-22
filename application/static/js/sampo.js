@@ -14,18 +14,25 @@ window.sampoLogic = (function () {
     return ('0' + val).slice(-2);
   }
 
-  function init() {
-    $('#addButton').click(function() {
-      $('.to_fd').fadeOut(fadeOutParam, function() {
+  function showAddPassForm() {
+    $('.to_fd').fadeOut(fadeOutParam, function() {
         $('#addSampoPass').fadeIn(fadeOutParam);
       });
+  }
+
+  function hideAddPassForm() {
+    $('#addSampoPass').fadeOut(fadeOutParam, function() {
+        $('.to_fd').fadeIn(fadeOutParam);
+      });
+  }
+
+  function init() {
+    $('#addButton').click(function() {
+      showAddPassForm();
     });
 
     $('#cancelButton').click(function() {
-      $('#addSampoPass').fadeOut(fadeOutParam, function() {
-        $('.to_fd').fadeIn(fadeOutParam);
-      });
-
+      hideAddPassForm();
       return false;
     });
 
@@ -92,13 +99,18 @@ window.sampoLogic = (function () {
 
     StartAutoUpd();
 
-    var buffer = {};
+    var buffer;
 
-    $('#sampo_passes li').each(function () {
-      var val = $(this).text().replace(/\s/g, '').toLowerCase();
-      buffer[val] = $(this);
-    });
-    console.log(buffer);
+    function refreshBuffer() {
+      buffer = {};
+      $('#sampo_passes li').each(function () {
+        var val = $(this).text().replace(/\s/g, '').toLowerCase();
+        buffer[val] = $(this);
+      });
+    }
+
+    refreshBuffer();
+
     $('#prependedInput').keyup(function() {
       var curval = $(this).val().toLowerCase(),
           re = new RegExp(curval);
@@ -109,9 +121,86 @@ window.sampoLogic = (function () {
         } else {
           buffer[name].hide();
         }
-        //console.log(name, curval, name.search(re));
       }
-    })
+    });
+
+    function clearForms() {
+      $('input').val('');
+    }
+
+    $('.submitBtn').click(function (event) {
+
+      event.stopPropagation();
+
+      var data = {};
+
+      if($(this).hasClass('btn2')) {
+        data.passes = {};
+
+        $('#addSampoPass input').each(function() {
+          data.passes[$(this).attr('name')] = $(this).val();
+        });
+      } else {
+        data.payments = {};
+        $('#cash-payment input').each(function() {
+          data.payments[$(this).attr('name')] = $(this).val();
+        });
+      }
+
+      clearForms();
+
+      $.ajax('/sampo', {
+        data: {
+          action: 'add',
+          data :JSON.stringify(data)
+        }
+      }).success(function(json) {
+          if(json != undefined) {
+            var response = JSON.parse(json);
+
+            $('#sampo_passes').append(
+               '<li><label class="inline checkbox">' +
+               '<input type="checkbox" value="'+ response.pid +'">' + data.passes.surname +' '+ data.passes.name +
+               '</label></li>'
+            );
+
+            refreshBuffer();
+            hideAddPassForm();
+          }
+      });
+
+      return false
+    });
+
+    $('#sampo_passes li').click(function(event) {
+
+      event.preventDefault();
+
+      var confirm_msg = $(this).find('label').text().replace(/^\s*/, ''),
+          input = $(this).find('input'),
+          action;
+
+      if(input.is(':checked')) {
+        confirm_msg += '\nСнять отметку о посещении?';
+        input.removeAttr('checked');
+        action = 'uncheck'
+      } else {
+        confirm_msg += '\nОтметить абонемент?';
+        input.prop('checked', true);
+        action = 'check'
+      }
+
+      if(confirm(confirm_msg)) {
+        $.ajax('/sampo', {
+          data: {
+            action: action,
+            pid: input.val()
+          }
+        }).success(function (json) {
+
+        });
+      }
+    });
   }
 
   return init;

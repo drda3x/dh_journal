@@ -468,3 +468,13 @@ class SampoPasses(models.Model):
     class Meta:
         app_label = u'application'
         verbose_name = u'Абонементы САМПО'
+
+
+class SampoPassUsage(models.Model):
+
+    sampo_pass = models.ForeignKey(SampoPasses, verbose_name=u'Абонемент')
+    date = models.DateTimeField(verbose_name=u'Время')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Отметки о посещении сампо'

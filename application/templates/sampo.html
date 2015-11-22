@@ -11,28 +11,28 @@
     <div class="row-fluid">
         <div class="span4 offset2">
             <h4>Оплата наличными</h4>
-            <form class="form-horizontal">
+            <form id="cash-payment" class="form-horizontal">
                 <div class="control-group">
                     <label class="control-label" for="inputTime">Время</label>
                     <div class="controls">
-                        <input class="input-small time" id="inputTime" type="time" />
+                        <input class="input-small time" id="inputTime" name="time" type="time" />
                     </div>
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="inputCount">Кол-во людей</label>
                     <div class="controls">
-                        <input class="input-small" id="inputCount" type="number" />
+                        <input class="input-small" id="inputCount" name="peopleCnt" type="number" />
                     </div>
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="inputMoney">Сумма</label>
                     <div class="controls">
-                        <input class="input-small" id="inputMoney" type="number" />
+                        <input class="input-small" id="inputMoney" name="count" type="number" />
                     </div>
                 </div>
                 <div class="control-group">
                     <div class="controls">
-                        <button type="submit" class="btn">Внести</button>
+                        <button type="submit" class="btn submitBtn btn1">Внести</button>
                     </div>
                 </div>
             </form>
@@ -50,7 +50,7 @@
             <ul id="sampo_passes" class="form-horizontal to_fd offset3">
                 {% for pass in passes %}
                     <li><label class="inline checkbox">
-                      <input type="checkbox"> {{ pass }}
+                      <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
                     </label></li>
                 {% endfor %}
             </ul>
@@ -60,26 +60,26 @@
                         <label class="control-label" for="inputTime">Время</label>
 
                         <div class="controls">
-                            <input class="input-small time" id="inputTime" type="time"/>
+                            <input class="input-small time" id="inputTime" name="time" type="time"/>
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label" for="inputSurname">Фамилия</label>
 
                         <div class="controls">
-                            <input class="input-large" id="inputSurname" type="text"/>
+                            <input class="input-large" id="inputSurname" name="surname" type="text"/>
                         </div>
                     </div>
                     <div class="control-group">
                         <label class="control-label" for="inputName">Имя</label>
 
                         <div class="controls">
-                            <input class="input-large" id="inputName" type="text"/>
+                            <input class="input-large" id="inputName" name="name" type="text"/>
                         </div>
                     </div>
                     <div class="control-group">
                         <div class="controls">
-                            <button type="submit" class="btn btn-primary">Внести</button>
+                            <button type="submit" class="btn btn-primary submitBtn btn2">Внести</button>
                             <button id="cancelButton" class="btn offset1">Отмена</button>
                         </div>
                 </div>

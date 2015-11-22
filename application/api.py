@@ -14,7 +14,7 @@ from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
 from application.utils.date_api import get_count_of_weekdays_per_interval
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts, SampoPayments, SampoPasses, SampoPassUsage
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
@@ -882,4 +882,85 @@ def get_club_card_detail(request):
 
     except Exception:
         format_exc()
+        return HttpResponseServerError('failed')
+
+
+def add_sampo_payment(request):
+
+    request_body = json.loads(request.GET['data'])
+
+    payments = request_body.get('payments')
+    passes = request_body.get('passes')
+
+    now = datetime.datetime.now().replace(second=0, microsecond=0)
+    hhmm = payments['time'] if payments else passes['time'] if passes else None
+    if hhmm:
+        hhmm = map(lambda x: int(x), hhmm.split(':'))
+        now.replace(hour=hhmm[0], minute=hhmm[1])
+
+    if payments and payments['peopleCnt'] and payments['count']:
+
+        new_payment = SampoPayments(
+            date=now,
+            staff=request.user,
+            people_count=int(payments['peopleCnt']),
+            money=int(payments['count'])
+        )
+        new_payment.save()
+
+        return HttpResponse(200)
+
+    elif passes and passes['name'] and passes['surname']:
+
+        new_payment = SampoPayments(
+            date=now,
+            staff=request.user,
+            people_count=1,
+            money=1500
+        )
+        new_payment.save()
+
+        new_pass = SampoPasses(
+            name=passes['name'],
+            surname=passes['surname'],
+            payment=new_payment
+        )
+        new_pass.save()
+
+        return HttpResponse(json.dumps({'pid': new_pass.id}))
+
+    else:
+        return HttpResponseServerError('Not all variables')
+
+
+def check_uncheck_sampo(request):
+
+    action = request.GET.get('action')
+    now = datetime.datetime.now()
+
+    if action == 'check':
+        new_usage = SampoPassUsage(
+            sampo_pass_id=int(request.GET['pid']),
+            date=now
+        )
+
+        new_usage.save()
+
+        return HttpResponse(200)
+
+    elif action == 'uncheck':
+        last_usage = SampoPassUsage.objects.filter(
+            sampo_pass_id=int(request.GET['pid']),
+            date__range=(
+                now.replace(hour=0, minute=0, second=0, microsecond=0),
+                now.replace(hour=23, minute=59, second=59, microsecond=999999)
+            )
+        ).last()
+
+        if last_usage:
+            last_usage.delete()
+
+        return HttpResponse(200)
+
+    else:
         return HttpResponseServerError('failed')

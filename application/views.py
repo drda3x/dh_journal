@@ -9,7 +9,7 @@ from django.template.context_processors import csrf
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes
+from application.models import Lessons, User, Passes, SampoPasses, SampoPassUsage
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 
@@ -325,7 +325,27 @@ def history_view(request):
 @auth_decorator
 def sampo_view(request):
 
+    from application.api import add_sampo_payment, check_uncheck_sampo
+
+    actions = {
+        'add': add_sampo_payment,
+        'check': check_uncheck_sampo,
+        'uncheck': check_uncheck_sampo
+    }
+
+    action = request.GET.get('action')
+
+    if action:
+        return actions[action](request)
+
+    now = datetime.datetime.now()
+    day_begin = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    begin_time = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_time = (begin_time + datetime.timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+
     context = dict()
-    context['passes'] = ['Иванов Иван', 'Петров Петр', 'Сидоров Константин', 'Синегал Синь']
+    pass_usages = SampoPassUsage.objects.filter(date__range=(day_begin, day_end)).values_list('sampo_pass_id', flat=True)
+    context['passes'] = map(lambda x: setattr(x, 'used_today', x.id in pass_usages) or x, SampoPasses.objects.select_related('payment').filter(payment__date__range=[begin_time, end_time]))
     template = 'sampo_full.html'
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
