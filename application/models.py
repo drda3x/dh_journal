@@ -445,3 +445,26 @@ class Lessons(models.Model):
     class Meta:
         app_label = u'application'
         verbose_name = u'Журнал посещения'
+
+
+class SampoPayments(models.Model):
+
+    date = models.DateTimeField(verbose_name=u'Время оплаты')
+    staff = models.ForeignKey(User, verbose_name=u'Администратор САМПО')
+    people_count = models.PositiveIntegerField(verbose_name=u'Количество людей')
+    money = models.PositiveIntegerField(verbose_name=u'Сумма')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Оплата сампо'
+
+
+class SampoPasses(models.Model):
+
+    name = models.TextField(verbose_name=u'Имя')
+    surname = models.TextField(verbose_name=u'фамилия')
+    payment = models.ForeignKey(SampoPayments, verbose_name=u'Оплата абонемента')
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Абонементы САМПО'
