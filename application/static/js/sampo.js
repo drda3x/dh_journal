@@ -194,10 +194,9 @@ window.sampoLogic = (function () {
         $.ajax('/sampo', {
           data: {
             action: action,
-            pid: input.val()
+            pid: input.val(),
+            time: $('#addSampoPass #inputTime').val()
           }
-        }).success(function (json) {
-
         });
       }
     });

@@ -936,7 +936,8 @@ def add_sampo_payment(request):
 def check_uncheck_sampo(request):
 
     action = request.GET.get('action')
-    now = datetime.datetime.now()
+    hhmm = map(lambda x: int(x), request.GET['time'].split(':'))
+    now = datetime.datetime.now().replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
 
     if action == 'check':
         new_usage = SampoPassUsage(
