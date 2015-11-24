@@ -350,5 +350,5 @@ def sampo_view(request):
     context = dict()
     pass_usages = SampoPassUsage.objects.filter(date__range=(day_begin, day_end)).values_list('sampo_pass_id', flat=True)
     context['passes'] = map(lambda x: setattr(x, 'used_today', x.id in pass_usages) or x, SampoPasses.objects.select_related('payment').filter(payment__date__range=[begin_time, end_time]))
-    template = 'sampo_full.html'
+    template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
