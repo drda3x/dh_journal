@@ -174,19 +174,17 @@ window.sampoLogic = (function () {
 
     $('#sampo_passes li').click(function(event) {
 
-      event.preventDefault();
+      //event.preventDefault();
 
       var confirm_msg = $(this).find('label').text().replace(/^\s*/, ''),
           input = $(this).find('input'),
           action;
 
-      if(input.is(':checked')) {
+      if(!input.is(':checked')) {
         confirm_msg += '\nСнять отметку о посещении?';
-        input.removeAttr('checked');
         action = 'uncheck'
       } else {
         confirm_msg += '\nОтметить абонемент?';
-        input.prop('checked', true);
         action = 'check'
       }
 
