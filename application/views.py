@@ -67,6 +67,9 @@ def index_view(request):
                 except TypeError:
                     pass
 
+        elif user.sampo_admin:
+            return sampo_view(request)
+
         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
     else:
