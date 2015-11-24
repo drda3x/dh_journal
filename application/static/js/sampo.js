@@ -172,7 +172,7 @@ window.sampoLogic = (function () {
       return false
     });
 
-    $('#sampo_passes li').click(function(event) {
+    $('#sampo_passes li').change(function(event) {
 
       //event.preventDefault();
 
