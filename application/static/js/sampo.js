@@ -26,16 +26,7 @@ window.sampoLogic = (function () {
       });
   }
 
-  function init() {
-    $('#addButton').click(function() {
-      showAddPassForm();
-    });
-
-    $('#cancelButton').click(function() {
-      hideAddPassForm();
-      return false;
-    });
-
+  function addClockBehavior() {
     var input_time = $('input.time');
 
     input_time.keypress(function(event) {
@@ -98,7 +89,59 @@ window.sampoLogic = (function () {
     }
 
     StartAutoUpd();
+  }
 
+  function getFormData(button) {
+
+    var data = {};
+
+    if(button.hasClass('btn2')) {
+      data.passes = {};
+
+      $('#addSampoPass input').each(function() {
+        data.passes[$(this).attr('name')] = $(this).val();
+      });
+    } else {
+      data.payments = {};
+      $('#cash-payment input').each(function() {
+        data.payments[$(this).attr('name')] = $(this).val();
+      });
+    }
+
+    return data;
+  }
+
+  function sendRequest(options, successCallBack, errorCallBack) {
+    $.ajax('/sampo', {
+        data: options
+      })
+      .success(successCallBack)
+      .error(errorCallBack);
+  }
+
+  function errorProcess() {}
+
+  function successProcess(json) {
+    if(json != undefined) {
+          var response = JSON.parse(json);
+
+        try {
+          $('#sampo_passes').append(
+             '<li><label class="inline checkbox">' +
+             '<input type="checkbox" value="'+ response.pid +'">' + data.passes.surname +' '+ data.passes.name +
+             '</label></li>'
+          );
+
+          refreshBuffer();
+          hideAddPassForm();
+        } catch(e) {
+          //todo вообще так делать нельзя пришли нормальный ответ от сервера и обработай его!!!!
+        }
+
+        }
+  }
+
+  function addSearchBehavior() {
     var buffer;
 
     function refreshBuffer() {
@@ -123,58 +166,39 @@ window.sampoLogic = (function () {
         }
       }
     });
+  }
 
-    function clearForms() {
+  function clearForms() {
       $('input').val('');
     }
 
+  function init() {
+    $('#addButton').click(function() {
+      showAddPassForm();
+    });
+
+    $('#cancelButton').click(function() {
+      hideAddPassForm();
+      return false;
+    });
+
+    addClockBehavior();
+    addSearchBehavior();
+
     $('.submitBtn').click(function (event) {
-
       event.stopPropagation();
-
-      var data = {};
-
-      if($(this).hasClass('btn2')) {
-        data.passes = {};
-
-        $('#addSampoPass input').each(function() {
-          data.passes[$(this).attr('name')] = $(this).val();
-        });
-      } else {
-        data.payments = {};
-        $('#cash-payment input').each(function() {
-          data.payments[$(this).attr('name')] = $(this).val();
-        });
-      }
+      var data = getFormData($(this));
 
       clearForms();
-
-      $.ajax('/sampo', {
-        data: {
-          action: 'add',
-          data :JSON.stringify(data)
-        }
-      }).success(function(json) {
-          if(json != undefined) {
-            var response = JSON.parse(json);
-
-            $('#sampo_passes').append(
-               '<li><label class="inline checkbox">' +
-               '<input type="checkbox" value="'+ response.pid +'">' + data.passes.surname +' '+ data.passes.name +
-               '</label></li>'
-            );
-
-            refreshBuffer();
-            hideAddPassForm();
-          }
-      });
+      sendRequest({
+        action: 'add',
+        data: JSON.stringify(data)
+      }, successProcess, errorProcess);
 
       return false
     });
 
     $('#sampo_passes li').change(function(event) {
-
-      //event.preventDefault();
 
       var confirm_msg = $(this).find('label').text().replace(/^\s*/, ''),
           input = $(this).find('input'),
@@ -189,12 +213,10 @@ window.sampoLogic = (function () {
       }
 
       if(confirm(confirm_msg)) {
-        $.ajax('/sampo', {
-          data: {
-            action: action,
-            pid: input.val(),
-            time: $('#addSampoPass #inputTime').val()
-          }
+        sendRequest({
+          action: action,
+          pid: input.val(),
+          time: $('#addSampoPass #inputTime').val()
         });
       }
     });

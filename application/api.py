@@ -898,12 +898,12 @@ def add_sampo_payment(request):
         hhmm = map(lambda x: int(x), hhmm.split(':'))
         now.replace(hour=hhmm[0], minute=hhmm[1])
 
-    if payments and payments['peopleCnt'] and payments['count']:
+    if payments and payments['count']:
 
         new_payment = SampoPayments(
             date=now,
             staff=request.user,
-            people_count=int(payments['peopleCnt']),
+            people_count=0,  # Кудрявцев сказал убрать
             money=int(payments['count'])
         )
         new_payment.save()
