@@ -357,8 +357,10 @@ class MultiPass(BasePass):
         except Exception:
             raise TypeError('Expected group or group.id in kwargs')
 
-        wright_type = lambda x: x.date() if isinstance(x, datetime.datetime) else x
-        if not wright_type(self.orm_object.start_date) <= wright_type(date) <= wright_type(self.orm_object.end_date):
+        def right_type(x):
+            return x.date() if isinstance(x, datetime.datetime) else x
+
+        if not right_type(self.orm_object.start_date) <= right_type(date) <= right_type(self.orm_object.end_date):
             return
 
         if not Lessons.objects.filter(group=kwargs['group'], student=self.orm_object.student, date=date).exists():
@@ -391,11 +393,14 @@ class PassLogic(object):
         # Определяем и возвращаем тип абонемента
         if not pass_type.one_group_pass:
             obj.group = None
-            obj.end_date = datetime.date(
-                obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
-                obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
-                obj.start_date.day
-            )
+
+            if not obj.end_date:
+                obj.end_date = datetime.date(
+                    obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
+                    obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
+                    obj.start_date.day
+                )
+
             obj.save()
             return MultiPass(obj)
 
