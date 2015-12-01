@@ -861,7 +861,7 @@ def get_club_card_detail(request):
 
             return lesson
 
-        for group in get_student_groups(student):
+        for group in get_student_groups(student, include_closed=True):
             days = get_count_of_weekdays_per_interval(group.days, _pass.start_date, _pass.end_date)
             group_calendar = group.get_calendar(days, _pass.start_date)
             lessons_statuses = map(get_lesson, group_calendar)
