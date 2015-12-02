@@ -18,6 +18,7 @@ from application.models import Students, Passes, Groups, GroupList, PassTypes, L
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
+from application.utils.sampo import get_sampo_details
 
 from application.system_api import delete_lessons as _delete_lessons
 
@@ -910,7 +911,12 @@ def add_sampo_payment(request):
         )
         new_payment.save()
 
-        return HttpResponse(200)
+        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+
+        return HttpResponse(
+            json.dumps({
+                'payments': payments
+            }))
 
     elif passes and passes['name'] and passes['surname']:
 
@@ -929,7 +935,13 @@ def add_sampo_payment(request):
         )
         new_pass.save()
 
-        return HttpResponse(json.dumps({'pid': new_pass.id}))
+        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+
+        return HttpResponse(
+            json.dumps({
+                'pid': new_pass.id,
+                'payments': payments
+            }))
 
     else:
         return HttpResponseServerError('Not all variables')
@@ -949,7 +961,13 @@ def check_uncheck_sampo(request):
 
         new_usage.save()
 
-        return HttpResponse(200)
+        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+
+        _json = json.dumps({
+            'payments': payments
+        })
+
+        return HttpResponse(_json)
 
     elif action == 'uncheck':
         last_usage = SampoPassUsage.objects.filter(
@@ -963,7 +981,13 @@ def check_uncheck_sampo(request):
         if last_usage:
             last_usage.delete()
 
-        return HttpResponse(200)
+        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+
+        _json = json.dumps({
+            'payments': payments
+        })
+
+        return HttpResponse(_json)
 
     else:
         return HttpResponseServerError('failed')

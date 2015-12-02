@@ -82,17 +82,21 @@
         </div>
         <div {% if user.teacher %} class="span3" {% else %} class="span3 offset1" {% endif %}>
             <h4>Журнал</h4>
-           <table class="table table-bordered table-striped">
-            <tr>
-                <th>Время</th>
-                <th>Сумма/Абонемент</th>
-            </tr>
+           <table id="payments" class="table table-bordered table-striped">
+            <thead>
+               <tr>
+                    <th>Время</th>
+                    <th>Сумма/Абонемент</th>
+               </tr>
+            </thead>
+            <tbody>
             {% for payment in today_payments %}
                 <tr>
                      <td>{{ payment.date }}</td>
                      <td>{{ payment.payment }}</td>
                 </tr>
             {% endfor %}
+            </tbody>
             </table>
         </div>
     </div>

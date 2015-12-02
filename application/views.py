@@ -11,9 +11,10 @@ from django.template.context_processors import csrf
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, SampoPasses, SampoPassUsage, SampoPayments
+from application.models import Lessons, User, Passes
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
+from application.utils.sampo import get_sampo_details
 
 from models import Groups, Students, User, PassTypes
 
@@ -343,53 +344,8 @@ def sampo_view(request):
     if action:
         return actions[action](request)
 
-    now = datetime.datetime.now()
-    day_begin = now.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
-    day_end = now.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=UTC)
-    begin_time = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
-    end_time = (begin_time + datetime.timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(microseconds=1)
-
     context = dict()
-    sampo_passes = SampoPasses.objects.select_related('payment')\
-        .filter(payment__date__range=[begin_time, end_time])
-
-    today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end))
-
-    pass_buffer = []
-
-    for payment in today_payments:
-        _pass = filter(lambda p: p.payment.id == payment.id, sampo_passes)
-        if _pass:
-            pass_buffer.append(int(_pass[0].id))
-            payment.sampo_pass = _pass[0]
-
-    pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end))
-
-    def get_str(elem):
-        if isinstance(elem, SampoPayments):
-            if hasattr(elem, 'sampo_pass'):
-                return '%s %s(%d)' % (elem.sampo_pass.surname, elem.sampo_pass.name, elem.money)
-
-            return str(elem.money)
-
-        else:
-            return '%s %s' % (elem.sampo_pass.surname, elem.sampo_pass.name)
-
-    context['today_payments'] = [
-        {
-            'date': i.date.astimezone(timezone(TIME_ZONE)).strftime('%H:%M'),
-            'payment': get_str(i)
-        }
-        for i in list(pass_usages.exclude(sampo_pass_id__in=pass_buffer)) + list(today_payments)
-    ]
-
-    if context['today_payments']:
-        context['today_payments'].sort(key=lambda x: x['date'])
-        context['today_payments'].reverse()
-
-    context['passes'] = map(
-        lambda x: setattr(x, 'used_today', x.id in pass_usages.values_list('sampo_pass_id', flat=True)) or x,
-        sampo_passes
-    )
+    now = datetime.datetime.now()
+    context['passes'], context['today_payments'] = get_sampo_details(now)
     template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
