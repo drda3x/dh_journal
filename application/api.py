@@ -861,9 +861,11 @@ def get_club_card_detail(request):
 
             return lesson
 
-        for group in get_student_groups(student):
-            days = get_count_of_weekdays_per_interval(group.days, _pass.start_date, _pass.end_date)
-            group_calendar = group.get_calendar(days, _pass.start_date)
+        for group in get_student_groups(student, include_closed=True):
+            date_from = _pass.start_date if _pass.start_date >= group.start_date else group.start_date
+            date_to = group.end_date if group.end_date and group.end_date <= _pass.end_date else _pass.end_date
+            days = get_count_of_weekdays_per_interval(group.days, date_from, date_to)
+            group_calendar = group.get_calendar(days, date_from)
             lessons_statuses = map(get_lesson, group_calendar)
             lessons = zip(map(lambda d: d.strftime('%d.%m.%Y'), group_calendar), lessons_statuses)
 
