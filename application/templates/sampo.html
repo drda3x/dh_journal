@@ -128,19 +128,55 @@
                     <tbody>
                     <tr>
                         <td>17:00</td>
-                        <td class="text-success">+200</td>
+                        <td class="text-success">
+                            <div class="row-fluid">
+                                <div class="span10">+200</div>
+                                <div class="span1 minus">
+                                    <span class="text-error">-</span>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td>17:05</td>
-                        <td class="text-error">-1200<div class="muted">Оплата воды</div></td>
+                        <td class="text-error">
+                            <div class="row-fluid">
+                                <div class="span10">
+                                    -1200
+                                    <div class="muted">Оплата воды</div>
+                                </div>
+                                <div class="span1 minus">
+                                    <span class="text-error">-</span>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td>17:10</td>
-                        <td class="text-success">+1500<div class="muted">Нестеров Василий - абон.</div></td>
+                        <td class="text-success">
+                            <div class="row-fluid">
+                                <div class="span10">
+                                    +1500
+                                    <div class="muted">Нестеров Василий - абон.</div>
+                                </div>
+                                <div class="span1 minus">
+                                    <span class="text-error">-</span>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     <tr>
                         <td>17:15</td>
-                        <td>Кудрявцев Михаил</td>
+                        <td>
+                            <div class="row-fluid">
+                                <div class="span10">
+                                    Кудрявцев Михаил
+                                </div>
+                                <div class="span1 minus">
+                                    <span class="text-error">-</span>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     {% for payment in today_payments %}
                         <tr>
