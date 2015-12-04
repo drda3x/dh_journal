@@ -111,35 +111,63 @@ window.sampoLogic = (function () {
     return data;
   }
 
-  function sendRequest(options, successCallBack, errorCallBack) {
+  function sendRequest(options, successCallBack, errorCallBack, context) {
     $.ajax('/sampo', {
         data: options
       })
-      .success(successCallBack)
+      .success((function(context) {
+
+            return function(data) {
+                if(context != undefined) {
+                    successCallBack(data, context);
+                } else {
+                    successCallBack(data);
+                }
+            }
+
+        })(context))
       .error(errorCallBack);
   }
 
   function errorProcess() {}
 
-  function successProcess(json) {
+  function successProcess(json, data) {
     if(json != undefined) {
-          var response = JSON.parse(json);
+        var response = JSON.parse(json);
 
-        try {
-          $('#sampo_passes').append(
+        if(response.hasOwnProperty('pid')) {
+            refreshPassList(response.pid, data.passes.name, data.passes.surname)
+        }
+
+        if(response.hasOwnProperty('payments')) {
+            refreshTable(response.payments)
+        }
+    }
+  }
+
+    /**
+     * Обновляшка для таблички журнала
+     */
+    function refreshTable(data) {
+        var html_container = $('#payments tbody');
+
+        html_container.empty();
+
+        for(var i= 0, j= data.length; i<j; i++) {
+            $('<tr><td>'+data[i].date+'</td><td>'+data[i].payment+'</td></tr>').appendTo(html_container);
+        }
+    }
+
+    /**
+     * Обновляшка для списка абонементов
+     */
+    function refreshPassList(id, name, surname) {
+        $('#sampo_passes').append(
              '<li><label class="inline checkbox">' +
-             '<input type="checkbox" value="'+ response.pid +'">' + data.passes.surname +' '+ data.passes.name +
+             '<input type="checkbox" value="'+ id +'">' + surname +' '+ name +
              '</label></li>'
           );
-
-          refreshBuffer();
-          hideAddPassForm();
-        } catch(e) {
-          //todo вообще так делать нельзя пришли нормальный ответ от сервера и обработай его!!!!
-        }
-
-        }
-  }
+    }
 
   function addSearchBehavior() {
     var buffer;
@@ -193,7 +221,9 @@ window.sampoLogic = (function () {
       sendRequest({
         action: 'add',
         data: JSON.stringify(data)
-      }, successProcess, errorProcess);
+      }, successProcess, errorProcess, data);
+
+      hideAddPassForm();
 
       return false
     });
@@ -217,7 +247,7 @@ window.sampoLogic = (function () {
           action: action,
           pid: input.val(),
           time: $('#addSampoPass #inputTime').val()
-        });
+        }, successProcess, errorProcess);
       }
     });
   }
