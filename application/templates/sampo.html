@@ -9,99 +9,109 @@
 {% endblock %}
 {% block body %}
     <div class="row-fluid">
-        <div class="span4">
-            <h4 {% if user.teacher %} class="offset3" {% endif %}>Оплата наличными</h4>
-            <form id="cash-payment" class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputTime">Время</label>
-                    <div class="controls">
-                        <input class="input-small time" id="inputTime" name="time" type="time" />
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputMoney">Сумма</label>
-                    <div class="controls">
-                        <input class="input-small" id="inputMoney" name="count" type="number" />
-                    </div>
-                </div>
-                <div class="control-group">
-                    <div class="controls">
-                        <button type="submit" class="btn submitBtn btn1">Внести</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div {% if user.teacher %} class="span5" {% else %} class="span4" {% endif %}>
-            <h4>Абонементы</h4>
+      <div class="span12">
+        <div class="row-fluid">
+            <div class="span4">
+                    <ul class="nav nav-tabs" id="navTab">
+                        <li class="active"><a id="journalNav" href="#cash-add" data-toggle="tab">Внесение</a></li>
+                        <li><a id="infoNav" href="#cash-del" data-toggle="tab">Списание</a></li>
+                        <li><a id="infoNav" href="#pass" data-toggle="tab">Абонементы</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="cash-add" class="tab-pane active">
+                            <form id="cash-payment" class="form-horizontal">
+                                <div class="control-group">
+                                    <label class="control-label" for="inputTime">Время</label>
+                                    <div class="controls">
+                                        <input class="input-small time" id="inputTime" name="time" type="time" />
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <label class="control-label" for="inputMoney">Сумма</label>
+                                    <div class="controls">
+                                        <input class="input-small" id="inputMoney" name="count" type="number" />
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <div class="controls">
+                                        <button type="submit" class="btn submitBtn btn1">Внести</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div id="cash-del" class="tab-pane">
+                            Списание
+                        </div>
+                        <div id="pass" class="tab-pane">
+                            <div class="span5">
+                                <form class="form-search to_fd center">
+                                    <div class="input-prepend">
+                                        <span style="font-size: 12pt;" class="add-on">Поиск</span>
+                                        <input class="input-large" id="prependedInput" size="16" type="text">
+                                    </div>
+                                    <button id="addButton" style="color: #2e8b57" type="button" class="btn extra_big_font">+</button>
+                                </form>
+                                <ul id="sampo_passes" class="form-horizontal to_fd offset3">
+                                    {% for pass in passes %}
+                                        <li><label class="inline checkbox">
+                                          <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
+                                        </label></li>
+                                    {% endfor %}
+                                </ul>
+                                <div id="addSampoPass" style="display: none">
+                                    <form class="form-horizontal">
+                                        <div class="control-group">
+                                            <label class="control-label" for="inputTime">Время</label>
 
-            <form class="form-search to_fd center">
-                <div class="input-prepend">
-                    <span style="font-size: 12pt;" class="add-on">Поиск</span>
-                    <input class="input-large" id="prependedInput" size="16" type="text">
-                </div>
-                <button id="addButton" style="color: #2e8b57" type="button" class="btn extra_big_font">+</button>
-            </form>
-            <ul id="sampo_passes" class="form-horizontal to_fd offset3">
-                {% for pass in passes %}
-                    <li><label class="inline checkbox">
-                      <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
-                    </label></li>
-                {% endfor %}
-            </ul>
-            <div id="addSampoPass" style="display: none">
-                <form class="form-horizontal">
-                    <div class="control-group">
-                        <label class="control-label" for="inputTime">Время</label>
+                                            <div class="controls">
+                                                <input class="input-small time" id="inputTime" name="time" type="time"/>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label" for="inputSurname">Фамилия</label>
 
-                        <div class="controls">
-                            <input class="input-small time" id="inputTime" name="time" type="time"/>
+                                            <div class="controls">
+                                                <input class="input-large" id="inputSurname" name="surname" type="text"/>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <label class="control-label" for="inputName">Имя</label>
+
+                                            <div class="controls">
+                                                <input class="input-large" id="inputName" name="name" type="text"/>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="controls">
+                                                <button type="submit" class="btn btn-primary submitBtn btn2">Внести</button>
+                                                <button id="cancelButton" class="btn offset1">Отмена</button>
+                                            </div>
+                                    </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label class="control-label" for="inputSurname">Фамилия</label>
-
-                        <div class="controls">
-                            <input class="input-large" id="inputSurname" name="surname" type="text"/>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="inputName">Имя</label>
-
-                        <div class="controls">
-                            <input class="input-large" id="inputName" name="name" type="text"/>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <div class="controls">
-                            <button type="submit" class="btn btn-primary submitBtn btn2">Внести</button>
-                            <button id="cancelButton" class="btn offset1">Отмена</button>
-                        </div>
                 </div>
-                </form>
+            <div class="span4 offset1">
+                <table id="payments" class="table table-bordered table-striped table-hover">
+                    <thead>
+                       <tr>
+                            <th>Время</th>
+                            <th>Сумма/Абонемент</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                    {% for payment in today_payments %}
+                        <tr>
+                             <td>{{ payment.date }}</td>
+                             <td>{{ payment.payment }}<div><span class="text-error">-</span></div></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div {% if user.teacher %} class="span3" {% else %} class="span3 offset1" {% endif %}>
-            <h4>Журнал</h4>
-           <table id="payments" class="table table-bordered table-striped">
-            <thead>
-               <tr>
-                    <th>Время</th>
-                    <th>Сумма/Абонемент</th>
-               </tr>
-            </thead>
-            <tbody>
-            {% for payment in today_payments %}
-                <tr>
-                     <td>{{ payment.date }}</td>
-                     <td>{{ payment.payment }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="row-fluid">
-
-
+      </div>
     </div>
 {% endblock %}

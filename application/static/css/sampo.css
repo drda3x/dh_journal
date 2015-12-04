@@ -24,3 +24,23 @@ h4 {
     display: inline !important;
     padding: 0 !important;
 }
+
+table td div {
+    float: right;
+    position: relative;
+    bottom: 5px;
+    width: 10px;
+    display: inline-block;
+    font-size: 40pt;
+    text-align: center;
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+table td span {
+    display: none;
+}
+
+table tr:hover span {
+    display: inline-block;
+}
