@@ -24,3 +24,36 @@ h4 {
     display: inline !important;
     padding: 0 !important;
 }
+
+.bold {
+    font-weight: bold;
+}
+
+table td .minus {
+    float: right;
+    position: relative;
+    bottom: 5px;
+    width: 10px;
+    display: inline-block;
+    font-size: 40pt;
+    text-align: center;
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+table td span {
+    display: none;
+}
+
+table tr:hover span {
+    display: inline-block;
+}
+
+.form-horizontal .controls {
+    margin-left: 130px !important;
+}
+
+
+.form-horizontal .control-label {
+    width: 120px !important;
+}
