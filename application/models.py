@@ -452,7 +452,8 @@ class SampoPayments(models.Model):
     date = models.DateTimeField(verbose_name=u'Время оплаты')
     staff = models.ForeignKey(User, verbose_name=u'Администратор САМПО')
     people_count = models.PositiveIntegerField(verbose_name=u'Количество людей')
-    money = models.PositiveIntegerField(verbose_name=u'Сумма')
+    money = models.IntegerField(verbose_name=u'Сумма')
+    comment = models.CharField(verbose_name=u'Коментарий', max_length=50, null=True, blank=True)
 
     class Meta:
         app_label = u'application'
@@ -478,3 +479,10 @@ class SampoPassUsage(models.Model):
     class Meta:
         app_label = u'application'
         verbose_name = u'Отметки о посещении сампо'
+
+
+class HtmlPaymentsTypes(object):
+
+    ADD = 'text-success'
+    WRITE_OFF = 'text-error'
+    DEFAULT = ''

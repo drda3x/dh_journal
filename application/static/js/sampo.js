@@ -94,19 +94,12 @@ window.sampoLogic = (function () {
   function getFormData(button) {
 
     var data = {};
+    data.info = {};
 
-    if(button.hasClass('btn2')) {
-      data.passes = {};
-
-      $('#addSampoPass input').each(function() {
-        data.passes[$(this).attr('name')] = $(this).val();
-      });
-    } else {
-      data.payments = {};
-      $('#cash-payment input').each(function() {
-        data.payments[$(this).attr('name')] = $(this).val();
-      });
-    }
+    var $form = $('.money-action:visible');
+    $form.find('input').each(function () {
+      data.info[$(this).attr('name')] = $(this).val();
+    });
 
     return data;
   }
@@ -136,7 +129,7 @@ window.sampoLogic = (function () {
         var response = JSON.parse(json);
 
         if(response.hasOwnProperty('pid')) {
-            refreshPassList(response.pid, data.passes.name, data.passes.surname)
+            refreshPassList(response.pid, data.info.name, data.info.surname)
         }
 
         if(response.hasOwnProperty('payments')) {
@@ -149,12 +142,30 @@ window.sampoLogic = (function () {
      * Обновляшка для таблички журнала
      */
     function refreshTable(data) {
-        var html_container = $('#payments tbody');
+        var html_container = $('#payments tbody'),
+            info = {};
 
         html_container.empty();
 
         for(var i= 0, j= data.length; i<j; i++) {
-            $('<tr><td>'+data[i].date+'</td><td>'+data[i].payment+'</td></tr>').appendTo(html_container);
+          info = data[i].info;
+
+          var comment = (info.hasOwnProperty('comment')) ? '<div class="muted">'+info.comment+'</div>' : '';
+
+          $('<tr>' +
+            '<td>' + data[i].date + '</td>' +
+            '<td class="' + info.type + '">' +
+              '<div class="row-fluid">' +
+                '<div class="span10">' +
+                  info.payment + comment +
+                '</div>' +
+                '<div class="span1 minus">' +
+                  '<span class="text-error">-</span>' +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '</tr>'
+          ).appendTo(html_container);
         }
     }
 
@@ -215,11 +226,25 @@ window.sampoLogic = (function () {
 
     $('.submitBtn').click(function (event) {
       event.stopPropagation();
-      var data = getFormData($(this));
+      var $this = $(this),
+          data = getFormData($this),
+          type;
+
+      if($this.hasClass('btn1')) {
+        type = 'cash-add'
+      } else if($this.hasClass('btn2')) {
+        type = 'cash-wrt'
+      } else if($this.hasClass('btn3')) {
+        type = 'pass'
+      } else {
+        console.log('Wrong submit type');
+        return;
+      }
 
       clearForms();
       sendRequest({
         action: 'add',
+        type: type,
         data: JSON.stringify(data)
       }, successProcess, errorProcess, data);
 

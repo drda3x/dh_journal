@@ -40,8 +40,19 @@
 
         function frameResize() {
             var $frame = $('iframe'),
-                h = $frame.contents().height();
-            $frame.height(h);
+                h = 0;
+
+            function action() {
+                var _h = $frame.contents().height();
+                if (h != _h) {
+                    $frame.height(_h);
+                    h = _h;
+                }
+            }
+
+            action();
+
+            setInterval(action, 500)
         }
     </script>
     {% endif %}

@@ -891,24 +891,26 @@ def get_club_card_detail(request):
 def add_sampo_payment(request):
 
     request_body = json.loads(request.GET['data'])
-
-    payments = request_body.get('payments')
-    passes = request_body.get('passes')
+    data = request_body['info']
 
     now = datetime.datetime.now().replace(second=0, microsecond=0)
-    hhmm = payments['time'] if payments else passes['time'] if passes else None
+    hhmm = data['time']
     if hhmm:
-        hhmm = map(lambda x: int(x), hhmm.split(':'))
+        hhmm = map(int, hhmm.split(':'))
         now.replace(hour=hhmm[0], minute=hhmm[1])
 
-    if payments and payments['count']:
-
+    if request.GET['type'].startswith('cash'):
         new_payment = SampoPayments(
             date=now,
             staff=request.user,
             people_count=0,  # Кудрявцев сказал убрать
-            money=int(payments['count'])
+            money=int(data['count']) * (-1 if request.GET['type'] == 'cash-wrt' else 1)
         )
+
+        comment = data.get('reason')
+        if comment:
+            new_payment.comment = comment
+
         new_payment.save()
 
         passes, payments = get_sampo_details(datetime.datetime.utcnow())
@@ -918,7 +920,7 @@ def add_sampo_payment(request):
                 'payments': payments
             }))
 
-    elif passes and passes['name'] and passes['surname']:
+    elif data and data['name'] and data['surname']:
 
         new_payment = SampoPayments(
             date=now,
@@ -929,8 +931,8 @@ def add_sampo_payment(request):
         new_payment.save()
 
         new_pass = SampoPasses(
-            name=passes['name'],
-            surname=passes['surname'],
+            name=data['name'],
+            surname=data['surname'],
             payment=new_payment
         )
         new_pass.save()

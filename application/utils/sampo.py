@@ -4,7 +4,7 @@
 import datetime
 from pytz import UTC, timezone
 from project.settings import TIME_ZONE
-from application.models import SampoPayments, SampoPasses, SampoPassUsage
+from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes
 
 
 def get_sampo_details(date):
@@ -17,7 +17,7 @@ def get_sampo_details(date):
     sampo_passes = SampoPasses.objects.select_related('payment')\
         .filter(payment__date__range=[begin_time, end_time])
 
-    today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end))
+    today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end)).order_by('pk')
 
     pass_buffer = []
 
@@ -29,20 +29,29 @@ def get_sampo_details(date):
 
     pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end))
 
-    def get_str(elem):
+    def get_data(elem):
         if isinstance(elem, SampoPayments):
+            result = dict(
+                type=HtmlPaymentsTypes.ADD if elem.money >= 0 else HtmlPaymentsTypes.WRITE_OFF,
+                payment='+%d' % elem.money if elem.money > 0 else elem.money,
+            )
+
             if hasattr(elem, 'sampo_pass'):
-                return '%s %s(%d)' % (elem.sampo_pass.surname, elem.sampo_pass.name, elem.money)
+                result['comment'] = '%s %s - %s' % (elem.sampo_pass.surname, elem.sampo_pass.name, u'абон.')
+            elif elem.comment:
+                result['comment'] = elem.comment
 
-            return str(elem.money)
-
+            return result
         else:
-            return '%s %s' % (elem.sampo_pass.surname, elem.sampo_pass.name)
+            return dict(
+                type=HtmlPaymentsTypes.DEFAULT,
+                payment='%s %s' % (elem.sampo_pass.surname, elem.sampo_pass.name)
+            )
 
     today_payments = [
         {
             'date': i.date.astimezone(timezone(TIME_ZONE)).strftime('%H:%M'),
-            'payment': get_str(i)
+            'info': get_data(i)
         }
         for i in list(pass_usages.exclude(sampo_pass_id__in=pass_buffer)) + list(today_payments)
     ]
