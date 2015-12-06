@@ -125,16 +125,19 @@ window.sampoLogic = (function () {
   function errorProcess() {}
 
   function successProcess(json, data) {
-    if(json != undefined) {
-        var response = JSON.parse(json);
+    if (json != undefined) {
+      var response = JSON.parse(json);
 
-        if(response.hasOwnProperty('pid')) {
-            refreshPassList(response.pid, data.info.name, data.info.surname)
-        }
+      if (response.hasOwnProperty('pid')) {
+        addToPassList(response.pid, data.info.name, data.info.surname)
+      }
 
-        if(response.hasOwnProperty('payments')) {
-            refreshTable(response.payments)
-        }
+      if (response.hasOwnProperty('payments')) {
+        refreshTable(response.payments)
+      }
+
+      addSampoPassEvents();
+      addWriteOffBehavior();
     }
   }
 
@@ -159,7 +162,7 @@ window.sampoLogic = (function () {
                 '<div class="span10">' +
                   info.payment + comment +
                 '</div>' +
-                '<div class="span1 minus">' +
+                '<div class="span1 minus" data-id="'+info.id+'">' +
                   '<span class="text-error">-</span>' +
                 '</div>' +
               '</div>' +
@@ -167,17 +170,65 @@ window.sampoLogic = (function () {
             '</tr>'
           ).appendTo(html_container);
         }
+
+      addSampoPassEvents();
+      addWriteOffBehavior();
     }
 
     /**
-     * Обновляшка для списка абонементов
+     * Добавляшка обработчика удаления записей из таблицы
      */
-    function refreshPassList(id, name, surname) {
-        $('#sampo_passes').append(
-             '<li><label class="inline checkbox">' +
-             '<input type="checkbox" value="'+ id +'">' + surname +' '+ name +
-             '</label></li>'
-          );
+    function addWriteOffBehavior() {
+      var $elems = $('#payments .minus');
+
+      $elems.off('click');
+      $elems.click(function() {
+console.log('aaa');
+        var $id = $(this).data('id');
+
+        if($id.search(/^u\d*$/) >= 0) {
+          var elem = $('#sampo_passes li input[value='+$id.slice(1)+']');
+          elem.trigger('change', [true]);
+        } else {
+          if(confirm('\nВосстановить удаленную запись будет невозможно\nПродолжить?')) {
+            sendRequest({
+              action: 'del',
+              pid: $id
+            }, function(json) {
+                var data = JSON.parse(json);
+                refreshTable(data.payments);
+                refureshPassList(data.passes);
+            })
+          }
+        }
+      })
+    }
+
+    /**
+     * Добавлялка значения в список абонементов
+     */
+    function addToPassList(id, name, surname, usage) {
+      var $input = $(
+        '<li><label class="inline checkbox">' +
+        '<input type="checkbox" value="'+ id +'">' + surname +' '+ name +
+        '</label></li>'
+      );
+
+      $input.find('input').prop('checked', usage);
+
+      $('#sampo_passes').append($input);
+    }
+
+    function refureshPassList(data) {
+
+      var htmlContainer = $('#sampo_passes');
+      htmlContainer.empty();
+
+      for(var i= 0, j= data.length; i<j; i++) {
+        addToPassList(data[i].id, data[i].name, data[i].surname, data[i].usage)
+      }
+
+      addSampoPassEvents();
     }
 
   function addSearchBehavior() {
@@ -208,8 +259,40 @@ window.sampoLogic = (function () {
   }
 
   function clearForms() {
-      $('input').val('');
+      $('input[type!=checkbox]').val('');
     }
+
+  function addSampoPassEvents() {
+    var $elements = $('#sampo_passes li');
+
+    $elements.off('change');
+    $elements.change(function(event, forseUnselect) {
+
+      var confirm_msg = $(this).find('label').text().replace(/^\s*/, ''),
+          input = $(this).find('input'),
+          action;
+
+      if(forseUnselect || !input.is(':checked')) {
+        confirm_msg += '\nСнять отметку о посещении?';
+        action = 'uncheck';
+        input.prop('checked', false);
+      } else {
+        confirm_msg += '\nОтметить абонемент?';
+        action = 'check'
+      }
+
+      if(confirm(confirm_msg)) {
+        sendRequest({
+          action: action,
+          pid: input.val(),
+          time: $('#addSampoPass #inputTime').val()
+        }, successProcess, errorProcess);
+      } else {
+        var checked = input.prop('checked');
+        input.prop('checked', !checked);
+      }
+    });
+  }
 
   function init() {
     $('#addButton').click(function() {
@@ -223,6 +306,8 @@ window.sampoLogic = (function () {
 
     addClockBehavior();
     addSearchBehavior();
+    addWriteOffBehavior();
+    addSampoPassEvents();
 
     $('.submitBtn').click(function (event) {
       event.stopPropagation();
@@ -253,28 +338,7 @@ window.sampoLogic = (function () {
       return false
     });
 
-    $('#sampo_passes li').change(function(event) {
 
-      var confirm_msg = $(this).find('label').text().replace(/^\s*/, ''),
-          input = $(this).find('input'),
-          action;
-
-      if(!input.is(':checked')) {
-        confirm_msg += '\nСнять отметку о посещении?';
-        action = 'uncheck'
-      } else {
-        confirm_msg += '\nОтметить абонемент?';
-        action = 'check'
-      }
-
-      if(confirm(confirm_msg)) {
-        sendRequest({
-          action: action,
-          pid: input.val(),
-          time: $('#addSampoPass #inputTime').val()
-        }, successProcess, errorProcess);
-      }
-    });
   }
 
   return init;

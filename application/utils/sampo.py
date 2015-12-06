@@ -4,7 +4,7 @@
 import datetime
 from pytz import UTC, timezone
 from project.settings import TIME_ZONE
-from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes
+from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes, Log
 
 
 def get_sampo_details(date):
@@ -27,11 +27,12 @@ def get_sampo_details(date):
             pass_buffer.append(int(_pass[0].id))
             payment.sampo_pass = _pass[0]
 
-    pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end))
+    pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end)).order_by('pk')
 
     def get_data(elem):
         if isinstance(elem, SampoPayments):
             result = dict(
+                id='p' + str(elem.pk),
                 type=HtmlPaymentsTypes.ADD if elem.money >= 0 else HtmlPaymentsTypes.WRITE_OFF,
                 payment='+%d' % elem.money if elem.money > 0 else elem.money,
             )
@@ -44,6 +45,7 @@ def get_sampo_details(date):
             return result
         else:
             return dict(
+                id='u' + str(elem.sampo_pass.pk),
                 type=HtmlPaymentsTypes.DEFAULT,
                 payment='%s %s' % (elem.sampo_pass.surname, elem.sampo_pass.name)
             )
@@ -66,3 +68,7 @@ def get_sampo_details(date):
     )
 
     return passes, today_payments
+
+
+def write_log(msg):
+    Log(msg=msg).save()

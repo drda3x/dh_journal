@@ -331,12 +331,13 @@ def history_view(request):
 @auth_decorator
 def sampo_view(request):
 
-    from application.api import add_sampo_payment, check_uncheck_sampo
+    from application.api import add_sampo_payment, check_uncheck_sampo, write_off_sampo_record
 
     actions = {
         'add': add_sampo_payment,
         'check': check_uncheck_sampo,
-        'uncheck': check_uncheck_sampo
+        'uncheck': check_uncheck_sampo,
+        'del': write_off_sampo_record
     }
 
     action = request.GET.get('action')

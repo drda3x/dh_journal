@@ -21,6 +21,12 @@ class User(UserOrigin):
     teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
     sampo_admin = models.BooleanField(verbose_name=u'Администратор САМПО', default=False)
 
+    def __short_json__(self):
+        return dict(
+            first_name=self.first_name,
+            last_name=self.last_name
+        )
+
     class Meta:
         app_label = u'application'
         verbose_name = u'Преподаватель'
@@ -455,6 +461,21 @@ class SampoPayments(models.Model):
     money = models.IntegerField(verbose_name=u'Сумма')
     comment = models.CharField(verbose_name=u'Коментарий', max_length=50, null=True, blank=True)
 
+    def __str__(self):
+        return '%s %s %d' % (self.date.strftime('%d.%m.%Y %H:%M'), self.staff, self.money)
+
+    def __unicode__(self):
+        return u'%s %s %d' % (self.date.strftime('%d.%m.%Y %H:%M'), self.staff, self.money)
+
+    def __json__(self):
+        return dict(
+            date=self.date.strftime('%d.%m.%Y %H:%M'),
+            staff=self.staff.__short_json__(),
+            people_count=self.people_count,
+            money=self.money,
+            comment=self.comment
+        )
+
     class Meta:
         app_label = u'application'
         verbose_name = u'Оплата сампо'
@@ -465,6 +486,21 @@ class SampoPasses(models.Model):
     name = models.TextField(verbose_name=u'Имя')
     surname = models.TextField(verbose_name=u'фамилия')
     payment = models.ForeignKey(SampoPayments, verbose_name=u'Оплата абонемента')
+
+    def __str__(self):
+        return '%s %s %s' % (self.surname, self.name, self.payment)
+
+    def __unicode__(self):
+        return u'%s %s %s' % (self.name, self.surname, self.payment)
+
+    def __json__(self):
+
+        return dict(
+            id=self.pk,
+            name=self.name,
+            surname=self.surname,
+            payment=self.payment.__json__()
+        )
 
     class Meta:
         app_label = u'application'
@@ -486,3 +522,9 @@ class HtmlPaymentsTypes(object):
     ADD = 'text-success'
     WRITE_OFF = 'text-error'
     DEFAULT = ''
+
+
+class Log(models.Model):
+
+    date = models.DateTimeField(verbose_name=u'Время записи', auto_now=True)
+    msg = models.TextField(verbose_name=u'Сообщение', max_length=1000)

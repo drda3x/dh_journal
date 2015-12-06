@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
 
-import datetime, json, copy
+import datetime, json
 
+from pytz import UTC, timezone
+from project.settings import TIME_ZONE
 from traceback import format_exc
 from copy import deepcopy
 
@@ -18,7 +20,7 @@ from application.models import Students, Passes, Groups, GroupList, PassTypes, L
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
-from application.utils.sampo import get_sampo_details
+from application.utils.sampo import get_sampo_details, write_log
 
 from application.system_api import delete_lessons as _delete_lessons
 
@@ -893,11 +895,13 @@ def add_sampo_payment(request):
     request_body = json.loads(request.GET['data'])
     data = request_body['info']
 
-    now = datetime.datetime.now().replace(second=0, microsecond=0)
     hhmm = data['time']
     if hhmm:
         hhmm = map(int, hhmm.split(':'))
-        now.replace(hour=hhmm[0], minute=hhmm[1])
+        now = datetime.datetime.combine(datetime.date.today(), datetime.time(hhmm[0], hhmm[1], tzinfo=timezone(TIME_ZONE)))
+
+    else:
+        now = datetime.datetime.now().replace(second=0, microsecond=0)
 
     if request.GET['type'].startswith('cash'):
         new_payment = SampoPayments(
@@ -972,6 +976,8 @@ def check_uncheck_sampo(request):
         return HttpResponse(_json)
 
     elif action == 'uncheck':
+        # todo Если админ системы удалит запись отсюда за любой день кроме сегоднешнего, удалится не та запись!
+        # todo решать эту проблему лучше через передачу в функцию праильной даты...
         last_usage = SampoPassUsage.objects.filter(
             sampo_pass_id=int(request.GET['pid']),
             date__range=(
@@ -993,3 +999,59 @@ def check_uncheck_sampo(request):
 
     else:
         return HttpResponseServerError('failed')
+
+
+def write_off_sampo_record(request):
+
+    u"""
+    Функция для удаления записи о посещении сампо
+    :param request:
+    :return:
+    """
+
+    pid = request.GET.get('pid')
+
+    if not pid:
+        return HttpResponseServerError('No record id')
+
+    if pid.startswith('p'):
+        to_delete, pass_to_delete = None, None
+
+        try:
+            to_delete = SampoPayments.objects.get(pk=int(pid[1:]))
+            msg = '%s удалил(а) запись из таблицы "Оплаты наличными": | %s |' % (request.user, to_delete)
+
+            try:
+                pass_to_delete = SampoPasses.objects.get(payment=to_delete)
+                pass_to_delete.delete()
+                msg = u'%s удалил(а) запись из таблицы "Абонементы на сампо": | %s |' % (request.user, pass_to_delete)
+
+            except SampoPasses.DoesNotExist:
+                pass
+
+            to_delete.delete()
+            write_log(msg)
+
+        except SampoPassUsage.DoesNotExist:
+            pass
+
+    date = request.GET.get('date') or datetime.datetime.now(UTC)
+
+    response = dict()
+    passes, payments = get_sampo_details(date)
+    usages = SampoPassUsage.objects.filter(
+        date__range=[
+            datetime.datetime.combine(date.date(), datetime.datetime.min.time()),
+            datetime.datetime.combine(date.date(), datetime.datetime.max.time())
+        ]
+    ).values_list('sampo_pass', flat=True)
+
+    def to_json(elem):
+        _json = elem.__json__()
+        _json['usage'] = long(elem.id) in usages
+        return _json
+
+    response['passes'] = map(to_json, passes)
+    response['payments'] = payments
+
+    return HttpResponse(json.dumps(response))
