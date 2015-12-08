@@ -89,11 +89,11 @@ def group_detail_view(request):
         now = datetime.datetime.now()
         group = Groups.objects.get(pk=group_id)
 
-        if group.end_date and not group.is_opened:
-            date_from = datetime.datetime.combine(group.end_date, datetime.datetime.min.time()).replace(day=1)
-
-        elif 'date' in request.GET:
+        if 'date' in request.GET:
             date_from = datetime.datetime.strptime(request.GET['date'], date_format)
+
+        elif group.end_date and not group.is_opened:
+            date_from = datetime.datetime.combine(group.end_date, datetime.datetime.min.time()).replace(day=1)
 
         else:
             date_from = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -102,7 +102,7 @@ def group_detail_view(request):
             date_from = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
 
         date_to = group.end_datetime or get_last_day_of_month(date_from)
-        forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1)
+        forward_month = get_last_day_of_month(now) + datetime.timedelta(days=1 if not group.end_datetime else 0)
         border = datetime.datetime.combine(group.start_date, datetime.datetime.min.time()).replace(day=1)
 
         context['control_data'] = {
