@@ -4,6 +4,7 @@ import re
 from pytz import timezone, UTC
 from project.settings import TIME_ZONE
 from django.shortcuts import render_to_response, redirect
+from django.http import HttpResponseServerError
 from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
@@ -345,8 +346,16 @@ def sampo_view(request):
     if action:
         return actions[action](request)
 
+    date_str = request.GET.get('date')
+
+    try:
+        date = datetime.datetime.strptime('%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S') if date_str else datetime.datetime.now()
+
+    except Exception:
+        return HttpResponseServerError('Не правильно указана дата')
+
     context = dict()
-    now = datetime.datetime.now()
-    context['passes'], context['today_payments'] = get_sampo_details(now)
+    context['passes'], context['today_payments'] = get_sampo_details(date)
+    context['date'] = date.strftime('%d.%m.%Y')
     template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

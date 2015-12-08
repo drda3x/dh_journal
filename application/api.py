@@ -895,13 +895,20 @@ def add_sampo_payment(request):
     request_body = json.loads(request.GET['data'])
     data = request_body['info']
 
+    date = data.get('date')
     hhmm = data['time']
     if hhmm:
         hhmm = map(int, hhmm.split(':'))
-        now = datetime.datetime.combine(datetime.date.today(), datetime.time(hhmm[0], hhmm[1], tzinfo=timezone(TIME_ZONE)))
+        now = datetime.datetime.combine(
+            datetime.datetime.strptime(date, '%d.%m.%Y').date() if date else datetime.date.today(),
+            datetime.time(hhmm[0], hhmm[1])
+        )
 
     else:
-        now = datetime.datetime.now().replace(second=0, microsecond=0)
+        now = datetime.datetime.combine(
+            datetime.datetime.strptime(date, '%d.%m.%Y').date(),
+            datetime.datetime.now().time()
+        ) if date else datetime.datetime.now().replace(second=0, microsecond=0)
 
     if request.GET['type'].startswith('cash'):
         new_payment = SampoPayments(
@@ -917,7 +924,7 @@ def add_sampo_payment(request):
 
         new_payment.save()
 
-        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+        passes, payments = get_sampo_details(now)
 
         return HttpResponse(
             json.dumps({
@@ -941,7 +948,7 @@ def add_sampo_payment(request):
         )
         new_pass.save()
 
-        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+        passes, payments = get_sampo_details(now)
 
         return HttpResponse(
             json.dumps({
@@ -957,7 +964,16 @@ def check_uncheck_sampo(request):
 
     action = request.GET.get('action')
     hhmm = map(lambda x: int(x), request.GET['time'].split(':'))
-    now = datetime.datetime.now().replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
+    date_str = request.GET.get('date')
+
+    if date_str:
+        date = map(lambda x: int(x), date_str.split('.'))
+        date_params = dict(
+            zip(('day', 'month', 'year', 'hour', 'minute'), date+hhmm)
+        )
+        now = datetime.datetime(**date_params)
+    else:
+        now = datetime.datetime.now().replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
 
     if action == 'check':
         new_usage = SampoPassUsage(
@@ -967,7 +983,7 @@ def check_uncheck_sampo(request):
 
         new_usage.save()
 
-        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+        passes, payments = get_sampo_details(now)
 
         _json = json.dumps({
             'payments': payments
@@ -989,7 +1005,7 @@ def check_uncheck_sampo(request):
         if last_usage:
             last_usage.delete()
 
-        passes, payments = get_sampo_details(datetime.datetime.utcnow())
+        passes, payments = get_sampo_details(now)
 
         _json = json.dumps({
             'payments': payments
@@ -1023,6 +1039,7 @@ def write_off_sampo_record(request):
 
             try:
                 pass_to_delete = SampoPasses.objects.get(payment=to_delete)
+                SampoPassUsage.objects.filter(sampo_pass=pass_to_delete).delete()
                 pass_to_delete.delete()
                 msg = u'%s удалил(а) запись из таблицы "Абонементы на сампо": | %s |' % (request.user, pass_to_delete)
 
@@ -1035,15 +1052,17 @@ def write_off_sampo_record(request):
         except SampoPassUsage.DoesNotExist:
             pass
 
-    date = request.GET.get('date') or datetime.datetime.now(UTC)
+    date_str = request.GET.get('date')
+
+    date = datetime.datetime.strptime(date_str, '%d.%m.%Y') if date_str else datetime.datetime.now(UTC)
+
+    date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
+    date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
 
     response = dict()
-    passes, payments = get_sampo_details(date)
+    passes, payments = get_sampo_details(date_max)
     usages = SampoPassUsage.objects.filter(
-        date__range=[
-            datetime.datetime.combine(date.date(), datetime.datetime.min.time()),
-            datetime.datetime.combine(date.date(), datetime.datetime.max.time())
-        ]
+        date__range=[date_min, date_max]
     ).values_list('sampo_pass', flat=True)
 
     def to_json(elem):

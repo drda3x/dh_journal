@@ -11,11 +11,22 @@
     <div class="row-fluid">
       <div class="span12">
         <div class="row-fluid">
-            <div class="span5">
-                    <ul class="nav nav-tabs" id="navTab">
+            <div {% if user.is_superuser %} class="span7" {% else %} class="span5" {% endif %}>
+                    <ul class="nav nav-tabs {% if user.is_superuser %}su-nav-tabs{% endif %}" id="navTab">
                         <li class="active"><a id="journalNav" href="#cash-add" data-toggle="tab">Внесение</a></li>
                         <li><a id="infoNav" href="#cash-del" data-toggle="tab">Списание</a></li>
                         <li><a id="infoNav" href="#pass" data-toggle="tab">Абонементы</a></li>
+                        {% if user.is_superuser %}
+                        <li>
+                            <form class="form-inline">
+                                <label>
+                                    Дата:
+                                    <input id="date" name="date" class="input-small" type="text" value="{{ date }}">
+                                </label>
+                               <input type="submit" id="date-submit" class="btn" value="OK">
+                            </form>
+                        </li>
+                        {% endif %}
                     </ul>
                     <div class="tab-content">
                         <div id="cash-add" class="tab-pane active">

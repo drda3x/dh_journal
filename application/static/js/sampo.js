@@ -10,6 +10,10 @@ window.sampoLogic = (function () {
     return val.toLowerCase() == 'backspace'
   }
 
+  function is_tab(val) {
+      return val.toLowerCase() == 'tab'
+  }
+
   function addZero(val) {
     return ('0' + val).slice(-2);
   }
@@ -32,7 +36,7 @@ window.sampoLogic = (function () {
     input_time.keypress(function(event) {
       var key, val, go_back;
       key = event.key;
-      go_back = is_backspase(key);
+      go_back = is_backspase(key) || is_tab(key);
 
       if(!go_back && isNaN(parseInt(key))) {
         return false;
@@ -41,7 +45,8 @@ window.sampoLogic = (function () {
       val = $(this).val() + (go_back ? '' : key);
 
       if(val.length > 5 && !go_back) {
-        return false;
+          $(this).val('');
+        //return false;
       } else if(val.length == 4 && go_back) {
         $(this).val(val.slice(0, -1));
       } else if (val.length == 3 && !go_back) {
@@ -80,6 +85,7 @@ window.sampoLogic = (function () {
     }
 
     function StartAutoUpd() {
+      clearInterval(timeInt);
       timeInt = setInterval(updateTimes, 500);
     }
 
@@ -87,6 +93,8 @@ window.sampoLogic = (function () {
       clearInterval(timeInt);
       setTimeout(StartAutoUpd, 30000)
     }
+
+      $('.submitBtn').click(StartAutoUpd);
 
     StartAutoUpd();
   }
@@ -100,7 +108,7 @@ window.sampoLogic = (function () {
     $form.find('input').each(function () {
       data.info[$(this).attr('name')] = $(this).val();
     });
-
+    data.info.date = $('#date').val();
     return data;
   }
 
@@ -129,7 +137,8 @@ window.sampoLogic = (function () {
       var response = JSON.parse(json);
 
       if (response.hasOwnProperty('pid')) {
-        addToPassList(response.pid, data.info.name, data.info.surname)
+        var input = addToPassList(response.pid, data.info.name, data.info.surname)
+          input.find('input').prop('checked', true);
       }
 
       if (response.hasOwnProperty('payments')) {
@@ -183,7 +192,7 @@ window.sampoLogic = (function () {
 
       $elems.off('click');
       $elems.click(function() {
-console.log('aaa');
+
         var $id = $(this).data('id');
 
         if($id.search(/^u\d*$/) >= 0) {
@@ -193,7 +202,8 @@ console.log('aaa');
           if(confirm('\nВосстановить удаленную запись будет невозможно\nПродолжить?')) {
             sendRequest({
               action: 'del',
-              pid: $id
+              pid: $id,
+              date: $("#date").val()
             }, function(json) {
                 var data = JSON.parse(json);
                 refreshTable(data.payments);
@@ -217,6 +227,8 @@ console.log('aaa');
       $input.find('input').prop('checked', usage);
 
       $('#sampo_passes').append($input);
+
+       return $input;
     }
 
     function refureshPassList(data) {
@@ -259,7 +271,7 @@ console.log('aaa');
   }
 
   function clearForms() {
-      $('input[type!=checkbox]').val('');
+      $('.tab-content input[type!=checkbox]').val('');
     }
 
   function addSampoPassEvents() {
@@ -285,6 +297,7 @@ console.log('aaa');
         sendRequest({
           action: action,
           pid: input.val(),
+          date: $('#date').val(),
           time: $('#addSampoPass #inputTime').val()
         }, successProcess, errorProcess);
       } else {
@@ -294,7 +307,7 @@ console.log('aaa');
     });
   }
 
-  function init() {
+  function init(params) {
     $('#addButton').click(function() {
       showAddPassForm();
     });
@@ -338,6 +351,12 @@ console.log('aaa');
       return false
     });
 
+    $('#date').datepicker({
+        format: 'dd.mm.yyyy'
+    }).on('changeDate', function() {
+        $(this).datepicker('hide');
+        $('#date-submit').focus();
+    });
 
   }
 

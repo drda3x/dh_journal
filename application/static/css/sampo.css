@@ -55,3 +55,11 @@ table tr:hover span {
 .form-horizontal .control-label {
     width: 120px !important;
 }
+
+#navTab form {
+    margin: 5px 0 0 10px !important;
+}
+
+.su-nav-tabs > li {
+    margin-bottom: -3px !important;
+}

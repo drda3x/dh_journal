@@ -15,7 +15,8 @@ def get_sampo_details(date):
     end_time = (begin_time + datetime.timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(microseconds=1)
 
     sampo_passes = SampoPasses.objects.select_related('payment')\
-        .filter(payment__date__range=[begin_time, end_time])
+        .filter(payment__date__range=[begin_time, end_time])\
+        .exclude(payment__date__gt=date)
 
     today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end)).order_by('pk')
 
@@ -28,6 +29,7 @@ def get_sampo_details(date):
             payment.sampo_pass = _pass[0]
 
     pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end)).order_by('pk')
+    today_bought = []
 
     def get_data(elem):
         if isinstance(elem, SampoPayments):
@@ -39,6 +41,7 @@ def get_sampo_details(date):
 
             if hasattr(elem, 'sampo_pass'):
                 result['comment'] = '%s %s - %s' % (elem.sampo_pass.surname, elem.sampo_pass.name, u'абон.')
+                today_bought.append(elem.sampo_pass.id)
             elif elem.comment:
                 result['comment'] = elem.comment
 
@@ -63,7 +66,11 @@ def get_sampo_details(date):
         today_payments.reverse()
 
     passes = map(
-        lambda x: setattr(x, 'used_today', x.id in pass_usages.values_list('sampo_pass_id', flat=True)) or x,
+        lambda x: setattr(
+            x,
+            'used_today',
+            x.id in pass_usages.values_list('sampo_pass_id', flat=True) or x.id in today_bought
+        ) or x,
         sampo_passes
     )
 
