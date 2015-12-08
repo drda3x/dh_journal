@@ -137,7 +137,7 @@ window.sampoLogic = (function () {
       var response = JSON.parse(json);
 
       if (response.hasOwnProperty('pid')) {
-        var input = addToPassList(response.pid, data.info.name, data.info.surname)
+        var input = addToPassList(response.pid, data.info.name, data.info.surname);
           input.find('input').prop('checked', true);
       }
 

@@ -528,3 +528,6 @@ class Log(models.Model):
 
     date = models.DateTimeField(verbose_name=u'Время записи', auto_now=True)
     msg = models.TextField(verbose_name=u'Сообщение', max_length=1000)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.date.strftime('%d.%m.%Y %H:%M:%S'), self.msg)
