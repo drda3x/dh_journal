@@ -4,14 +4,17 @@
 import datetime
 from pytz import UTC, timezone
 from project.settings import TIME_ZONE
+from django.utils.timezone import make_aware
 from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes, Log
 
 
 def get_sampo_details(date):
 
-    day_begin = date.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
-    day_end = date.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=UTC)
-    begin_time = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
+    time_zone = timezone(TIME_ZONE)
+
+    day_begin = make_aware(date.replace(hour=0, minute=0, second=0, microsecond=0), time_zone)
+    day_end = make_aware(date.replace(hour=23, minute=59, second=59, microsecond=999999), time_zone)
+    begin_time = make_aware(date.replace(day=1, hour=0, minute=0, second=0, microsecond=0), time_zone)
     end_time = (begin_time + datetime.timedelta(days=32)).replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(microseconds=1)
 
     sampo_passes = SampoPasses.objects.select_related('payment')\

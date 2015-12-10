@@ -3,6 +3,7 @@
 import datetime, json
 
 from pytz import UTC, timezone
+from django.utils.timezone import make_aware
 from project.settings import TIME_ZONE
 from traceback import format_exc
 from copy import deepcopy
@@ -899,16 +900,15 @@ def add_sampo_payment(request):
     hhmm = data['time']
     if hhmm:
         hhmm = map(int, hhmm.split(':'))
-        now = datetime.datetime.combine(
+        now = make_aware(datetime.datetime.combine(
             datetime.datetime.strptime(date, '%d.%m.%Y').date() if date else datetime.date.today(),
             datetime.time(hhmm[0], hhmm[1])
-        )
-
+        ), timezone(TIME_ZONE))
     else:
-        now = datetime.datetime.combine(
+        now = make_aware(datetime.datetime.combine(
             datetime.datetime.strptime(date, '%d.%m.%Y').date(),
             datetime.datetime.now().time()
-        ) if date else datetime.datetime.now().replace(second=0, microsecond=0)
+        ), timezone(TIME_ZONE)) if date else datetime.datetime.now(tz=timezone(TIME_ZONE)).replace(second=0, microsecond=0)
 
     if request.GET['type'].startswith('cash'):
         new_payment = SampoPayments(
@@ -971,9 +971,10 @@ def check_uncheck_sampo(request):
         date_params = dict(
             zip(('day', 'month', 'year', 'hour', 'minute'), date+hhmm)
         )
+        date_params['tz'] = timezone(TIME_ZONE)
         now = datetime.datetime(**date_params)
     else:
-        now = datetime.datetime.now().replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
+        now = datetime.datetime.now(tz=timezone(TIME_ZONE)).replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
 
     if action == 'check':
         new_usage = SampoPassUsage(
@@ -1054,8 +1055,7 @@ def write_off_sampo_record(request):
 
     date_str = request.GET.get('date')
 
-    date = datetime.datetime.strptime(date_str, '%d.%m.%Y') if date_str else datetime.datetime.now(UTC)
-
+    date = make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
     date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
     date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
 
