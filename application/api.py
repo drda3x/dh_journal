@@ -963,7 +963,13 @@ def add_sampo_payment(request):
 def check_uncheck_sampo(request):
 
     action = request.GET.get('action')
-    hhmm = map(lambda x: int(x), request.GET['time'].split(':'))
+    time = request.GET.get('time')
+
+    if time:
+        hhmm = map(lambda x: int(x), request.GET['time'].split(':'))
+    else:
+        hhmm = [0, 0]
+
     date_str = request.GET.get('date')
 
     if date_str:

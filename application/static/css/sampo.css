@@ -63,3 +63,20 @@ table tr:hover span {
 .su-nav-tabs > li {
     margin-bottom: -3px !important;
 }
+
+.blink1 {
+    -webkit-animation: blink1 2s linear infinite;
+    animation: blink1 2s linear infinite;
+}
+
+@-webkit-keyframes blink1 {
+    0% { opacity: 1 }
+    50% { opacity: 0 }
+    100% { opacity: 1 }
+}
+
+@keyframes blink1 {
+    0% { opacity: 1 }
+    50% { opacity: 0 }
+    100% { opacity: 1 }
+}
