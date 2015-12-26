@@ -79,7 +79,9 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
     ]
 
     moneys = []
-    money_total = {key: 0 for key in ('day_total', 'dance_hall')}
+    money_total = dict.fromkeys(('day_total', 'dance_hall'), 0)
+    _day = None
+    flag = False
 
     for _day in calendar:
         buf = dict()
@@ -121,7 +123,7 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
     money_total['half_balance'] = round(money_total['balance'] / 2, 1)
 
     try:
-        if buf['balance']:
+        if _day and (_day['canceled'] or flag):
 
             money_total['next_month_balance'] = reduce(
                 lambda acc, l: acc + l.prise(),
