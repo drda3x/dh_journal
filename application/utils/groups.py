@@ -132,7 +132,7 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
                 Lessons.objects.filter(
                     group=group,
                     date__gt=_day['date'],
-                    group_pass__creation_date__lt=_day['date']
+                    group_pass__creation_date__lte=_day['date']
                     #group_pass__start_date__lt=date_to
                 ),
                 0
