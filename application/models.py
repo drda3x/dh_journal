@@ -321,6 +321,7 @@ class Passes(models.Model):
     lessons_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных занятий')
     skips_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных пропусков', null=True, blank=True)
     opener = models.ForeignKey(User, null=True, blank=True)
+    creation_date = models.DateField(verbose_name=u'Дата содания(оплаты абонемента)', null=True, blank=True, auto_now=True)
 
     @property
     def one_group_pass(self):
