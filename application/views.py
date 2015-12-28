@@ -101,16 +101,22 @@ def group_detail_view(request):
         if date_from.date() < group.start_date:
             date_from = datetime.datetime.combine(group.start_date, datetime.datetime.min.time())
 
-        last_lesson = datetime.datetime.combine(
-            Lessons.objects.filter(group=group).latest('date').date,
-            datetime.datetime.min.time()
-        )
+        try:
+            last_lesson = datetime.datetime.combine(
+                Lessons.objects.filter(group=group).latest('date').date,
+                datetime.datetime.min.time()
+            )
+
+        except Lessons.DoesNotExist:
+            last_lesson = None
 
         date_to = group.end_datetime or get_last_day_of_month(date_from)
+
         forward_month = max(
             get_last_day_of_month(now) + datetime.timedelta(days=1 if not group.end_datetime else 0),
             last_lesson.replace(day=1)
-        )
+        ) if last_lesson else get_last_day_of_month(now) + datetime.timedelta(days=1 if not group.end_datetime else 0)
+
         border = datetime.datetime.combine(group.start_date, datetime.datetime.min.time()).replace(day=1)
 
         context['control_data'] = {
