@@ -79,13 +79,17 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
     ]
 
     moneys = []
-    money_total = {key: 0 for key in ('day_total', 'dance_hall')}
+    money_total = dict.fromkeys(('day_total', 'dance_hall'), 0)
+    _day = None
+    flag = False
+    last_lesson_date = None
 
     for _day in calendar:
         buf = dict()
 
         qs = Lessons.objects.filter(group=group, date=_day['date'])
         flag = qs.exclude(status__in=(Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved'])).exists()
+        last_lesson_date = _day['date'] if not _day['canceled'] else last_lesson_date
 
         if not _day['canceled'] and flag:
 
@@ -121,14 +125,15 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
     money_total['half_balance'] = round(money_total['balance'] / 2, 1)
 
     try:
-        if buf['balance']:
+        if datetime.datetime.now() >= last_lesson_date:
 
             money_total['next_month_balance'] = reduce(
                 lambda acc, l: acc + l.prise(),
                 Lessons.objects.filter(
                     group=group,
-                    date__gt=date_to,
-                    group_pass__start_date__lt=date_to
+                    date__gt=_day['date'],
+                    group_pass__creation_date__lte=_day['date']
+                    #group_pass__start_date__lt=date_to
                 ),
                 0
             )

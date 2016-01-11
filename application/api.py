@@ -474,7 +474,7 @@ def process_lesson(request):
                             start_date=date,
                             lessons=1,
                             skips=0,
-                            user=request.user
+                            opener=request.user
                         )
 
                         pass_orm_object.save()
