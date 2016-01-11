@@ -335,7 +335,7 @@ window.sampoLogic = (function () {
     }
 
     function dateToStr(date) {
-        return date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear()
+        return addZero(date.getDate()) + '.' + addZero(date.getMonth() + 1) + '.' + date.getFullYear()
     }
 
     function init(params) {
@@ -396,7 +396,7 @@ window.sampoLogic = (function () {
         var dateVal = $date.val(),
             now = new Date();
 
-        if(dateVal == dateToStr(now)) {
+        if($date.length == 0 || dateVal == dateToStr(now)) {
             clockAutoUpdate(clockInput);
             var dateWatcher = getDateWatcher(now);
             setInterval(dateWatcher, 500);

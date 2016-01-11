@@ -977,7 +977,7 @@ def check_uncheck_sampo(request):
         date_params = dict(
             zip(('day', 'month', 'year', 'hour', 'minute'), date+hhmm)
         )
-        date_params['tz'] = timezone(TIME_ZONE)
+        date_params['tzinfo'] = timezone(TIME_ZONE)
         now = datetime.datetime(**date_params)
     else:
         now = datetime.datetime.now(tz=timezone(TIME_ZONE)).replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
