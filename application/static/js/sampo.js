@@ -159,7 +159,8 @@ window.sampoLogic = (function () {
      */
     function refreshTable(data) {
         var html_container = $('#payments tbody'),
-            info = {};
+            info = {},
+            payments = [];
 
         html_container.empty();
 
@@ -182,10 +183,60 @@ window.sampoLogic = (function () {
                 '</td>' +
                 '</tr>'
             ).appendTo(html_container);
+
+            payments.push(info.payment);
         }
+
+        var splited = splitPayments(payments),
+            p_sum = sum(splited.positive),
+            n_sum = Math.abs(sum(splited.negative)),
+            data_arr = [p_sum - n_sum, n_sum, p_sum];
+
+        $('#short_report_table tr:eq(0) strong').each(function () {
+            $(this).text(data_arr.pop());
+        });
 
         addSampoPassEvents();
         addWriteOffBehavior();
+    }
+
+    /**
+     * Разделить массив оплат на положительные, отрицательные и нейтральные
+     * @param payments
+     */
+    function splitPayments(payments) {
+        var positive = [],
+            negative = [],
+            other = [],
+            current_value;
+
+        for(var i= 0, j= payments.length; i<j; i++) {
+            current_value = parseInt(payments[i]);
+
+            if(isNaN(current_value)) {
+                other.push(current_value);
+            } else if(current_value > 0) {
+                positive.push(current_value);
+            } else {
+                negative.push(current_value)
+            }
+        }
+
+        return {
+            positive: positive,
+            negative: negative,
+            other: other
+        }
+    }
+
+    function sum(arr) {
+        var res = 0;
+
+        for(var i= 0, j= arr.length; i<j; i++) {
+            res += arr[i];
+        }
+
+        return res;
     }
 
     /**

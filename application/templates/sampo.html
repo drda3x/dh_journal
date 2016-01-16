@@ -129,34 +129,74 @@
                     </div>
                 </div>
             <div class="span4 offset1">
-                <table id="payments" class="table table-bordered table-striped table-hover">
-                    <thead>
-                       <tr>
-                            <th>Время</th>
-                            <th>Сумма/Абонемент</th>
-                       </tr>
-                    </thead>
-                    <tbody>
-                    {% for payment in today_payments %}
-                        <tr>
-                             <td>{{ payment.date }}</td>
-                             <td class="{{ payment.info.type }}">
-                                <div class="row-fluid">
-                                    <div class="span10">
-                                        {{ payment.info.payment }}
-                                        {% if payment.info.comment %}
-                                            <div class="muted">{{ payment.info.comment }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="span1 minus" data-id="{{ payment.info.id }}">
-                                        <span class="text-error">-</span>
-                                    </div>
-                                </div>
-                             </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                <ul class="nav nav-tabs" id="navTab2">
+                    <li class="active"><a href="#full_report" data-toggle="tab">Журнал</a></li>
+                    <li><a href="#short_report" data-toggle="tab">Отчет</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="full_report" class="tab-pane active">
+                        <table id="payments" class="table table-bordered table-striped table-hover">
+                            <thead>
+                               <tr>
+                                    <th>Время</th>
+                                    <th>Сумма/Абонемент</th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                            {% for payment in today_payments %}
+                                <tr>
+                                     <td>{{ payment.date }}</td>
+                                     <td class="{{ payment.info.type }}">
+                                        <div class="row-fluid">
+                                            <div class="span10">
+                                                {{ payment.info.payment }}
+                                                {% if payment.info.comment %}
+                                                    <div class="muted">{{ payment.info.comment }}</div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="span1 minus" data-id="{{ payment.info.id }}">
+                                                <span class="text-error">-</span>
+                                            </div>
+                                        </div>
+                                     </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="short_report" class="tab-pane">
+                        <table id="short_report_table" class="table table-bordered table-stripped">
+                            <tbody>
+                                <tr>
+                                    <td class="center text-success">
+                                        Внесено: <strong>15000</strong>
+                                    </td>
+                                    <td class="center text-error">
+                                        Списано: <strong>5000</strong>
+                                    </td>
+                                    <td class="center text-warning">
+                                        ИТОГО: <strong>10000</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th colspan="3" class="center">Абонементы</th>
+                                </tr>
+                                <tr>
+                                    <td>15:00</td>
+                                    <td colspan="2">Нестеров Василий</td>
+                                </tr>
+                                <tr>
+                                    <td>15:00</td>
+                                    <td colspan="2">Нестеров Василий</td>
+                                </tr>
+                                <tr>
+                                    <td>15:00</td>
+                                    <td colspan="2">Нестеров Василий</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
       </div>
