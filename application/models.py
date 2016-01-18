@@ -532,3 +532,17 @@ class Log(models.Model):
 
     def __unicode__(self):
         return '%s - %s' % (self.date.strftime('%d.%m.%Y %H:%M:%S'), self.msg)
+
+
+class SampoPrises(models.Model):
+    prise = models.PositiveIntegerField(verbose_name=u'Сумма')
+    date_from = models.DateField(verbose_name=u'Дата начала действия')
+    date_to = models.DateField(verbose_name=u'Дата окончания действия', null=True, blank=True)
+
+    def __unicode__(self):
+        return u'c %s по %s (%d)' % (self.date_from.strftime('%d.%m.%Y'), self.date_to.strftime('%d.%m.%Y') if self.date_to else u'не ограничено', self.prise)
+
+    class Meta:
+        unique_together = ('date_from', 'date_to')
+        app_label = u'application'
+        verbose_name = u'Цены на сампо'

@@ -4,6 +4,7 @@ import datetime, json
 
 from pytz import UTC, timezone
 from django.utils.timezone import make_aware
+from django.db.models import Q
 from project.settings import TIME_ZONE
 from traceback import format_exc
 from copy import deepcopy
@@ -17,7 +18,7 @@ from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
 from application.utils.date_api import get_count_of_weekdays_per_interval
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts, SampoPayments, SampoPasses, SampoPassUsage
+from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts, SampoPayments, SampoPasses, SampoPassUsage, SampoPrises
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
@@ -933,11 +934,16 @@ def add_sampo_payment(request):
 
     elif data and data['name'] and data['surname']:
 
+        prises = SampoPrises.objects.filter(
+            Q(date_from__lte=now.date()),
+            Q(Q(date_to__gte=now.date()) | Q(date_to__isnull=True))
+        ).order_by('date_from').latest('date_from')
+
         new_payment = SampoPayments(
             date=now,
             staff=request.user,
             people_count=1,
-            money=1500
+            money=prises.prise
         )
         new_payment.save()
 
