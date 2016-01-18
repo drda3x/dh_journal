@@ -369,7 +369,9 @@ def sampo_view(request):
         return HttpResponseServerError('Не правильно указана дата')
 
     context = dict()
-    context['passes'], context['today_payments'] = get_sampo_details(date)
+    context['passes'], context['today_payments'], context['totals'] = get_sampo_details(date)
+    context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
+    context['pass_signs_l'] = len(context['pass_signs'])
     context['date'] = date.strftime('%d.%m.%Y')
     template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

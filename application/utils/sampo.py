@@ -5,6 +5,7 @@ import datetime
 from pytz import UTC, timezone
 from project.settings import TIME_ZONE
 from django.utils.timezone import make_aware
+from django.db.models import Sum
 from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes, Log
 
 
@@ -28,6 +29,13 @@ def get_sampo_details(date):
         .exclude(payment__date__gt=date)
 
     today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end)).order_by('pk')
+
+    totals = {
+        'add': today_payments.filter(money__gt=0).aggregate(Sum('money')).get('money__sum') or 0,
+        'write_off': abs(today_payments.filter(money__lt=0).aggregate(Sum('money')).get('money__sum') or 0)
+    }
+
+    totals['delta'] = totals['add'] - totals['write_off']
 
     pass_buffer = []
 
@@ -83,7 +91,7 @@ def get_sampo_details(date):
         sampo_passes
     )
 
-    return passes, today_payments
+    return passes, today_payments, totals
 
 
 def write_log(msg):

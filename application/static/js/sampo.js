@@ -184,17 +184,26 @@ window.sampoLogic = (function () {
                 '</tr>'
             ).appendTo(html_container);
 
-            payments.push(info.payment);
+            payments.push({
+              date: data[i].date,
+              info: info.payment
+            });
         }
 
         var splited = splitPayments(payments),
             p_sum = sum(splited.positive),
             n_sum = Math.abs(sum(splited.negative)),
-            data_arr = [p_sum - n_sum, n_sum, p_sum];
+            data_arr = [splited.other.length, p_sum - n_sum, n_sum, p_sum];
 
-        $('#short_report_table tr:eq(0) strong').each(function () {
+        $('#short_report_table tr:lt(2) strong').each(function () {
             $(this).text(data_arr.pop());
         });
+
+        $('#short_report_table tr:gt(1)').remove();
+
+        for(var i= 0, j= splited.other.length; i<j; i++) {
+          $('#short_report_table').append('<tr><td>'+splited.other[i].date+'</td><td colspan="2">'+ splited.other[i].info +'</td></tr>');
+        }
 
         addSampoPassEvents();
         addWriteOffBehavior();
@@ -202,7 +211,7 @@ window.sampoLogic = (function () {
 
     /**
      * Разделить массив оплат на положительные, отрицательные и нейтральные
-     * @param payments
+     * @param payments - object {info, date}
      */
     function splitPayments(payments) {
         var positive = [],
@@ -211,10 +220,10 @@ window.sampoLogic = (function () {
             current_value;
 
         for(var i= 0, j= payments.length; i<j; i++) {
-            current_value = parseInt(payments[i]);
+            current_value = parseInt(payments[i].info);
 
             if(isNaN(current_value)) {
-                other.push(current_value);
+                other.push(payments[i]);
             } else if(current_value > 0) {
                 positive.push(current_value);
             } else {

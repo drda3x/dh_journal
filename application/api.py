@@ -924,7 +924,7 @@ def add_sampo_payment(request):
 
         new_payment.save()
 
-        passes, payments = get_sampo_details(now)
+        passes, payments, _ = get_sampo_details(now)
 
         return HttpResponse(
             json.dumps({
@@ -948,7 +948,7 @@ def add_sampo_payment(request):
         )
         new_pass.save()
 
-        passes, payments = get_sampo_details(now)
+        passes, payments, _ = get_sampo_details(now)
 
         return HttpResponse(
             json.dumps({
@@ -977,10 +977,9 @@ def check_uncheck_sampo(request):
         date_params = dict(
             zip(('day', 'month', 'year', 'hour', 'minute'), date+hhmm)
         )
-        date_params['tzinfo'] = timezone(TIME_ZONE)
-        now = datetime.datetime(**date_params)
+        now = make_aware(datetime.datetime(**date_params), timezone(TIME_ZONE))
     else:
-        now = datetime.datetime.now(tz=timezone(TIME_ZONE)).replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
+        now = make_aware(datetime.datetime.now(), timezone(TIME_ZONE)).replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
 
     if action == 'check':
         new_usage = SampoPassUsage(
@@ -990,7 +989,7 @@ def check_uncheck_sampo(request):
 
         new_usage.save()
 
-        passes, payments = get_sampo_details(now)
+        passes, payments, _ = get_sampo_details(now)
 
         _json = json.dumps({
             'payments': payments
@@ -1012,7 +1011,7 @@ def check_uncheck_sampo(request):
         if last_usage:
             last_usage.delete()
 
-        passes, payments = get_sampo_details(now)
+        passes, payments, _ = get_sampo_details(now)
 
         _json = json.dumps({
             'payments': payments
@@ -1066,7 +1065,7 @@ def write_off_sampo_record(request):
     date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
 
     response = dict()
-    passes, payments = get_sampo_details(date_max)
+    passes, payments, _ = get_sampo_details(date_max)
     usages = SampoPassUsage.objects.filter(
         date__range=[date_min, date_max]
     ).values_list('sampo_pass', flat=True)

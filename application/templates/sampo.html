@@ -168,31 +168,32 @@
                         <table id="short_report_table" class="table table-bordered table-stripped">
                             <tbody>
                                 <tr>
-                                    <td class="center text-success">
-                                        Внесено: <strong>15000</strong>
+                                    <td class="center">
+                                        Внесено: <strong class="text-success">{{ totals.add }}</strong>
                                     </td>
-                                    <td class="center text-error">
-                                        Списано: <strong>5000</strong>
+                                    <td class="center">
+                                        Списано: <strong class="text-error">{{ totals.write_off }}</strong>
                                     </td>
-                                    <td class="center text-warning">
-                                        ИТОГО: <strong>10000</strong>
+                                    <td class="center">
+                                        ИТОГО:
+                                        {% if totals.delta > 0 %}
+                                            <strong class="text-success">{{ totals.delta }}</strong>
+                                        {% elif totals.delta < 0 %}
+                                            <strong class="text-error">{{ totals.delta }}</strong>
+                                        {% else %}
+                                            <strong>0</strong>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th colspan="3" class="center">Абонементы</th>
+                                    <td colspan="3" class="center">Отмечено абонементов: <strong>{{ pass_signs_l }}</strong></td>
                                 </tr>
-                                <tr>
-                                    <td>15:00</td>
-                                    <td colspan="2">Нестеров Василий</td>
-                                </tr>
-                                <tr>
-                                    <td>15:00</td>
-                                    <td colspan="2">Нестеров Василий</td>
-                                </tr>
-                                <tr>
-                                    <td>15:00</td>
-                                    <td colspan="2">Нестеров Василий</td>
-                                </tr>
+                                {% for sign in pass_signs %}
+                                    <tr>
+                                        <td>{{ sign.date }}</td>
+                                        <td colspan="2">{{ sign.info.payment }}</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
