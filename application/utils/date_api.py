@@ -47,12 +47,10 @@ def get_count_of_weekdays_per_interval(wd, int_start, int_stop):
     d_delta = (int_stop - int_start).days + 1
     first_day = int_start.weekday()
 
-    calendar = list(_gen(d_delta, first_day))
-
     return len(
         filter(
             lambda d: d in wd,
-            [day[1] for day in calendar]
+            [day[1] for day in _gen(d_delta, first_day)]
         )
     )
 
