@@ -39,8 +39,13 @@ class BasePass(object):
         return list(Lessons.objects.filter(group_pass=self.orm_object))
 
     def check_date(self, date):
-        max_date = Lessons.objects.filter(group_pass=self.orm_object).aggregate(Max('date'))
-        return self.orm_object.start_date <= date.date() <= max_date['date__max']
+        try:
+
+            max_date = Lessons.objects.filter(group_pass=self.orm_object).aggregate(Max('date'))
+            return self.orm_object.start_date <= date.date() <= max_date['date__max']
+
+        except TypeError:
+            pass
 
     def check_lessons_count(self):
         self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))

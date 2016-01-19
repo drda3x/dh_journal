@@ -131,9 +131,8 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
                 lambda acc, l: acc + l.prise(),
                 Lessons.objects.filter(
                     group=group,
-                    date__gt=_day['date'],
-                    group_pass__creation_date__lte=_day['date']
-                    #group_pass__start_date__lt=date_to
+                    date__gt=last_lesson_date,
+                    group_pass__creation_date__lte=last_lesson_date
                 ),
                 0
             )
