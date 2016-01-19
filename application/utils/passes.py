@@ -34,7 +34,7 @@ class BasePass(object):
     def __init__(self, obj):
         self.orm_object = obj
 
-    @cached_property
+    @property
     def lessons(self):
         return list(Lessons.objects.filter(group_pass=self.orm_object))
 

@@ -83,7 +83,11 @@ def delete_lessons(group, student, date, count):
         except StopIteration:
             break
 
-        map(lambda l: l.delete(), to_delete)
+        for l in to_delete:
+            try:
+                l.delete()
+            except AssertionError:
+                pass
 
     return [
         {

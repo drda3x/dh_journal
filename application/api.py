@@ -531,7 +531,28 @@ def process_lesson(request):
                             pass_orm_object.save()
 
                             wrapped = PassLogic.wrap(pass_orm_object)
-                            wrapped.create_lessons(date, lessons_count)
+
+                            i = 0
+                            for debt in Debts.objects.filter(group=group, student=st, date__lt=date):
+                                if lessons_count > 0 or lessons_count is None:
+                                    wrapped.create_lessons(debt.date, 1)
+
+                                    comment = Comments(
+                                        student=st,
+                                        group=group,
+                                        add_date=datetime.datetime.now(),
+                                        text='%s - Списан долг за счет абонемента от %s' % (debt.date.strftime('%d.%m.%Y'), date.strftime('%d.%m.%Y'))
+                                    )
+                                    comment.save()
+
+                                    i += 1
+
+                            lc = (lessons_count or 0) - i
+
+                            if not lessons_count and i == 0:
+                                wrapped.create_lessons(date, lessons_count)
+                            elif lc > 0:
+                                wrapped.create_lessons(date, lc)
 
                             wrapped.presence = p.get('presence', False)
                             if date.date() <= group.last_lesson:
