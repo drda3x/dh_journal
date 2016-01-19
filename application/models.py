@@ -546,3 +546,4 @@ class SampoPrises(models.Model):
         unique_together = ('date_from', 'date_to')
         app_label = u'application'
         verbose_name = u'Цены на сампо'
+        verbose_name_plural= u'Цены на сампо'
