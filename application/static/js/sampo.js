@@ -195,8 +195,20 @@ window.sampoLogic = (function () {
             n_sum = Math.abs(sum(splited.negative)),
             data_arr = [splited.other.length, p_sum - n_sum, n_sum, p_sum];
 
-        $('#short_report_table tr:lt(2) strong').each(function () {
-            $(this).text(data_arr.pop());
+        $('#short_report_table tr:lt(2) strong').each(function($index) {
+          var num = data_arr.pop(),
+              $this = $(this);
+          $this.text(num);
+          if($index == 2) {
+            $this.removeAttr('class');
+
+            if(num > 0) {
+              $this.addClass('text-success');
+            } else if(num < 0) {
+              $this.addClass('text-error');
+            }
+
+          }
         });
 
         $('#short_report_table tr:gt(1)').remove();

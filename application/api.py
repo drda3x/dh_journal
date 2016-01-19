@@ -943,7 +943,7 @@ def add_sampo_payment(request):
             date=now,
             staff=request.user,
             people_count=1,
-            money=prises.prise
+            money=int(data['count'] or 0)
         )
         new_payment.save()
 
