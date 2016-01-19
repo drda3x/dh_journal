@@ -290,7 +290,9 @@ def get_student_lesson_status(student, group, _date):
             'sign': 'долг' if debt else lesson.sign,
             'sign_type': 's' if debt or isinstance(lesson.sign, str) else 'n',
             'attended': lesson.status == Lessons.STATUSES['attended'],
-            'pid': lesson.group_pass.id
+            'pid': lesson.group_pass.id,
+            'first': lesson.is_first_in_pass,
+            'last': lesson.is_last_in_pass
         }
 
         if not lesson.status == Lessons.STATUSES['moved']:
@@ -311,7 +313,9 @@ def get_student_lesson_status(student, group, _date):
             'sign': 'долг' if debt else '',
             'sign_type': 's' if debt else '',
             'attended': False,
-            'canceled': False
+            'canceled': False,
+            'first': False,
+            'last': False
         }
 
 

@@ -421,6 +421,25 @@ html, body {
     text-align: center;
 }
 
+.circle {
+    width: 10px;
+    height: 10px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    display: inline-block;
+    float: right;
+    border: 1px solid;
+}
+
+.circle-red {
+    background-color: red;
+}
+
+.circle-green {
+    background-color: green;
+}
+
 /*.canceled {*/
     /*background-color: #979997 !important;*/
 /*}*/

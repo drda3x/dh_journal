@@ -2,6 +2,7 @@
 
 import datetime, math, calendar as calendar_origin
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
 
@@ -448,6 +449,16 @@ class Lessons(models.Model):
             self.status = Lessons.STATUSES['not_processed']
 
         super(Lessons, self).save(force_insert, force_update, using, update_fields)
+
+    @cached_property
+    def is_first_in_pass(self):
+        first_lesson = Lessons.objects.filter(group_pass=self.group_pass).earliest('date')
+        return self.group_pass.start_date == self.date
+
+    @cached_property
+    def is_last_in_pass(self):
+        last_lesson = Lessons.objects.filter(group_pass=self.group_pass).latest('date')
+        return last_lesson.date == self.date
 
     class Meta:
         app_label = u'application'

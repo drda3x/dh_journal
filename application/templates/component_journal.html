@@ -72,6 +72,12 @@
                     {% else %}
                         {{ date.sign }}
                     {% endif %}
+                    {% if date.first %}
+                        <div class="circle circle-green"></div>
+                    {% endif %}
+                    {% if date.last %}
+                        <div class="circle circle-red"></div>
+                    {% endif %}
                 </td>
                 {% endfor %}
             </tr>
