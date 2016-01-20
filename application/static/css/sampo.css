@@ -80,3 +80,7 @@ table tr:hover span {
     50% { opacity: 0 }
     100% { opacity: 1 }
 }
+
+.nav-input {
+    margin: 2px 0 !important;
+}

@@ -1,5 +1,5 @@
 {% block head %}
-    <link rel="stylesheet" href="../static/css/sampo.css" />
+    <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
         window.onload = function() {
@@ -9,15 +9,17 @@
 {% endblock %}
 {% block body %}
     <div class="row-fluid">
-      <div class="span12">
+        {% if user.is_superuser %}
+        {% include "sampo_nav_menu.html" %}
+        {% endif %}
         <div class="row-fluid">
-            <div {% if user.is_superuser %} class="span7" {% else %} class="span6" {% endif %}>
+            <div {% if user.is_superuser %} class="span6" {% else %} class="span6" {% endif %}>
                     <ul class="nav nav-tabs {% if user.is_superuser %}su-nav-tabs{% endif %}" id="navTab">
                         <li class="active"><a id="journalNav" href="#cash-add" data-toggle="tab">Внесение</a></li>
                         <li><a id="infoNav" href="#cash-del" data-toggle="tab">Списание</a></li>
                         <li><a id="infoNav" href="#pass" data-toggle="tab">Абонементы</a></li>
                         {% if user.is_superuser %}
-                        <li>
+                        <!--li>
                             <form class="form-inline">
                                 <label>
                                     Дата:
@@ -25,7 +27,7 @@
                                 </label>
                                <input type="submit" id="date-submit" class="btn" value="OK">
                             </form>
-                        </li>
+                        </li-->
                         {% endif %}
                     </ul>
                     <div class="tab-content">
@@ -205,7 +207,6 @@
                     </div>
                 </div>
             </div>
-        </div>
       </div>
     </div>
 {% endblock %}

@@ -1,0 +1,37 @@
+{% block head %}
+    <script type="text/javascript">
+        window.onload = function() {
+
+            // Блокируем ссылки по кликам на инпуты
+            $('#nav-top').click(function(event) {
+                event.preventDefault();
+            });
+
+            var $date = $('#date');
+            $date.datepicker({
+                format: 'dd.mm.yyyy'
+            }).on('changeDate', function () {
+                $(this).datepicker('hide');
+                $('#date-submit').focus();
+            });
+        }
+    </script>
+{% endblock %}
+{% block body %}
+    <div class="row-fluid">
+        <div class="span6">
+            <ul class="nav nav-tabs" id="#nav-top">
+                <li class="active"><a href="sampo" data-toggle="tab">Ведомости за <input id="date" name="date" class="input-small nav-input" type="text" value="{{ date }}"></a></li>
+                <li>
+                    <a href="#" data-toggle="tab">Отчет за
+                        <select class="input-medium nav-input">
+                            <option>Декабрь 2015</option>
+                            <option>Январь 2016</option>
+                            <option>Февраль 2016</option>
+                        </select>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
