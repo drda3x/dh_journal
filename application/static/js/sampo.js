@@ -456,6 +456,14 @@ window.sampoLogic = (function () {
             return false
         });
 
+        var $date = $('#date');
+        $date.datepicker({
+            format: 'dd.mm.yyyy'
+        }).on('changeDate', function () {
+            $(this).datepicker('hide');
+            $('#date-submit').focus();
+        });
+
         // Логика работы виджета за сегодня и за все остальные дни
         var dateVal = $date.val(),
             now = new Date();
