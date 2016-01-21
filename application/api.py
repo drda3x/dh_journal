@@ -423,8 +423,21 @@ def get_passes(request):
 
 
 def delete_debt(group, student, date):
+
+    params = dict(date=date)
+
+    if isinstance(student, int):
+        params['student_id'] = student
+    else:
+        params['student'] = student
+
+    if isinstance(group, int):
+        params['group_id'] = group
+    else:
+        params['group'] = group
+
     try:
-        debt = Debts.objects.get(group=group, student=student, date=date)
+        debt = Debts.objects.get(**params)
         debt.delete()
         return True
 
@@ -477,6 +490,8 @@ def process_lesson(request):
                             skips=0,
                             opener=request.user
                         )
+
+                        delete_debt(group, p['student_id'], date)
 
                         pass_orm_object.save()
                         wrapped = PassLogic.wrap(pass_orm_object)
