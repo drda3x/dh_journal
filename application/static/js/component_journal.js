@@ -291,7 +291,7 @@
             alert('Возникла ошибка при восстановлении отмененного занятия');
            backDrop('hide');
         }).done(function(data) {
-            window.location.pathname = 'group?id=window.group.id&date=' + window.controlData.currentDate;
+            window.location.pathname = 'group?id='+window.group.id+'&date=' + window.controlData.currentDate;
         });
     });
 
