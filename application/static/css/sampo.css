@@ -56,6 +56,18 @@ table tr:hover span {
     width: 120px !important;
 }
 
+#nav-top {
+    margin: 0 !important;
+}
+
+#container {
+    border-left: 1px solid #e5e5e5;
+    border-right: 1px solid #e5e5e5;
+    /*border-bottom: 1px solid #e5e5e5;*/
+    min-height: 800px;
+    padding: 20px 10px;
+}
+
 #navTab form {
     margin: 5px 0 0 10px !important;
 }

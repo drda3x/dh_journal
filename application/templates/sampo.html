@@ -11,8 +11,8 @@
     <div class="row-fluid">
         {% if user.is_superuser %}
         <div class="row-fluid">
-            <div class="span6">
-                <ul class="nav nav-tabs" id="#nav-top">
+            <div class="span12">
+                <ul class="nav nav-tabs" id="nav-top">
                     <li class="active"><a href="#day-journal" data-toggle="tab">Ведомости за <input id="date" name="date" class="input-small nav-input" type="text" value="{{ date }}"></a></li>
                     <li>
                         <a href="#month-report" data-toggle="tab">Отчет за
@@ -27,9 +27,9 @@
             </div>
         </div>
         {% endif %}
-        <div class="row-fluid tab-content">
+        <div {% if user.is_superuser %}id="container"{% endif %} class="row-fluid tab-content">
             <div id="day-journal" class="tab-pane active">
-                <div {% if user.is_superuser %} class="span6" {% else %} class="span6" {% endif %}>
+                <div class="span6 offset1">
                     <ul class="nav nav-tabs {% if user.is_superuser %}su-nav-tabs{% endif %}" id="navTab">
                         <li class="active"><a id="journalNav" href="#cash-add" data-toggle="tab">Внесение</a></li>
                         <li><a id="infoNav" href="#cash-del" data-toggle="tab">Списание</a></li>
@@ -152,7 +152,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="span4 offset1">
+                <div class="span4">
                 <ul class="nav nav-tabs" id="navTab2">
                     <li class="active"><a href="#full_report" data-toggle="tab">Журнал</a></li>
                     <li><a href="#short_report" data-toggle="tab">Отчет</a></li>
