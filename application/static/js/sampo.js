@@ -23,53 +23,81 @@ form = {
  */
 window.Factories = (function($) {
 
-  function Tab(input, releaseEvent) {
-  this.event = releaseEvent;
-  this.$input = $(input);
+    function Tab(html, releaseEvent) {
+        this.$html = $(html);
+        this.event = releaseEvent;
+        this.$input = this.$html.find('.control');
+        this.reports = [];
+        this.value = this.$input.val();
 
-  //При клике на input тормозим событие...
-  this.$input.click(function(event) {
-    return false;
-  })
+        //При клике на input тормозим событие...
+        this.$input.click(function (event) {
+            return false;
+        });
 
-  //add release event
-    this.$input.on(this.event, $.proxy(function() {
-      this.release();
-    }, this))
-  }
-
-  Tab.prototype.release = function() {};
-
-  function Report(table, name) {
-    this.table = $(table);
-    this.rows = this.table.find('tr');
-    this.needRefresh = false;
-    this.controlValue = null;
-  }
-
-  // Обновить отчет
-  Report.prototype.fullRefresh = function(controlData) {};
-
-  // Добавить одну строку в отчет
-  Report.prototype.addRow = function() {};
-
-  // Заблокировать отчет и показать creenSaver
-  Report.prototype.lock = function() {};
-
-  // Убрать screenSaver и показать отчет
-  Report.prototype.unlock = function() {};
-
-  function Form() {}
-
-  return {
-    createTab: function(input, releaseEvent) {
-      return new Tab(input, releaseEvent)
-    },
-    createReport: function() {
-      return new Report()
-    },
-    createForm: function() {
-      return new Form()
+        //add release event
+        this.$input.on(this.event, $.proxy(function () {
+            this.release();
+        }, this))
     }
-  }
+
+    Tab.prototype.release = function () {
+        var newValue = this.$input.val();
+
+        if(newValue != this.value) {
+            this.notifyAboutChange(newValue);
+        }
+
+        this.value = newValue;
+        this.$html.trigger('click');
+    };
+
+    Tab.prototype.notifyAboutChange = function(val) {
+        for(var i= 0; j= this.reports.length; i++) {
+            this.reports[i].refresh(val);
+        }
+    };
+
+    Tab.prototype.addListener = function(report) {
+        this.reports.push(report);
+    };
+
+    function Report(table, name) {
+        this.table = $(table);
+        this.rows = this.table.find('tr');
+        this.needRefresh = false;
+        this.controlValue = null;
+    }
+
+    // Обновить отчет
+    Report.prototype.refresh = function (controlData) {
+        console.log('refresh');
+    };
+
+    // Добавить одну строку в отчет
+    Report.prototype.addRow = function () {
+    };
+
+    // Заблокировать отчет и показать creenSaver
+    Report.prototype.lock = function () {
+    };
+
+    // Убрать screenSaver и показать отчет
+    Report.prototype.unlock = function () {
+    };
+
+    function Form() {
+    }
+
+    return {
+        createTab: function (input, releaseEvent) {
+            return new Tab(input, releaseEvent)
+        },
+        createReport: function (table, name) {
+            return new Report(table, name)
+        },
+        createForm: function () {
+            return new Form()
+        }
+    }
 })($);

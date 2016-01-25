@@ -8,10 +8,6 @@
                 return false;
             }
 
-            var $ul = $('#nav-top');
-            $ul.find('input').click(stopClickEvent);
-            $ul.find('select').click(stopClickEvent);
-
             var $date = $('input#date');
 
             $date.datepicker({
@@ -21,15 +17,14 @@
                 $('#date-submit').focus();
             });
 
-            var journalTab = window.Factories.createTab($date, 'changeDate'),
-                reportTab = window.Factories.createTab($('#report-control'), 'change');
+            var journalTab = window.Factories.createTab($('#tab-journal'), 'changeDate'),
+                reportTab = window.Factories.createTab($('#tab-report'), 'change');
 
-            reportTab.release = function() {
-                this.$input.parent().trigger('click');
-            };
-            journalTab.release = function() {
-                this.$input.parent().trigger('click');
-            };
+            var paymentReport = window.Factories.createReport($('#payments'), 'payments'),
+                dayReport = window.Factories.createReport($('#short_report_table', 'day_report'));
+
+            journalTab.addListener(paymentReport);
+            journalTab.addListener(dayReport);
         }
     </script>
 {% endblock %}
@@ -39,10 +34,10 @@
         <div class="row-fluid">
             <div class="span12">
                 <ul class="nav nav-tabs" id="nav-top">
-                    <li class="active"><a href="#day-journal" data-toggle="tab">Ведомости за <input id="date" name="date" class="input-small nav-input" type="text" value="{{ date }}"></a></li>
+                    <li class="active"><a id="tab-journal" href="#day-journal" data-toggle="tab">Ведомости за <input id="date" name="date" class="control input-small nav-input" type="text" value="{{ date }}"></a></li>
                     <li>
-                        <a href="#month-report" data-toggle="tab">Отчет за
-                            <select id="report-control" class="input-medium nav-input" name="mth">
+                        <a id="tab-report" href="#month-report" data-toggle="tab">Отчет за
+                            <select id="report-control" class="input-medium nav-input control" name="mth">
                                 <option value="122015">Декабрь 2015</option>
                                 <option value="012016">Январь 2016</option>
                                 <option value="022016">Февраль 2016</option>
