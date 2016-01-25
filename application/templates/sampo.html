@@ -3,7 +3,37 @@
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
         window.onload = function() {
-            window.sampoLogic();
+
+            function stopClickEvent(event) {
+                return false;
+            }
+
+            $('option').click(function(event) {
+                console.log(event);
+            });
+
+            var $ul = $('#nav-top');
+            $ul.find('input').click(stopClickEvent);
+            $ul.find('select').click(stopClickEvent);
+
+            var $date = $('input#date');
+
+            $date.datepicker({
+                format: 'dd.mm.yyyy'
+            }).on('changeDate', function () {
+                $(this).datepicker('hide');
+                $('#date-submit').focus();
+            });
+
+            var journalTab = window.Factories.createTab($date, 'changeDate'),
+                reportTab = window.Factories.createTab($('#report-control'), 'change');
+
+            reportTab.release = function() {
+                this.$input.parent().trigger('click');
+            };
+            journalTab.release = function() {
+                this.$input.parent().trigger('click');
+            };
         }
     </script>
 {% endblock %}
@@ -16,10 +46,10 @@
                     <li class="active"><a href="#day-journal" data-toggle="tab">Ведомости за <input id="date" name="date" class="input-small nav-input" type="text" value="{{ date }}"></a></li>
                     <li>
                         <a href="#month-report" data-toggle="tab">Отчет за
-                            <select class="input-medium nav-input">
-                                <option>Декабрь 2015</option>
-                                <option>Январь 2016</option>
-                                <option>Февраль 2016</option>
+                            <select id="report-control" class="input-medium nav-input" name="mth">
+                                <option value="122015">Декабрь 2015</option>
+                                <option value="012016">Январь 2016</option>
+                                <option value="022016">Февраль 2016</option>
                             </select>
                         </a>
                     </li>
