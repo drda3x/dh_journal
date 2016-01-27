@@ -53,7 +53,7 @@ window.Factories = (function($) {
     };
 
     Tab.prototype.notifyAboutChange = function(val) {
-        for(var i= 0; j= this.reports.length; i++) {
+        for(var i= 0, j= this.reports.length; i<j; i++) {
             this.reports[i].refresh(val);
         }
     };
