@@ -1,103 +1,115 @@
 /*
 
-tab = {
-  event: null,
-  val: null,
-  relise: function() {},
-  notify: function() {}
-}
+ tab = {
+ event: null,
+ val: null,
+ relise: function() {},
+ notify: function() {}
+ }
 
-report = {
-  refresh: function() {},
-  needRefresh: function() {},
-  data: null
-}
+ report = {
+ refresh: function() {},
+ needRefresh: function() {},
+ data: null
+ }
 
-form = {
-  controlData: tab.val,
-  setControl: function() {},
-  _validate: function() {},
-  submit: function() {}
-}
+ form = {
+ controlData: tab.val,
+ setControl: function() {},
+ _validate: function() {},
+ submit: function() {}
+ }
 
  */
-window.Factories = (function($) {
+window.Factories = (function ($) {
 
-    function Tab(html, releaseEvent) {
-        this.$html = $(html);
-        this.event = releaseEvent;
-        this.$input = this.$html.find('.control');
-        this.reports = [];
-        this.value = this.$input.val();
+  function Tab(html, releaseEvent) {
+    this.$html = $(html);
+    this.event = releaseEvent;
+    this.$input = this.$html.find('.control');
+    this.reports = [];
+    this.value = this.$input.val();
 
-        //При клике на input тормозим событие...
-        this.$input.click(function (event) {
-            return false;
-        });
+    //При клике на input тормозим событие...
+    this.$input.click(function (event) {
+      return false;
+    });
 
-        //add release event
-        this.$input.on(this.event, $.proxy(function () {
-            this.release();
-        }, this))
+    //add release event
+    this.$input.on(this.event, $.proxy(function () {
+      this.release();
+    }, this))
+  }
+
+  Tab.prototype.release = function () {
+    var newValue = this.$input.val();
+
+    if (newValue != this.value) {
+      this.notifyAboutChange(newValue);
     }
 
-    Tab.prototype.release = function () {
-        var newValue = this.$input.val();
+    this.value = newValue;
+    this.$html.trigger('click');
+  };
 
-        if(newValue != this.value) {
-            this.notifyAboutChange(newValue);
-        }
-
-        this.value = newValue;
-        this.$html.trigger('click');
-    };
-
-    Tab.prototype.notifyAboutChange = function(val) {
-        for(var i= 0, j= this.reports.length; i<j; i++) {
-            this.reports[i].refresh(val);
-        }
-    };
-
-    Tab.prototype.addListener = function(report) {
-        this.reports.push(report);
-    };
-
-    function Report(table, name) {
-        this.table = $(table);
-        this.rows = this.table.find('tr');
-        this.needRefresh = false;
-        this.controlValue = null;
+  Tab.prototype.notifyAboutChange = function (val) {
+    for (var i = 0, j = this.reports.length; i < j; i++) {
+      this.reports[i].refresh(val);
     }
+  };
 
-    // Обновить отчет
-    Report.prototype.refresh = function (controlData) {
-        console.log('refresh');
-    };
+  Tab.prototype.addListener = function (report) {
+    this.reports.push(report);
+  };
 
-    // Добавить одну строку в отчет
-    Report.prototype.addRow = function () {
-    };
+  function Report(table, name) {
+    this.table = $(table);
+    this.rows = this.table.find('tr');
+    this.needRefresh = false;
+    this.controlValue = null;
+  }
 
-    // Заблокировать отчет и показать creenSaver
-    Report.prototype.lock = function () {
-    };
+  // Обновить отчет
+  Report.prototype.refresh = function (controlData) {
+    console.log('refresh');
+  };
 
-    // Убрать screenSaver и показать отчет
-    Report.prototype.unlock = function () {
-    };
+  // Добавить одну строку в отчет
+  Report.prototype.addRow = function () {
+  };
 
-    function Form() {
+  // Заблокировать отчет и показать screenSaver
+  Report.prototype.lock = function () {
+  };
+
+  // Убрать screenSaver и показать отчет
+  Report.prototype.unlock = function () {
+  };
+
+  function Form() {
+  }
+
+  // Отправить данные на сервер
+  Form.prototype.submit = function () {
+  };
+
+  // Проверить форму
+  Form.prototype.validate = function () {
+  };
+
+  // Очистить форму
+  Form.prototype.clear = function() {};
+
+
+  return {
+    createTab: function (input, releaseEvent) {
+      return new Tab(input, releaseEvent)
+    },
+    createReport: function (table, name) {
+      return new Report(table, name)
+    },
+    createForm: function () {
+      return new Form()
     }
-
-    return {
-        createTab: function (input, releaseEvent) {
-            return new Tab(input, releaseEvent)
-        },
-        createReport: function (table, name) {
-            return new Report(table, name)
-        },
-        createForm: function () {
-            return new Form()
-        }
-    }
+  }
 })($);
