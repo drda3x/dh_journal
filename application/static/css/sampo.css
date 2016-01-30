@@ -62,7 +62,6 @@ table tr:hover span {
 
 #container {
     border-left: 1px solid #e5e5e5;
-    border-right: 1px solid #e5e5e5;
     /*border-bottom: 1px solid #e5e5e5;*/
     min-height: 800px;
     padding: 20px 10px;
@@ -135,4 +134,18 @@ table tr:hover span {
     text-decoration: none;
     background-color: #eeeeee;
     border-color: #eeeeee #eeeeee #dddddd;
+}
+
+.container-fulid {
+    width: 98%;
+}
+
+#month-report table {
+    font-size: 10pt;
+}
+
+td.text-success {
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
 }

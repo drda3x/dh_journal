@@ -1,5 +1,6 @@
 {% block head %}
     <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
+    <script type="text/javascript" src="../static/js/timepicker.js"></script>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
         window.onload = function() {
@@ -31,7 +32,15 @@
             $('#report-control').mouseup(function(event) {
                 event.stopPropagation();
                 return false;
-            })
+            });
+
+            $('#inputTime').timepicker({
+                update: true
+            });
+
+            $('#inputTime2').timepicker({
+                update: true
+            });
         }
     </script>
 {% endblock %}
@@ -80,7 +89,7 @@
                                 <div class="control-group">
                                     <label class="control-label" for="inputTime">Время</label>
                                     <div class="controls">
-                                        <input class="input-small time" id="inputTime" name="time" type="time" />
+                                        <input class="input-small time" id="inputTime" name="time" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -99,9 +108,9 @@
                         <div id="cash-del" class="tab-pane">
                             <form id="cash-wrt-payment" class="form-horizontal money-action">
                                 <div class="control-group">
-                                    <label class="control-label" for="inputTime">Время</label>
+                                    <label class="control-label" for="inputTime2">Время</label>
                                     <div class="controls">
-                                        <input class="input-small time" id="inputTime" name="time" type="time" />
+                                        <input class="input-small time" id="inputTime2" name="time" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -142,10 +151,10 @@
                                 <div id="addSampoPass" style="display: none">
                                     <form class="form-horizontal money-action">
                                         <div class="control-group">
-                                            <label class="control-label" for="inputTime">Время</label>
+                                            <label class="control-label" for="inputTime3">Время</label>
 
                                             <div class="controls">
-                                                <input class="input-small time" id="inputTime" name="time" type="time"/>
+                                                <input class="input-small time" id="inputTime3" name="time" type="text"/>
                                             </div>
                                         </div>
                                         <div class="control-group">
@@ -390,73 +399,72 @@
                         <td>2100</td>
                         <td>2100</td>
                     </tr>
-                    <tr>
                         <td>Нестеров Василий</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>Кудрявцев Михаил</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
-                        <td>+</td>
-                        <td>-</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
                     </tr>
                 </table>
             </div>

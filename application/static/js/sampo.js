@@ -112,4 +112,4 @@ window.Factories = (function ($) {
       return new Form()
     }
   }
-})($);
+})(window.jQuery);
