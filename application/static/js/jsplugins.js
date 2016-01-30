@@ -1,4 +1,5 @@
 
+//Timepicker plugin
 (function($) {
 
     "use strict";
@@ -39,7 +40,7 @@
                     key = event.key || String.fromCharCode(event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0),
                     numEntered = key.search(/^\d/) >= 0;
 
-                if((!numEntered && key.toLowerCase().search(/^backspace|^arrow|^f\d/) < 0) || (numEntered && val.length >= 5)) {
+                if((!numEntered && key.toLowerCase().search(/^backspace|^arrow|^f\d|^tab/) < 0) || (numEntered && val.length >= 5)) {
                     return false;
                 }
 
@@ -134,5 +135,39 @@
             return this;
         }
     };
+
+})(window.jQuery);
+
+//Numinput plugin
+(function($) {
+
+    $.fn.positivenumber = function() {
+
+        return this.each(function() {
+            var $this = $(this);
+
+            $this.keypress(function (event) {
+                var $this = $(this),
+                    val = $this.val(),
+                    key = event.key || String.fromCharCode(event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0),
+                    numEntered = key.search(/^\d/) >= 0;
+
+                if (key.toLowerCase().search(/^\d|^backspace|^arrow|^f\d|^tab/) < 0) {
+                    return false;
+                }
+
+
+            });
+
+            $this.keyup(function () {
+                var val = parseInt($(this).val());
+                if (val < 0) {
+                    $(this).val(0);
+                } else if(!isNaN(val)) {
+                    $(this).val(val);
+                }
+            });
+        });
+    }
 
 })(window.jQuery);

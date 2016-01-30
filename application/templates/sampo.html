@@ -1,6 +1,6 @@
 {% block head %}
     <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
-    <script type="text/javascript" src="../static/js/timepicker.js"></script>
+    <script type="text/javascript" src="../static/js/jsplugins.js"></script>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
         window.onload = function() {
@@ -41,6 +41,8 @@
             $('#inputTime2').timepicker({
                 update: true
             });
+
+            $('.amount').positivenumber();
         }
     </script>
 {% endblock %}
@@ -95,7 +97,7 @@
                                 <div class="control-group">
                                     <label class="control-label" for="inputMoney">Сумма</label>
                                     <div class="controls">
-                                        <input class="input-small" id="inputMoney" name="count" type="number" />
+                                        <input class="input-small amount" id="inputMoney" name="count" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -114,15 +116,15 @@
                                     </div>
                                 </div>
                                 <div class="control-group">
-                                    <label class="control-label" for="inputMoney">Сумма</label>
+                                    <label class="control-label" for="inputMoney2">Сумма</label>
                                     <div class="controls">
-                                        <input class="input-small" id="inputMoney" name="count" type="number" />
+                                        <input class="input-small amount" id="inputMoney2" name="count" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
-                                    <label class="control-label" for="inputMoney">Причина</label>
+                                    <label class="control-label" for="reason">Причина</label>
                                     <div class="controls">
-                                        <input class="input-large" id="inputMoney" name="reason" type="text" />
+                                        <input class="input-large" id="reason" name="reason" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -172,9 +174,9 @@
                                             </div>
                                         </div>
                                         <div class="control-group">
-                                            <label class="control-label" for="inputMoney">Сумма</label>
+                                            <label class="control-label" for="inputMoney3">Сумма</label>
                                             <div class="controls">
-                                                <input class="input-small" id="inputMoney" name="count" type="number" />
+                                                <input class="input-small amount" id="inputMoney3" name="count" type="text" />
                                             </div>
                                         </div>
                                         <div class="control-group">
