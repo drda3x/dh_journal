@@ -558,3 +558,38 @@ class SampoPrises(models.Model):
         app_label = u'application'
         verbose_name = u'Цены на сампо'
         verbose_name_plural= u'Цены на сампо'
+
+
+class BonusClasses(models.Model):
+
+    date = models.DateField(verbose_name=u'Дата')
+    time = models.TimeField(verbose_name=u'Время', null=True, blank=True)
+    hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
+    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
+    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
+
+    def __unicode__(self):
+        return u'%s %s %s %s' % (
+            self.date.strftime('%d.%m.%Y'), 
+            self.hall.station, 
+            self.teacher_leader.last_name if self.teacher_leader else u'', 
+            self.teacher_follower.last_name if self.teacher_follower else u''
+        )
+
+    class Meta:
+        unique_together = ('date', 'hall')
+        app_label = u'application'
+        verbose_name = u'Мастер-класс'
+        verbose_name_plural = u'Мастер-классы'
+
+
+class BonusClassList(models.Model):
+
+    bonus_class = models.ForeignKey(BonusClasses)
+    student = models.ForeignKey(Students)
+    attendance = models.BooleanField(verbose_name=u'Присутствие', default=False)
+    group_pass = models.ForeignKey(Passes, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('bonus_class', 'student')
+        app_label = u'application'
