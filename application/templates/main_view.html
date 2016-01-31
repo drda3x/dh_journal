@@ -4,23 +4,59 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
-            var $frame = $('iframe');
+            var $frame = $('iframe'),
+                links = {
+                    'g': 'group',
+                    'm': 'mk',
+                    getValOrKey: function(p) {
+                        if(this.hasOwnProperty(p)) {
+                            return this[p]
+                        } else {
+                            for(var i in this) {
+                                if(this[i] == p) {
+                                    return i
+                                }
+                            }
+                            return undefined
+                        }
+                    },
+                    getRe: function() {
+                        var res = '';
+
+                        for(var i in this) {
+                            if(typeof this[i] == 'string') {
+                                res += i;
+                            }
+                        }
+
+                        return res;
+                    }
+                };
 
             if(window.location.hash != '') {
-                var param = window.location.hash.replace(/#g?/,'');
+                var re = new RegExp('#['+links.getRe()+']?'),
+                    param = window.location.hash.slice(2),
+                    linkTo = links.getValOrKey(window.location.hash.replace(/[#\d]/g,''));
+
                 if(!isNaN(parseInt(param))) {
-                    $frame.attr('src', '/group?id='+param);
+                    $frame.attr('src', '/'+ linkTo +'?id='+param);
                 } else {
                     $frame.attr('src', '/'+param);
                 }
 
             }
 
+            var gTypes = {
+                'group': 'g',
+                'mk': 'm'
+            }
+
             $('.group').click(function() {
-                var group_id = $(this).data('id');
+                var group_id = $(this).data('id'),
+                    groupType = $(this).data('type');
 
                 if(group_id != undefined) {
-                    window.location.hash = 'g'+group_id;
+                    window.location.hash = links.getValOrKey(groupType)+group_id;
                 } else {
                     window.location.hash = $(this).attr('href');
                 }
@@ -88,16 +124,22 @@
                 <ul class="nav nav nav-list">
                     <li class="nav-header"><h5 style="margin: 0">{% if groups.other %}Мои группы:{% else %}Группы:{% endif %}</h5></li>
                     {% for group in groups.self %}
-                        <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
+                        <li><a class="group" data-id="{{ group.id }}" data-type="group" href="/group?id={{ group.id }}">{{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
                     {% endfor %}
                     {% if groups.other %}
                     <li class="nav-header"><h5 style="margin: 0">Группы других преподавателей:</h5></li>
                         {% for group in groups.other %}
                             {% if group.name != "divider" %}
-                            <li><a class="group" data-id="{{ group.id }}" href="/group?id={{ group.id }}"><strong>{{ group.t1 }}-{{ group.t2 }}</strong> {{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
+                            <li><a class="group" data-id="{{ group.id }}" data-type="group" href="/group?id={{ group.id }}"><strong>{{ group.t1 }}-{{ group.t2 }}</strong> {{ group.name }} - {{ group.days }} {{ group.time }}{% if group.orm.start_date > now %} с {{ group.orm.start_date|date:"d M" }}{% endif %}</a></li>
                             {% else %}
                             <li class="divider"></li>
                             {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if groups.bonus_classes %}
+                    <li class="nav-header"><h5 style="margin: 0">Мастер-классы:</h5></li>
+                        {% for group in groups.bonus_classes %}
+                        <li><a class="group" data-id="{{ group.id }}" data-type="mk" href="/mk?id={{group.id}}">{{ group.sr }}</a></li>
                         {% endfor %}
                     {% endif %}
                     <li class="nav-header"><h5 style="margin: 0">Клуб:</h5></li>

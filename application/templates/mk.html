@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block head %}
+	<script type="text/javascript" src="../static/js/mk.js"></script>
+{% endblock %}
+{% block body %}
+	<a id="editStudentBtn" href="#editStudent" role="button" class="btn" data-toggle="modal">Добавить</a>
+	<table class="table table-bordered table-striped table-hover">
+	<tr class="shotcard-disabled">
+	    <th class="info-fio"><input class="student-selector" type="checkbox" value="-1" /></th>
+	    <th>№</th>
+	    <th style="min-width: 100px;">Фамилия</th>
+	    <th style="min-width: 100px;">Имя</th>
+	    <th style="min-width: 133px;">Телефон</th>
+	    <th style="min-width: 150px;">E-mail</th>
+	    <th>Присутствие</th>
+	    <th>Приобретенный абонемент</th>
+	    <th style="min-width: 120px;">Коментарий</th>
+	</tr>
+	<tr>
+		<td><input type="checkbox" value="" /></td>
+		<td>1</td>
+		<td>Нестеров</td>
+		<td>Василий</td>
+		<td>+7(926) 161-85-59</td>
+		<td>da3x11@gmail.com</td>
+		<td><input type="checkbox" value="1" /></td>
+		<td>
+			<a class="add" href="#">Добавить</a>
+		</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td><input type="checkbox" value="" /></td>
+		<td>1</td>
+		<td>Игнатов</td>
+		<td>Игнат</td>
+		<td>+7(926) 123-45-67</td>
+		<td>da3x11@gmail.com</td>
+		<td><input type="checkbox" value="1" /></td>
+		<td>
+			Третьяковская
+		</td>
+		<td></td>
+	</tr>
+<!-- {# 	{% for student in group_detail.students %}
+	<tr data-id="{{ student.person.id }}" data-active="{{ student.person.active }}">
+	    <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
+	    <td>{{ forloop.counter }}</td>
+	    <td style="min-width: 100px;">{{ student.person.last_name }}</td>
+	    <td style="min-width: 100px;">{{ student.person.first_name }}</td>
+	    <td style="min-width: 133px;">{{ student.person.str_phone }}</td>
+	    <td style="min-width: 150px;">{{ student.person.e_mail }}</td>
+	    <td>{% if student.person.org %}ОРГ{% endif %}</td>
+	    <td>{{ student.pass_remaining }}
+	        {% if student.debt %}
+	            <strong class="text-error">ДОЛГ ({{ student.debt }})</strong>
+	        {% endif %}
+	    </td>
+	    <td class="comment" style="min-width: 120px; line-height: 1">
+	        {% if student.person.active == 0 %}
+	            <strong class="text-error">УДАЛЕН</strong>
+	        {% else %}
+	            {% if student.last_comment %}{{ student.last_comment.text }}{% endif %}
+	        {% endif %}
+	    </td>
+	</tr>
+	{% endfor %} #} -->
+	</table>
+
+	<!-- Форма "Карточка ученика" -->
+    <div id="editStudent" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999;"></div>
+        </div>
+        <div class="form-horizontal" id="editStudentContent">
+            <input type="hidden" name="id" id="stid" />
+            <div class="modal-body">
+                <div class="control-group">
+                    <label class="control-label" for="last_name">Фамилия</label>
+                    <div class="controls">
+                        <input type="text" name="last_name" id="last_name" required />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="first_name">Имя</label>
+                    <div class="controls">
+                        <input type="text" name="first_name" id="first_name" required />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="phone">Тел.</label>
+                    <div class="controls">
+                        <input type="tel" name="phone" id="phone" required />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="e_mail">E-mail</label>
+                    <div class="controls">
+                        <input type="email" name="e_mail" id="e_mail" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                <input class="btn btn-primary" type="submit" value="Добавить" />
+            </div>
+        </div>
+    </div>
+    <a id="hp" href="#">Hide popover</a>
+
+{% endblock %}

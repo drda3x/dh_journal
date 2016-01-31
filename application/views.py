@@ -17,7 +17,7 @@ from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details
 
-from models import Groups, Students, User, PassTypes
+from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList
 
 
 def custom_proc(request):
@@ -374,4 +374,17 @@ def sampo_view(request):
     context['pass_signs_l'] = len(context['pass_signs'])
     context['date'] = date.strftime('%d.%m.%Y')
     template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
+    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+@auth_decorator
+def bonus_class_view(request):
+
+    mkid = request.GET.get('id')
+
+    template = 'mk.html'
+
+    context = dict()
+    # context['students'] = BonusClassList.objects.select_related(BonusClasses, Students).filter(bonus_class.id=mkid)
+
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

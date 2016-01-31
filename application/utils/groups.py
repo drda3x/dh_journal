@@ -6,7 +6,7 @@ from django.db.models import Q, Sum
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
-from application.models import Groups, Students, Passes, Lessons, GroupList, Comments, CanceledLessons, Debts
+from application.models import Groups, Students, Passes, Lessons, GroupList, Comments, CanceledLessons, Debts, BonusClasses, BonusClassList
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
@@ -34,6 +34,10 @@ def get_groups_list(user, opened=True):
                 for g in Groups.objects.filter(is_opened=opened).exclude(
                     Q(teacher_leader=user) | Q(teacher_follower=user)
                 )
+            ],
+            'bonus_classes': [
+                dict(id=g.id, sr=g.repr_short(), lr=g.__unicode__())
+                for g in BonusClasses.objects.filter(can_edit=True).order_by('-date')
             ]
         }
 

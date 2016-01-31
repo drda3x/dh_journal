@@ -567,6 +567,10 @@ class BonusClasses(models.Model):
     hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
     teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
+    can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
+
+    def repr_short(self):
+        return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)
 
     def __unicode__(self):
         return u'%s %s %s %s' % (
