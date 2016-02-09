@@ -1,8 +1,10 @@
 (function(w, $) {
 
+    'use-strict';
+
 	function sendRequest() {}
 
-	function MyPopover() {
+	function MyPopover(stId, htmlContent) {
 		/**
 		Класс для задания поведения поповеров которые отвечают за добавление/удаление абонементов
 		Создается при клике на ссылку далее происходит следующее:
@@ -25,7 +27,18 @@
 			
 			Реализовывать через базовый класс и наследников
 		*/
+        this.studentId = stId;
+        this.html = htmlContent;
+        this.html.$tip.find('button').click($.proxy(this.submit, this));
 	}
+
+    MyPopover.prototype.submit = function() {
+        console.log('submit');
+    };
+
+    MyPopover.prototype.destroy = function() {
+        this.html.destroy();
+    };
 
 	w.onload = function() {
 		$('a.add').popover({
@@ -44,13 +57,18 @@
 			placement: 'bottom'
 		});
 
-		$('a.add').click(function() {
-			$(this).popover('show');
-		})
+        $('body').click(function(event) {
+            $target = $(event.target),
+            $this = $(this);
 
-		$('#hp').click(function(event) {
-			$('a.add').popover('hide');
-		})
+            if($target.is('.add')) {
+                $target.popover('show');
+                $this.data('popover', new MyPopover(11, $target.data('popover')));
+            } else if(!$target.is('.popover') && !$($target.parentsUntil('td').toArray().pop()).is('.popover') ) {
+                var p = $this.data('popover');
+                p.destroy();
+            }
+        });
 	}
 
-})(window, window.jQuery)
+})(window, window.jQuery);
