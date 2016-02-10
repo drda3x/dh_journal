@@ -41,7 +41,7 @@
     };
 
 	w.onload = function() {
-		$('a.add').popover({
+		$('a.add').modalpopover({
 			content: $(
 				'<div id="popoverContent">'+
 					'<select>'+
@@ -56,19 +56,6 @@
 			trigger: 'manual',
 			placement: 'bottom'
 		});
-
-        $('body').click(function(event) {
-            $target = $(event.target),
-            $this = $(this);
-
-            if($target.is('.add')) {
-                $target.popover('show');
-                $this.data('popover', new MyPopover(11, $target.data('popover')));
-            } else if(!$target.is('.popover') && !$($target.parentsUntil('td').toArray().pop()).is('.popover') ) {
-                var p = $this.data('popover');
-                p.destroy();
-            }
-        });
 	}
 
 })(window, window.jQuery);
