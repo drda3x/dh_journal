@@ -5,7 +5,7 @@
 
 	var ModalPopover = function(element, options) {
 		this.init('modalpopover', element, options);
-	}
+	};
 
 	ModalPopover.prototype = $.extend({}, $.fn.popover.Constructor.prototype, {
 		constructor: ModalPopover,
@@ -37,26 +37,30 @@
 			} 
 
 		})
-	}
+	};
 
 	$.fn.modalpopover.Constructor = ModalPopover;
-	$.fn.modalpopover.defaults = $.extend({}, $.fn.popover.defaults)
+	$.fn.modalpopover.defaults = $.extend({}, $.fn.popover.defaults);
+
+    var prevClickedElem = null;
 
 	$(document).click(function(event) {
 		var $target = $(event.target),
 			$this = $(this),
 			curentPopover = $this.data('modalpopover');
 
-		if($target.data('modalpopover') && !$this.data('modalpopover')) {
+		if($target.data('modalpopover') && (!$this.data('modalpopover') || $target != prevClickedElem)) {
 			if(curentPopover) curentPopover.hide();
 			$target.modalpopover('show');
 			$this.data('modalpopover', $target.data('modalpopover'));
+            prevClickedElem = $target;
 		} else {
 			if(curentPopover) curentPopover.hide();
 			$this.data('modalpopover', null);
+            prevClickedElem = null;
 		}
 
 		event.preventDefault();
 	})
 
-})(window.jQuery)
+})(window.jQuery);
