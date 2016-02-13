@@ -44,6 +44,35 @@
     };
 
 	w.onload = function() {
+
+        var shortCard = w.createShortcard().init();
+
+        shortCard.addElement('Изменить', function(event) {
+            var row = event.data.scData('row'),
+                vals = $.grep(row.find('td'), function(e, i) {
+                    return i != 1 && i <= 5;
+                }).map(function(elem) {
+                    var $elem = $(elem),
+                        $inp = $elem.find('input');
+                    return $inp.length == 0 ? $elem.text() : $inp.val();
+                }),
+                inputs = $('#editStudent input[type!=submit]');
+
+            for(var i = inputs.length-1; i>=0; i--) {
+                $(inputs[i]).val(vals[i]);
+            }
+
+            $('#editStudentBtn').trigger('click');
+        });
+
+        shortCard.addElement('Удалить', function() {
+            console.log('delete')
+        });
+
+        shortCard.addElement('Коментарий', function() {
+            console.log('comment');
+        });
+
         var handlers = {
             add: function(elem) {
                 if(!elem.data('modalpopover')) {
@@ -93,18 +122,34 @@
                         return $(this).prop('checked');
                     }));
                 }
+            },
+
+            showShortCard: function(x, y, elem) {
+                shortCard.data('row', elem);
+                shortCard.show(x, y);
             }
         };
 
         $('table').click(function(event, type) {
             var $target = $(event.target),
-                handlerName = $target.data('class');
+                handlerName = $target.data('class'),
+                row = $target.parentsUntil('tbody').last();
+
             if(handlers.hasOwnProperty(handlerName)) {
                 handlers[handlerName]($target);
+            } else if(!$target.is('input') && row.data('index') > 1) {
+                var x = event.pageX,
+                    y = event.pageY;
+                handlers.showShortCard(x, y, row);
+                event.stopPropagation();
             }
         });
 
         $(document).on('submit', handlers.submit);
+        $(document).on('click', function() {
+            shortCard.hide();
+            shortCard.data('row', null)
+        });
 	}
 
 })(window, window.jQuery);

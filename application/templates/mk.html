@@ -6,8 +6,9 @@
 {% endblock %}
 {% block body %}
 	<a id="editStudentBtn" href="#editStudent" role="button" class="btn" data-toggle="modal">Добавить</a>
+	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
 	<table class="table table-bordered table-striped table-hover">
-	<tr class="shotcard-disabled">
+	<tr class="shotcard-disabled" data-index="1">
 	    <th><input data-class="marker" type="checkbox" value="-1" /></th>
 	    <th>№</th>
 	    <th style="min-width: 100px;">Фамилия</th>
@@ -18,7 +19,7 @@
 	    <th>Приобретенный абонемент</th>
 	    <th style="min-width: 120px;">Коментарий</th>
 	</tr>
-	<tr>
+	<tr data-index="2">
 		<td><input data-class="marker" type="checkbox" value="1" /></td>
 		<td>1</td>
 		<td>Нестеров</td>
@@ -31,7 +32,7 @@
 		</td>
 		<td></td>
 	</tr>
-	<tr>
+	<tr data-index="3">
 		<td><input data-class="marker" type="checkbox" value="2" /></td>
 		<td>1</td>
 		<td>Игнатов</td>

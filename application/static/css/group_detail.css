@@ -180,43 +180,6 @@ html, body {
     background-color: #ffffff;
 }
 
-#shortCardMenu {
-    background-color: #ffffff;
-    position: absolute;
-    z-index: 999999;
-    display: none;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    padding: 10px;
-    width: 200px;
-}
-
-#shortCardMenu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-#shortCardMenu ul li {
-    cursor: pointer;
-    margin: 0;
-    padding: 3px 0;
-    color: #000000;
-}
-
-#shortCardMenu ul li:hover {
-    color: #ffffff;
-    background-color: #0088CC;
-}
-
-#shortCardMenu ul .divider {
-    background-color: #e5e5e5;
-    border-bottom: 1px solid #ffffff;
-    height: 1px;
-    margin: 9px 1px;
-    overflow: hidden;
-    padding: 0;
-}
-
 #dateControl {
     width: 100px;
     height: 20px;
