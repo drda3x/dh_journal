@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
+    <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
 	<script type="text/javascript" src="../static/js/mk.js"></script>
 {% endblock %}
@@ -7,7 +8,7 @@
 	<a id="editStudentBtn" href="#editStudent" role="button" class="btn" data-toggle="modal">Добавить</a>
 	<table class="table table-bordered table-striped table-hover">
 	<tr class="shotcard-disabled">
-	    <th class="info-fio"><input class="student-selector" type="checkbox" value="-1" /></th>
+	    <th><input data-class="marker" type="checkbox" value="-1" /></th>
 	    <th>№</th>
 	    <th style="min-width: 100px;">Фамилия</th>
 	    <th style="min-width: 100px;">Имя</th>
@@ -18,11 +19,11 @@
 	    <th style="min-width: 120px;">Коментарий</th>
 	</tr>
 	<tr>
-		<td><input type="checkbox" value="" /></td>
+		<td><input data-class="marker" type="checkbox" value="1" /></td>
 		<td>1</td>
 		<td>Нестеров</td>
 		<td>Василий</td>
-		<td></td>7(926) 161-85-59</td>
+		<td>7(926) 161-85-59</td>
 		<td>da3x11@gmail.com</td>
 		<td><input type="checkbox" value="1" /></td>
 		<td>
@@ -31,11 +32,11 @@
 		<td></td>
 	</tr>
 	<tr>
-		<td><input type="checkbox" value="" /></td>
+		<td><input data-class="marker" type="checkbox" value="2" /></td>
 		<td>1</td>
 		<td>Игнатов</td>
 		<td>Игнат</td>
-		<td></td>7(926) 123-45-67</td>
+		<td>7(926) 123-45-67</td>
 		<td>da3x11@gmail.com</td>
 		<td><input type="checkbox" value="1" /></td>
 		<td>

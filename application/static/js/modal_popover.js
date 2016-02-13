@@ -49,7 +49,7 @@
 			$this = $(this),
 			curentPopover = $this.data('modalpopover');
 
-		if($target.data('modalpopover') && (!$this.data('modalpopover') || $target != prevClickedElem)) {
+        if($target.data('modalpopover') && (!$this.data('modalpopover') || $target != prevClickedElem)) {
 			if(curentPopover) curentPopover.hide();
 			$target.modalpopover('show');
 			$this.data('modalpopover', $target.data('modalpopover'));
@@ -59,8 +59,6 @@
 			$this.data('modalpopover', null);
             prevClickedElem = null;
 		}
-
-		event.preventDefault();
 	})
 
 })(window.jQuery);

@@ -76,6 +76,23 @@
                 }
 
                 return false;
+            },
+
+            marker: function(elem) {
+                var inputs = elem.parentsUntil('table').children('tr').map(function() {
+                    var $this = $(this);
+                    return $this.children().first().find('input');
+                });
+
+                if(elem.val() < 0) {
+                    inputs.each(function() {
+                       $(this).prop('checked', elem.prop('checked'));
+                    });
+                } else {
+                    inputs[0].prop('checked', inputs.slice(1).all(function() {
+                        return $(this).prop('checked');
+                    }));
+                }
             }
         };
 
