@@ -18,7 +18,24 @@ from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
 from application.utils.date_api import get_count_of_weekdays_per_interval
-from application.models import Students, Passes, Groups, GroupList, PassTypes, Lessons, User, Comments, CanceledLessons, Debts, SampoPayments, SampoPasses, SampoPassUsage, SampoPrises
+from application.models import (
+    Students,
+    Passes,
+    Groups,
+    GroupList,
+    PassTypes,
+    Lessons,
+    User,
+    Comments,
+    CanceledLessons,
+    Debts,
+    SampoPayments,
+    SampoPasses,
+    SampoPassUsage,
+    SampoPrises,
+    BonusClassList,
+    BonusClasses
+)
 from application.views import group_detail_view
 from application.system_api import get_models
 from application.auth import auth_decorator
@@ -76,7 +93,7 @@ def edit_user_profile(request):
         return HttpResponseServerError('failed')
 
 
-def add_student(request):
+def add_student(request, group_list_orm=GroupList):
     try:
         first_name = request.GET['first_name'].replace(' ', '')
         last_name = request.GET['last_name'].replace(' ', '')
@@ -87,7 +104,7 @@ def add_student(request):
 
         try:
             student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
-            group_list = GroupList.objects.get(student=student, group_id=group_id)
+            group_list = group_list_orm.objects.get(student=student, group_id=group_id)
 
         except Students.DoesNotExist:
             student = Students(
@@ -102,11 +119,11 @@ def add_student(request):
 
             group_list = None
 
-        except GroupList.DoesNotExist:
+        except group_list_orm.DoesNotExist:
             group_list = None
 
         if not group_list:
-            group_list = GroupList(
+            group_list = group_list_orm(
                 student=student,
                 group_id=group_id
             )
@@ -1126,3 +1143,7 @@ def write_off_sampo_record(request):
     response['payments'] = payments
 
     return HttpResponse(json.dumps(response))
+
+
+def mk_add_student(request):
+    return add_student(request, BonusClassList)

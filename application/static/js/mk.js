@@ -7,11 +7,15 @@
     /**
      * Отправка запроса на сервер
      */
-	function sendRequest(data) {
-        setTimeout(function() {
-            data.setGroupName();
-            data.unsetLoading();
-        }, 1000);
+	function sendRequest(data, callback) {
+        $.ajax('mk',{
+            data: data
+        }).success(function(json) {
+            var data = JSON.parse(json);
+            callback(null, data);
+        }).error(function(error) {
+            callback(error);
+        })
     }
 
     function Cell(type, elem) {
@@ -42,6 +46,10 @@
     Cell.prototype.setDefault = function() {
         this.td.html('<a data-class="add" class="add" href="#">Добавить</a>');
     };
+
+    function addRow(data) {
+
+    }
 
 	w.onload = function() {
 
@@ -137,12 +145,24 @@
 
             if(handlers.hasOwnProperty(handlerName)) {
                 handlers[handlerName]($target);
-            } else if(!$target.is('input') && row.data('index') > 1) {
+            } else if(!$target.is('input') && row.data('index') > 0) {
                 var x = event.pageX,
                     y = event.pageY;
                 handlers.showShortCard(x, y, row);
                 event.stopPropagation();
             }
+        });
+
+        $('#editStudent .btn-primary').click(function() {
+            var data = {
+                requestType: 'addStudent'
+            };
+            $('#editStudent input[type!=button]').each(function() {
+                var $this = $(this);
+                data[$this.attr('name')] = $this.val();
+            });
+
+            sendRequest(data, addRow);
         });
 
         $(document).on('submit', handlers.submit);

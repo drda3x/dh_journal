@@ -8,7 +8,7 @@
 	<a id="editStudentBtn" href="#editStudent" role="button" class="btn" data-toggle="modal">Добавить</a>
 	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
 	<table class="table table-bordered table-striped table-hover">
-	<tr class="shotcard-disabled" data-index="1">
+	<tr class="shotcard-disabled" data-index="0">
 	    <th><input data-class="marker" type="checkbox" value="-1" /></th>
 	    <th>№</th>
 	    <th style="min-width: 100px;">Фамилия</th>
@@ -19,32 +19,21 @@
 	    <th>Приобретенный абонемент</th>
 	    <th style="min-width: 120px;">Коментарий</th>
 	</tr>
-	<tr data-index="2">
-		<td><input data-class="marker" type="checkbox" value="1" /></td>
-		<td>1</td>
-		<td>Нестеров</td>
-		<td>Василий</td>
-		<td>7(926) 161-85-59</td>
-		<td>da3x11@gmail.com</td>
-		<td><input type="checkbox" value="1" /></td>
-		<td>
+	{% for record in students %}
+	<tr data-index="{{ forloop.counter }}">
+	    <td><input data-class="marker" type="checkbox" value="{{ record.student.id }}" /></td>
+	    <td>{{ forloop.counter }}</td>
+	    <td>{{ record.student.last_name }}</td>
+	    <td>{{ record.student.first_name }}</td>
+	    <td>{{ record.student.phone }}</td>
+	    <td>{{ record.student.e_mail }}</td>
+	    <td><input type="checkbox" value="{{ record.student.id }}"></td>
+	    <td>
 			<a data-class="add" class="add" href="#">Добавить</a>
 		</td>
 		<td></td>
-	</tr>
-	<tr data-index="3">
-		<td><input data-class="marker" type="checkbox" value="2" /></td>
-		<td>1</td>
-		<td>Игнатов</td>
-		<td>Игнат</td>
-		<td>7(926) 123-45-67</td>
-		<td>da3x11@gmail.com</td>
-		<td><input type="checkbox" value="1" /></td>
-		<td>
-			<a data-class="add" class="add" href="#">Добавить</a>
-		</td>
-		<td></td>
-	</tr>
+    </tr>
+	{% endfor %}
 <!-- {# 	{% for student in group_detail.students %}
 	<tr data-id="{{ student.person.id }}" data-active="{{ student.person.active }}">
 	    <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
@@ -104,6 +93,7 @@
                     </div>
                 </div>
             </div>
+            <input type="hidden" name="id" value="{{ group_id }}">
             <div class="modal-footer">
                 <button class="btn cancel" data-dismiss="modal" aria-hidden="true">Отмена</button>
                 <input class="btn btn-primary" type="submit" value="Добавить" />

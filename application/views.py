@@ -380,11 +380,23 @@ def sampo_view(request):
 @auth_decorator
 def bonus_class_view(request):
 
+    from application.api import mk_add_student
+
+    bonus_class_handlers = {
+        'addStudent': mk_add_student
+    }
+
+    try:
+        return bonus_class_handlers[request.GET.get('requestType')](request)
+    except KeyError:
+        pass
+
     mkid = request.GET.get('id')
 
     template = 'mk.html'
 
     context = dict()
-    # context['students'] = BonusClassList.objects.select_related(BonusClasses, Students).filter(bonus_class.id=mkid)
+    context['group_id'] = mkid
+    context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
 
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))

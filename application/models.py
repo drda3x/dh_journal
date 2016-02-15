@@ -589,11 +589,12 @@ class BonusClasses(models.Model):
 
 class BonusClassList(models.Model):
 
-    bonus_class = models.ForeignKey(BonusClasses)
+    group = models.ForeignKey(BonusClasses)
     student = models.ForeignKey(Students)
     attendance = models.BooleanField(verbose_name=u'Присутствие', default=False)
     group_pass = models.ForeignKey(Passes, null=True, blank=True)
+    active = models.BooleanField(verbose_name=u'Ссылка активна', default=True)
 
     class Meta:
-        unique_together = ('bonus_class', 'student')
+        unique_together = ('group', 'student')
         app_label = u'application'
