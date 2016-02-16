@@ -181,10 +181,20 @@ class Students(models.Model):
     first_name = models.CharField(max_length=30, verbose_name=u'Фамилия')
     last_name = models.CharField(max_length=30, verbose_name=u'Имя')
     father_name = models.CharField(max_length=30, verbose_name=u'Отчество', null=True, blank=True)
-    phone = models.IntegerField(verbose_name=u'Телефон')
+    phone = models.CharField(verbose_name=u'Телефон', max_length=20)
     e_mail = models.CharField(max_length=30, verbose_name=u'e-mail')
     org = models.BooleanField(verbose_name=u'Орг', default=False)
     is_deleted = models.BooleanField(verbose_name=u'Удален', default=False)
+
+    def __json__(self):
+        return dict(
+            id=self.pk,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            phone=dict(raw=self.phone, formated=self.str_phone),
+            e_mail=self.e_mail,
+            org=self.org
+        )
 
     def __unicode__(self):
         return u'%s %s.%s' % (self.first_name, self.last_name[0].upper(), self.father_name[0].upper() if self.father_name else '')

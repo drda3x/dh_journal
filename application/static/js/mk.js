@@ -47,8 +47,37 @@
         this.td.html('<a data-class="add" class="add" href="#">Добавить</a>');
     };
 
-    function addRow(data) {
 
+    /**
+     * Добавить строку в таблицу
+     * @param data
+     */
+    function addRow(data) {
+        var $table = $('table'),
+            rowsLen = $table.find('tr').toArray().length,
+            row = $('<tr></tr>')
+            .append('<td><input data-class="marker" type="checkbox" value="'+ data.id +'" /></td>')
+            .append('<td>'+rowsLen+'</td>')
+            .append('<td>'+data.last_name+'</td>')
+            .append('<td>'+data.first_name+'</td>')
+            .append('<td>'+data.phone.formated+'</td>')
+            .append('<td>'+data.e_mail+'</td>')
+            .append('<td><input type="checkbox" value="'+ data.id +'"></td>')
+            .append('<td><a data-class="add" class="add" href="#">Добавить</a></td>')
+            .append('<td></td>');
+
+        row.appendTo($table);
+    }
+
+    /**
+     * Удаление строк из таблицы
+     * @param rows
+     */
+    function removeRow(rows) {
+        rows.remove();
+        $('table').find('tr:gt(0)').each(function(i) {
+            $(this).find('td:eq(1)').text(i+1);
+        });
     }
 
 	w.onload = function() {
@@ -154,15 +183,49 @@
         });
 
         $('#editStudent .btn-primary').click(function() {
-            var data = {
-                requestType: 'addStudent'
-            };
+            var $this = $(this),
+                data = {
+                    id: window.pageParams.group_id,
+                    requestType: 'addStudent'
+                };
             $('#editStudent input[type!=button]').each(function() {
                 var $this = $(this);
                 data[$this.attr('name')] = $this.val();
             });
 
-            sendRequest(data, addRow);
+            sendRequest(data, function(err, data) {
+                if(err) {
+                    alert('ERROR');
+                }
+                addRow(data);
+                $('#editStudent').modal('hide');
+            });
+        });
+
+        $('#deleteStudentBtn').click(function() {
+            var $table, inputs, ids, rows, data;
+
+            $table = $('table');
+            inputs = $table.find('input[data-class=marker]:gt(0):checked');
+            rows = $.grep($table.find('tr:gt(0)').toArray(), function(elem) {
+                return $(elem).find('input[data-class=marker]').is(':checked')
+            });
+            ids = inputs.map(function() {
+                return parseInt($(this).val());
+            }).toArray();
+            data = {
+                gid: window.pageParams.group_id,
+                requestType: 'removeStudent',
+                ids: JSON.stringify(ids)
+            };
+
+            sendRequest(data, function(err, data) {
+                if(err) {
+                    alert('Ошибка');
+                    return
+                }
+               removeRow($(rows));
+            });
         });
 
         $(document).on('submit', handlers.submit);

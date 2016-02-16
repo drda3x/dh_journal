@@ -136,7 +136,7 @@ def add_student(request, group_list_orm=GroupList):
         else:
             return HttpResponseServerError('PersonExistedError')
 
-        return HttpResponse(200)
+        return HttpResponse(json.dumps(student.__json__()))
 
     except Exception:
         print format_exc()
@@ -1147,3 +1147,20 @@ def write_off_sampo_record(request):
 
 def mk_add_student(request):
     return add_student(request, BonusClassList)
+
+
+def mk_remove_student(request):
+    try:
+        ids = json.loads(request.GET['ids'])
+        gid = request.GET['gid']
+
+        # todo пока будем просто удалять запись, потом возможно будет необходимость ее сохранять...
+        # todo еще надо рещить что делатть со студентом, который не пришел на мастер-класс и у которого вообще никогда не было занятий в клубе...
+        # todo пока такой студент просто будет висеть в списках...
+        # todo но, вообще, из списков его наверное удалять не нужно, потом будет отдельный интерфейс, где народ будет удаляться полностью...
+        BonusClassList.objects.filter(student_id__in=ids, group_id=gid).delete()
+
+        return HttpResponse(200)
+    except:
+        print format_exc()
+        return HttpResponseServerError()
