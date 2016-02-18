@@ -33,7 +33,7 @@
 	    <td>{{ record.student.first_name }}</td>
 	    <td>{{ record.student.str_phone }}</td>
 	    <td>{{ record.student.e_mail }}</td>
-	    <td><input type="checkbox" value="{{ record.student.id }}"></td>
+	    <td><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
 	    <td>
 			<a data-class="add" class="add" href="#">Добавить</a>
 		</td>

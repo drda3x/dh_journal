@@ -605,6 +605,11 @@ class BonusClassList(models.Model):
     group_pass = models.ForeignKey(Passes, null=True, blank=True)
     active = models.BooleanField(verbose_name=u'Ссылка активна', default=True)
 
+    def update(self, **kwargs):
+        for key, val in kwargs.iteritems():
+            setattr(self, key, val)
+        self.save()
+
     class Meta:
         unique_together = ('group', 'student')
         app_label = u'application'

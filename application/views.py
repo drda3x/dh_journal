@@ -380,11 +380,12 @@ def sampo_view(request):
 @auth_decorator
 def bonus_class_view(request):
 
-    from application.api import mk_add_student, mk_remove_student
+    from application.api import mk_add_student, mk_remove_student, mk_attendance
 
     bonus_class_handlers = {
         'addStudent': mk_add_student,
-        'removeStudent': mk_remove_student
+        'removeStudent': mk_remove_student,
+        'setAttendance': mk_attendance
     }
 
     try:

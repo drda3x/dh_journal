@@ -11,7 +11,13 @@
         $.ajax('mk',{
             data: data
         }).success(function(json) {
-            var data = JSON.parse(json);
+            var data;
+            try {
+                data = JSON.parse(json);
+            } catch(e) {
+                data = null;
+            }
+
             callback(null, data);
         }).error(function(error) {
             callback(error);
@@ -226,6 +232,27 @@
                 }
                removeRow($(rows));
             });
+        });
+
+        $('.attendance').change(function() {
+            var $this = $(this),
+                val = $this.prop('checked');
+            $this.parent().addClass('loading2');
+
+            sendRequest({
+               gid: window.pageParams.group_id,
+               requestType: 'setAttendance',
+               stid: $this.val(),
+               val: val
+            }, function(err) {
+               if(err) {
+                   console.log(err);
+                   $this.prop('checked', val);
+               } else {
+                   $this.parent().removeClass('loading2');
+
+               }
+            })
         });
 
         $(document).on('submit', handlers.submit);

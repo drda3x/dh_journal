@@ -15,3 +15,13 @@ body {
 .modal-backdrop {
     background-color: #ffffff !important;
 }
+
+.loading2 {
+    background-image:  url('../img/preloader2.gif') !important;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.loading2 * {
+    display: none !important;
+}

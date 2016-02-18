@@ -1164,3 +1164,16 @@ def mk_remove_student(request):
     except:
         print format_exc()
         return HttpResponseServerError()
+
+
+def mk_attendance(request):
+    try:
+        gid = request.GET['gid']
+        student_id = request.GET['stid']
+        val = request.GET['val'] == u'true'
+        BonusClassList.objects.get(group_id=gid, student_id=student_id).update(attendance=val)
+
+        return HttpResponse(200)
+    except:
+        print format_exc()
+        return HttpResponseServerError()
