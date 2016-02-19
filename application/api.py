@@ -1177,3 +1177,13 @@ def mk_attendance(request):
     except:
         print format_exc()
         return HttpResponseServerError()
+
+
+def mk_create_pass(request):
+    try:
+        pass
+
+        return HttpResponse(200)
+    except:
+        print format_exc()
+        return HttpResponseServerError()

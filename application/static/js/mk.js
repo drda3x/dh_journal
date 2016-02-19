@@ -142,9 +142,14 @@
                 if(cell.id > 0) {
                     cell.setLoading();
                     $disturber.hide();
+
+                    var requestData = {
+
+                    };
+
                     sendRequest(cell);
                 } else {
-                    alert('No group selecte');
+                    alert('No group select');
                 }
 
                 return false;
