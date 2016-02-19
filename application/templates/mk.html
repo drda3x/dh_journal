@@ -2,12 +2,17 @@
 {% block head %}
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
-	<script type="text/javascript" src="../static/js/mk.js"></script>
+	<script type="text/javascript" src="../static/js/mk2.js"></script>
 	<script>
-	    (function(w) {
-	        if(!w.pageParams) w.pageParams = {};
-	        w.pageParams.group_id = {{ group_id }};
-	    })(window)
+
+	    window.onload = function() {
+	        // add global params
+	        if(!window.pageParams) window.pageParams = {};
+	        window.pageParams.group_id = {{ group_id }};
+
+	        // create Table instance
+	        var table = new window.Table('table');
+	    }
     </script>
 {% endblock %}
 {% block body %}
@@ -15,7 +20,7 @@
 	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
 	<table class="table table-bordered table-striped table-hover">
 	<tr class="shotcard-disabled" data-index="0">
-	    <th><input data-class="marker" type="checkbox" value="-1" /></th>
+	    <th><input class="row-selector" type="checkbox" value="-1" /></th>
 	    <th>№</th>
 	    <th style="min-width: 100px;">Фамилия</th>
 	    <th style="min-width: 100px;">Имя</th>
@@ -27,7 +32,7 @@
 	</tr>
 	{% for record in students %}
 	<tr data-index="{{ forloop.counter }}">
-	    <td><input data-class="marker" type="checkbox" value="{{ record.student.id }}" /></td>
+	    <td><input class="row-selector" type="checkbox" value="{{ record.student.id }}" /></td>
 	    <td>{{ forloop.counter }}</td>
 	    <td>{{ record.student.last_name }}</td>
 	    <td>{{ record.student.first_name }}</td>
