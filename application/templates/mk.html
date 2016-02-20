@@ -12,6 +12,13 @@
 
 	        // create Table instance
 	        var table = new window.Table('table');
+
+	        // create StudentCard
+	        var studentCard = new window.StudentCard('#editStudent');
+
+	        $('#editStudentBtn').click(function() {
+	        	studentCard.clear();
+	        })
 	    }
     </script>
 {% endblock %}
@@ -20,15 +27,15 @@
 	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
 	<table class="table table-bordered table-striped table-hover">
 	<tr class="shotcard-disabled" data-index="0">
-	    <th><input class="row-selector" type="checkbox" value="-1" /></th>
-	    <th>№</th>
-	    <th style="min-width: 100px;">Фамилия</th>
-	    <th style="min-width: 100px;">Имя</th>
-	    <th style="min-width: 133px;">Телефон</th>
-	    <th style="min-width: 150px;">E-mail</th>
-	    <th>Присутствие</th>
-	    <th>Приобретенный абонемент</th>
-	    <th style="min-width: 120px;">Коментарий</th>
+	    <th data-name="id"><input class="row-selector" type="checkbox" value="-1" /></th>
+	    <th data-name="cnt">№</th>
+	    <th data-name="last_name" style="min-width: 100px;">Фамилия</th>
+	    <th data-name="first_name" style="min-width: 100px;">Имя</th>
+	    <th data-name="phone" style="min-width: 133px;">Телефон</th>
+	    <th data-name="e_mail" style="min-width: 150px;">E-mail</th>
+	    <th data-name="id">Присутствие</th>
+	    <th data-name="pass">Приобретенный абонемент</th>
+	    <th data-name="comment" style="min-width: 120px;">Коментарий</th>
 	</tr>
 	{% for record in students %}
 	<tr data-index="{{ forloop.counter }}">
@@ -77,30 +84,30 @@
             <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999;"></div>
         </div>
         <div class="form-horizontal" id="editStudentContent">
-            <input type="hidden" name="id" id="stid" />
+            <input type="hidden" name="id" class="data" id="stid" />
             <div class="modal-body">
                 <div class="control-group">
                     <label class="control-label" for="last_name">Фамилия</label>
                     <div class="controls">
-                        <input type="text" name="last_name" id="last_name" required />
+                        <input type="text" class="data" name="last_name" id="last_name" required />
                     </div>
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="first_name">Имя</label>
                     <div class="controls">
-                        <input type="text" name="first_name" id="first_name" required />
+                        <input type="text" class="data" name="first_name" id="first_name" required />
                     </div>
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="phone">Тел.</label>
                     <div class="controls">
-                        <input type="tel" name="phone" id="phone" required />
+                        <input type="tel" class="data" name="phone" id="phone" required />
                     </div>
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="e_mail">E-mail</label>
                     <div class="controls">
-                        <input type="email" name="e_mail" id="e_mail" />
+                        <input type="email" class="data" name="e_mail" id="e_mail" />
                     </div>
                 </div>
             </div>
