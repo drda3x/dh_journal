@@ -65,7 +65,8 @@ function sendRequest(data, callback) {
      */
     Table.prototype.addRow = function(data) {
         var curName,
-            tr = $('<tr></tr>');
+            tr = $('<tr></tr>'),
+            rowObj = {};
 
         for(var i= 0, j= this.names.length; i<j; i++) {
             curName = this.names[i];
@@ -77,13 +78,10 @@ function sendRequest(data, callback) {
             }
 
             // Вставляем input в нужных местах
-            var inp = (function(n) {
-                switch(n) {
-                    case 'id': return $('<input class="row-selector" type="checkbox" value="'+val+'" />');
-                    case 'pass': return $('<a data-class="add" class="add" href="#">Добавить</a>');
-                    default: return null;
-                }
-            })(curName)
+            var inp = this.__getTdInner(curName);
+            if(inp && inp.is('input')) {
+                inp.val(val);
+            }
 
             td.append(inp ? inp : val);
             tr.append(td);
@@ -94,6 +92,73 @@ function sendRequest(data, callback) {
         this.__sort();
         return this;
     };
+
+    /**
+     * Создать объект-обертку для удобной работы с DOM'ом строки... 
+     */
+    Table.prototype.createRowObject = function(row) {
+        var res = {},
+            tds = $(row).children(),
+            elem, inner, propertyName;
+
+        for(var i= 0, j= this.names.length; i<j; i++) {
+            propertyName = this.names[i];
+            elem = $(tds[i]);
+            inner = this.__getTdInner(elem);
+
+            res.__defineGetter__(propertyName, (function(_elem, _inner) {
+
+                if(_inner && _inner.is('input')) {
+                    return function() {
+                        return _inner.val();
+                    }
+                } else {
+                    return function() {
+                        return _elem.text();
+                    }
+                }
+
+            })(elem, inner));
+
+            res.__defineSetter__(propertyName, (function(_elem, _inner) {
+
+                if(_inner && _inner.is('input')) {
+                    return function(val) {
+                        _inner.val(val)
+                    }
+                } else {
+                    return function(val) {
+                        _elem.text(val);
+                    }                    
+                }
+
+            })(elem, inner));
+
+        }
+
+        return res;
+    }
+
+    /**
+     * Получить дочерний элемент ячейки, если он есть.
+     */
+    Table.prototype.__getTdInner = function(param) {
+        var result;
+
+        if(typeof param == 'string') {
+            var variants = {
+                id: $('<input class="row-selector" type="checkbox" />'),
+                pass: $('<a data-class="add" class="add" href="#">Добавить</a>')
+            }
+
+            result = variants.hasOwnProperty(param) ? variants[param] : null
+        } else {
+            var child = param.children().first()
+            result = child.size() > 0 ? child : null;
+        }
+        
+        return result;
+    }
 
     Table.prototype.__cacheRowData = function(row) {
         var cache = {},
