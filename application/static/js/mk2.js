@@ -19,12 +19,19 @@ function sendRequest(data, callback) {
     function Table(selector) {
         this.$element = $(selector);
         this.rowSelectorClass = '.row-selector';
-        this.$rows = []; // TODO Сделать элементами массива объекты, атрибуты которого будут автоматом менять данные в строке
-                         // TODO как сделано в модальном диалоге
+
+        // fill data
         this.names = this.$element.find('tr:eq(0)').children().map(function(i, element) {
             return $(element).data('name')
         });
 
+        this.$rows = this.$element.find('tr:gt(0)').map($.proxy(function(i, e) {
+            var m = this.createRowObject(e);
+            $(e).data('model', m);
+            return m
+        }, this));
+
+        
         // init functions calling
         this.__updateRowsCache();
 
@@ -54,7 +61,7 @@ function sendRequest(data, callback) {
         // Подписки на еветны от других виджетов
         // data - StudentCard.$data
         $(window).on('add-student-submit', $.proxy(function(event, data) {
-            this.addRow(data);
+            this.createRow(data);
         }, this))
     }
 
@@ -63,33 +70,35 @@ function sendRequest(data, callback) {
      * @param data
      * @returns {Table}
      */
-    Table.prototype.addRow = function(data) {
+    Table.prototype.createRow = function(data) {
         var curName,
-            tr = $('<tr></tr>'),
-            rowObj = {};
+            tr = $(
+                '<tr>' +
+                    '<td><input class="row-selector" type="checkbox" /></td>' +
+                    '<td></td>' +
+                    '<td></td>' +
+                    '<td></td>' +
+                    '<td></td>' +
+                    '<td></td>' +
+                    '<td><input class="attendance" type="checkbox" /></td>' +
+                    '<td><a data-class="add" class="add" href="#">Добавить</a></td>' +
+                    '<td></td>' +
+               '</tr>'
+            );
 
-        for(var i= 0, j= this.names.length; i<j; i++) {
-            curName = this.names[i];
-            var td = $('<td></td>'),
-                val = '';
+        var model = this.createRowObject(tr);
 
-            if(data.hasOwnProperty(curName)) {
-                val = data[curName];
+        for(var i in model) {
+            if(data.hasOwnProperty(i)) {
+                model[i] = data[i]
             }
-
-            // Вставляем input в нужных местах
-            var inp = this.__getTdInner(curName);
-            if(inp && inp.is('input')) {
-                inp.val(val);
-            }
-
-            td.append(inp ? inp : val);
-            tr.append(td);
         }
 
+        tr.data('model', model);
+        this.$rows.push(model);
         this.$element.append(tr);
-        this.__updateRowsCache();
         this.__sort();
+
         return this;
     };
 
@@ -193,7 +202,7 @@ function sendRequest(data, callback) {
      * @private
      */
     Table.prototype.__sort = function() {
-        var sorted_rows,
+        /*var sorted_rows,
             famIndex = this.__getNameIndex('last_name');
 
         sorted_rows = this.$rows.slice(1).sort(function(l, r) {
@@ -204,7 +213,25 @@ function sendRequest(data, callback) {
 
         for(var i= 0, j= sorted_rows.length; i<j; i++) {
             //todo Сюда надо вставить определение порядкового номаера
-        }
+        }*/
+
+        var sorted_rows,
+            rows = this.$element.find('tr:gt(0)');
+
+        sorted_rows = rows.sort(function(a, b) {
+            var left, right;
+
+            left = $(a).data('model');
+            right = $(b).data('model');
+
+            return left.last_name < right.last_name ? -1 : 1;
+        }).map(function(i, e) {
+            $(e).data('model').cnt = i+1;
+            return e;
+        });
+
+        rows.remove();
+        this.$element.append(sorted_rows);
     };
 
     Table.prototype.__getNameIndex = function(name) {
