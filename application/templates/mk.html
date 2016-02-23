@@ -36,9 +36,14 @@
 		        		}
 		        	}
 	        	)
-
-	        	
 	        });
+
+	    	$(document).on('submit', function() {
+	    		var form = $(this).data('modalpopover').$tip,
+	    			data = form.find('select').val();
+	    		
+	    		$(this).trigger('add-form-submit', data)
+	    	})
 	    }
     </script>
 {% endblock %}
@@ -142,9 +147,9 @@
     <div>
         <select>
             <option data-value="null" value="-1">-- выберите группу --</option>
-            <option data-value="Начинающие Третьяковская" value=1>Начинающие Третьяковская</option>
-            <option data-value="Начинающие Волгоградский проспект" value=2>Начинающие Волгоградский проспект</option>
-            <option data-value="Начинающие Краснопресненская" value=3>Начинающие Краснопресненская</option>
+            {% for group in groups %}
+            <option data-value="{{group.name}}" value={{group.id}}>{{group.name}}</option>
+            {% endfor %}
         </select>
         <button class="submit" onclick="$(document).trigger('submit')">Внести</button>
     </div>

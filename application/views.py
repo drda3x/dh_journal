@@ -426,11 +426,20 @@ class BonusClassView(TemplateView):
 
         return HttpResponse(200)
 
+    def add_pass(self, request):
+        gid = request.POST['gid']
+        stid = request.POST['stid']
+
+        
+        
+        return HttpResponse(200)
+
     def get(self, request, *args, **kwargs):
         context = dict()
         mkid = request.GET.get('id')
         context['group_id'] = mkid
         context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid, active=True)
+        context['groups'] = Groups.objects.all()
 
         return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
 

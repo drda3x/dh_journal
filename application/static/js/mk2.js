@@ -37,6 +37,7 @@ function sendRequest(_data, subAction, callback) {
     function Table(selector) {
         this.$element = $(selector);
         this.rowSelectorClass = '.row-selector';
+        this.currentRow = null;
 
         // fill data
         this.names = this.$element.find('tr:eq(0)').children().map(function(i, element) {
@@ -82,7 +83,24 @@ function sendRequest(_data, subAction, callback) {
         // data - StudentCard.$data
         $(window).on('add-student-submit', $.proxy(function(event, data) {
             this.createRow(data);
-        }, this))
+        }, this));
+
+        $(window).on('add-form-submit', $.proxy(function(event, data) {
+            sendRequest({
+                    gid: data,
+                    stid: this.currentRow.id
+                },
+                'add_pass',
+                function(err, data) {
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        console.log('success');
+                        $(document).data('modalpopover').hide();
+                    }
+                }
+            )
+        }, this));
     }
 
     /**
@@ -275,12 +293,18 @@ function sendRequest(_data, subAction, callback) {
     };
 
     Table.prototype.__refreshRowsEvents = function() {
-        var rows = this.$element.find('tr:gt(0)');
+        var self = this,
+            rows = this.$element.find('tr:gt(0)');
 
         rows.each(function() {
-            var $this = $(this);
+            var $this = $(this),
+                model = $this.data('model');
 
-            $this.find('.attendance').change($this.data('model'), function(event) {
+            $this.find('.attendance').change(model, function(event) {
+                var $td = $(this).parent(),
+                    loading = 'loading2';
+                $td.addClass(loading)
+
                 sendRequest({
                     gid: window.pageParams.group_id,
                     stid: event.data.id,
@@ -291,10 +315,23 @@ function sendRequest(_data, subAction, callback) {
                     if(err) {
                         console.log(err);
                     } else {
-                        alert('OK')
+                        $td.removeClass(loading);
                     }
                 })
+            });
+
+            $this.find('.add').each(function() {
+                $(this).modalpopover({
+                    content: $('.form').html(),
+                    html: true,
+                    trigger: 'manual',
+                    placement: 'bottom'
+                })
             })
+            .click(model, function() {
+                self.currentRow = model;
+                $(this).modalpopover('show');
+            });
 
         });
     }
