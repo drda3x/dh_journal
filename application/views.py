@@ -11,6 +11,8 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 
+from application.logic.student import add_student as _add_student, remove_student as _remove_student
+
 from application.utils.passes import get_color_classes
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
@@ -389,15 +391,46 @@ class BonusClassView(TemplateView):
     template_name = 'mk.html'
 
     def add(self, request):
-        from application.api import add_student
-        r = dict()
-        return add_student(request, BonusClassList)
+        _json = _add_student(
+            request.POST['id'],
+            request.POST['first_name'],
+            request.POST['last_name'],
+            request.POST['phone'],
+            request.POST['e_mail'],
+            request.POST.get('is_org'),
+            BonusClassList
+        )
+
+        return HttpResponse(json.dumps(_json)) if _json else HttpResponseServerError('failed')
+
+    def delete(self, request):
+        try:
+            ids = json.loads(request.POST['ids'])
+            gid = request.POST['gid']
+
+            if _remove_student(gid, ids, BonusClassList):
+                return HttpResponse(200)
+            else:
+                return HttpResponseServerError('failed')
+
+        except:
+            print format_exc()
+            return HttpResponseServerError()
+
+    def attendance(self, request):
+        gid = request.POST['gid']
+        student_id = request.POST['stid']
+        val = request.POST['val'] == u'true'
+
+        BonusClassList.objects.get(group_id=gid, student_id=student_id).update(attendance=val)
+
+        return HttpResponse(200)
 
     def get(self, request, *args, **kwargs):
         context = dict()
         mkid = request.GET.get('id')
         context['group_id'] = mkid
-        context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
+        context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid, active=True)
 
         return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -407,14 +440,14 @@ class BonusClassView(TemplateView):
             return action(request)
 
         except (AttributeError, KeyError):
+            from traceback import format_exc
+            print format_exc()
             return HttpResponseServerError('No method')
 
         except Exception:
             from traceback import format_exc
             print format_exc()
             return HttpResponseServerError('failed')
-
-        return HttpResponse(json.dumps({'msg':'success'}))
 
 # @auth_decorator
 # def bonus_class_view(request):

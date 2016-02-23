@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+# todo По мере прохождения рефакторинга, переносить функционал отсюда либо во вьюшки, либо в logic модуль
+
 import datetime, json
 
 from pytz import UTC, timezone
@@ -14,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.db.models import Q
 
+from application.logic.student import add_student as _add_student, remove_student as _remove_student
 from application.utils.passes import PassLogic
 from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
@@ -94,49 +97,21 @@ def edit_user_profile(request):
 
 
 def add_student(request, group_list_orm=GroupList):
+
     try:
-        first_name = request.GET['first_name'].replace(' ', '')
-        last_name = request.GET['last_name'].replace(' ', '')
-        phone = check_phone(request.GET['phone'])
-        e_mail = request.GET['e_mail'].replace(' ', '') if 'e_mail' in request.GET.iterkeys() else None
-        group_id = int(request.GET['id'])
-        is_org = request.GET.get('is_org') == u'true'
+        _json = _add_student(
+            request.GET['id'],
+            request.GET['first_name'],
+            request.GET['last_name'],
+            request.GET['phone'],
+            request.GET['e_mail'],
+            request.GET.get('is_org')
+        )
 
-        try:
-            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
-            group_list = group_list_orm.objects.get(student=student, group_id=group_id)
-
-        except Students.DoesNotExist:
-            student = Students(
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                e_mail=e_mail,
-                org=is_org
-            )
-
-            student.save()
-
-            group_list = None
-
-        except group_list_orm.DoesNotExist:
-            group_list = None
-
-        if not group_list:
-            group_list = group_list_orm(
-                student=student,
-                group_id=group_id
-            )
-            group_list.save()
-
-        elif not group_list.active:
-            group_list.active = True
-            group_list.save()
-
+        if _json:
+            return HttpResponse(json.dumps(_json))
         else:
             return HttpResponseServerError('PersonExistedError')
-
-        return HttpResponse(json.dumps(student.__json__()))
 
     except Exception:
         print format_exc()
@@ -165,9 +140,10 @@ def delete_student(request):
         students = Students.objects.filter(pk__in=ids)
         errors = []
 
-        GroupList.objects.filter(group__id=gid, student__id__in=ids).select_related('student').update(active=False)
-
-        return HttpResponse(200)
+        if _remove_student(gid, ids, GroupList):
+            return HttpResponse(200)
+        else:
+            return HttpResponseServerError('failed')
 
     except Exception:
         print format_exc()
@@ -1147,33 +1123,3 @@ def write_off_sampo_record(request):
 
 def mk_add_student(request):
     return add_student(request, BonusClassList)
-
-
-def mk_remove_student(request):
-    try:
-        ids = json.loads(request.GET['ids'])
-        gid = request.GET['gid']
-
-        # todo пока будем просто удалять запись, потом возможно будет необходимость ее сохранять...
-        # todo еще надо рещить что делатть со студентом, который не пришел на мастер-класс и у которого вообще никогда не было занятий в клубе...
-        # todo пока такой студент просто будет висеть в списках...
-        # todo но, вообще, из списков его наверное удалять не нужно, потом будет отдельный интерфейс, где народ будет удаляться полностью...
-        BonusClassList.objects.filter(student_id__in=ids, group_id=gid).delete()
-
-        return HttpResponse(200)
-    except:
-        print format_exc()
-        return HttpResponseServerError()
-
-
-def mk_attendance(request):
-    try:
-        gid = request.GET['gid']
-        student_id = request.GET['stid']
-        val = request.GET['val'] == u'true'
-        BonusClassList.objects.get(group_id=gid, student_id=student_id).update(attendance=val)
-
-        return HttpResponse(200)
-    except:
-        print format_exc()
-        return HttpResponseServerError()

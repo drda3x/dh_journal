@@ -7,9 +7,26 @@
         <link rel="stylesheet" href="../static/css/datepicker.css">
         <link rel="stylesheet" href="../static/shortcard/short_card.css">
         <script type="text/javascript" src="../static/js/jquery.js"></script>
+        <script type="text/javascript" src="../static/js/jquery.cookie.js"></script>
         <script type="text/javascript" src="../static/bootstrap/js/bootstrap.js"></script>
         <script type="text/javascript" src="../static/bootstrap/js/bootstrap-datepicker.js"></script>
         <script type="text/javascript" src="../static/shortcard/short_card.js"></script>
+        <script type="text/javascript">
+            var csrftoken = $.cookie('csrftoken');
+
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        </script>
         {% block head %}{% endblock %}
     </head>
     <body>

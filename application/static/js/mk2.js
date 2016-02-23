@@ -2,8 +2,26 @@
  * Created by ПК on 20.02.2016.
  */
 
-function sendRequest(data, callback) {
-    callback(data);
+function sendRequest(_data, subAction, callback) {
+
+    var data = {};
+
+    for(var i in _data) {
+        data[i] = _data[i];
+    }
+
+    data['id'] = window.pageParams.group_id;
+    data['sub_action'] = subAction;
+
+    $.ajax({
+        method: 'POST',
+        data: data
+    }).success(function(jsonString) {
+        var responce = JSON.parse(jsonString);
+        callback(null, responce);
+    }).error(function(errString) {
+        callback(errString, null)
+    })
 }
 
 // Логика таблички
@@ -25,15 +43,15 @@ function sendRequest(data, callback) {
             return $(element).data('name')
         });
 
-        this.$rows = this.$element.find('tr:gt(0)').map($.proxy(function(i, e) {
-            var m = this.createRowObject(e);
-            $(e).data('model', m);
-            return m
-        }, this));
+        this.$rows = this.$element.find('tr:gt(0)').each((function(context) {
+            return function() {
+                var $this = $(this),
+                    m = context.createRowObject($this);
+                $this.data('model', m);
+            }
+        })(this));
 
-        
         // init functions calling
-        this.__updateRowsCache();
 
         // Events adding
         // Добавляем функционал для выбора всех строк таблицы
@@ -57,6 +75,8 @@ function sendRequest(data, callback) {
                 }
             }
         }, this));
+        
+        this.__sort();
 
         // Подписки на еветны от других виджетов
         // data - StudentCard.$data
@@ -101,6 +121,28 @@ function sendRequest(data, callback) {
 
         return this;
     };
+
+    Table.prototype.deleteRow = function(idArr) {
+        function _in(e, _arr) {
+            for(var i= arr.length-1; i>=0; i--) {
+                if(arr[i] == e) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        var arr = idArr instanceof Array ? idArr : [idArr];
+
+        this.$element.find('tr:gt(0)').each(function() {
+            var m = $(this).data('model');
+            if(_in(m.id, arr)) {
+                $(this).remove();
+            }
+        });
+
+        this.__sort();
+    }
 
     /**
      * Создать объект-обертку для удобной работы с DOM'ом строки... 
@@ -202,37 +244,60 @@ function sendRequest(data, callback) {
      * @private
      */
     Table.prototype.__sort = function() {
-        /*var sorted_rows,
-            famIndex = this.__getNameIndex('last_name');
-
-        sorted_rows = this.$rows.slice(1).sort(function(l, r) {
-            var l_name = $(l).data('cache').last_name,
-                r_name = $(r).data('cache').last_name;
-            return l_name.toLowerCase() < r_name.toLowerCase() ? -1 : 1;
-        })
-
-        for(var i= 0, j= sorted_rows.length; i<j; i++) {
-            //todo Сюда надо вставить определение порядкового номаера
-        }*/
-
         var sorted_rows,
             rows = this.$element.find('tr:gt(0)');
 
-        sorted_rows = rows.sort(function(a, b) {
-            var left, right;
+        sorted_rows = $.map(
+            rows.clone(true).sort(function(a, b) {
+                var left, right;
 
-            left = $(a).data('model');
-            right = $(b).data('model');
+                left = $(a).data('model');
+                right = $(b).data('model');
 
-            return left.last_name < right.last_name ? -1 : 1;
-        }).map(function(i, e) {
-            $(e).data('model').cnt = i+1;
-            return e;
-        });
+                return left.last_name.toLowerCase() < right.last_name.toLowerCase() ? -1 : 1;
+            }),
+
+            $.proxy(function(e, i) {
+                var $e = $(e),
+                    $e_model = this.createRowObject($e);
+
+                $e_model.cnt = i + 1;
+                $e.data('model', $e_model);
+
+                return $e;
+            }, this)
+
+        );
 
         rows.remove();
         this.$element.append(sorted_rows);
+        this.__refreshRowsEvents();
     };
+
+    Table.prototype.__refreshRowsEvents = function() {
+        var rows = this.$element.find('tr:gt(0)');
+
+        rows.each(function() {
+            var $this = $(this);
+
+            $this.find('.attendance').change($this.data('model'), function(event) {
+                sendRequest({
+                    gid: window.pageParams.group_id,
+                    stid: event.data.id,
+                    val: $(this).prop('checked')
+                }, 
+                'attendance', 
+                function(err, data) {
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        alert('OK')
+                    }
+                })
+            })
+
+        });
+    }
 
     Table.prototype.__getNameIndex = function(name) {
         for(var i= this.names.length - 1; i>=0; i--) {
@@ -248,9 +313,29 @@ function sendRequest(data, callback) {
      * Получить список выбранных пользователем строк таблицы
      */
     Table.prototype.getSelectedRows = function() {
-        return $.grep(this.$rows, $.proxy(function(elem, i) {
-            return i > 0 && $(elem).find(this.rowSelectorClass).prop('checked');
-        }, this))
+        var rows = $.grep(this.$element.find('tr:gt(0)'), $.proxy(function(elem, i) {
+            return $(elem).find(this.rowSelectorClass).prop('checked');
+        }, this)).map(function(elem) {
+            return $(elem).data('model');
+        });
+
+        if(arguments.length == 0) {
+            return rows
+        } else {
+            var args = arguments
+            var oneElement = args.length == 1;
+            return rows.map(function(elem) {
+                if(oneElement) {
+                    return elem[args[0]]
+                } else {
+                    var buff = {};
+                    for(var i= args.length-1; i>=0; i--) {
+                        buff[args[i]] = elem[args[i]]
+                    }
+                    return buff;
+                }
+            })
+        }
     };
 
     W.Table = Table;
@@ -290,8 +375,12 @@ function sendRequest(data, callback) {
 
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
-            sendRequest(this.$data, function(data) {
-                $(window).trigger('add-student-submit', data);
+            sendRequest(this.$data, 'add', function(err, data) {
+                if(err) {
+                    console.log(err);
+                } else {
+                    $(window).trigger('add-student-submit', data);
+                }
             })
         }, this));
     }

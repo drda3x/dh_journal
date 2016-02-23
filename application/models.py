@@ -191,7 +191,8 @@ class Students(models.Model):
             id=self.pk,
             first_name=self.first_name,
             last_name=self.last_name,
-            phone=dict(raw=self.phone, formated=self.str_phone),
+            phone=self.str_phone,
+            raw_phone=self.phone,
             e_mail=self.e_mail,
             org=self.org
         )
