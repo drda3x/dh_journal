@@ -427,10 +427,21 @@ class BonusClassView(TemplateView):
         return HttpResponse(200)
 
     def add_pass(self, request):
-        gid = request.POST['gid']
-        stid = request.POST['stid']
+        gid = int(request.POST['gid'])
+        stid = int(request.POST['stid'])
 
-        
+        group = Groups.objects.get(pk=gid)
+        last_lesson = Lessons.objects.filter(group_id=gid, student_id=stid).order_by('date').last()
+
+        if last_lesson and last_lesson.date >= group.last_lesson:
+            day_after = group.get_calendar(1, datetime.combine(last_lesson.date, datetime.min.time()))[0]
+            pass_date = day_after.date()
+        else:
+            pass_date = group.last_lesson
+        # Создаем фантомный абонемент, который, до того как по нему пошли отметки, будет каждый раз начинаться с последнего занятия!!!
+
+        # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
+        # надо впихивать после него, а если абонемента нет или он уже кончился, то новый впихиваем на следующее занятие...
         
         return HttpResponse(200)
 
