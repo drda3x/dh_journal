@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 import datetime
 import re
+import json
+from django.views.generic import TemplateView
 from pytz import timezone, UTC
 from project.settings import TIME_ZONE
 from django.shortcuts import render_to_response, redirect
-from django.http import HttpResponseServerError
+from django.http import HttpResponseServerError, HttpResponse
 from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
@@ -377,28 +379,65 @@ def sampo_view(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-@auth_decorator
-def bonus_class_view(request):
+# С этого момента начинается эра нормального кода!!!
+# Теперь я буду потехоньку переписывать все на классы.
+# А когда-нибудь у меня будет нормальная структура всего проекта!!!
+# УРА ТОВАРИЩИ!!!
 
-    from application.api import mk_add_student, mk_remove_student, mk_attendance
 
-    bonus_class_handlers = {
-        'addStudent': mk_add_student,
-        'removeStudent': mk_remove_student,
-        'setAttendance': mk_attendance
-    }
+class BonusClassView(TemplateView):
+    template_name = 'mk.html'
 
-    try:
-        return bonus_class_handlers[request.GET.get('requestType')](request)
-    except KeyError:
-        pass
+    def add(self, request):
+        from application.api import add_student
+        r = dict()
+        return add_student(request, BonusClassList)
 
-    mkid = request.GET.get('id')
+    def get(self, request, *args, **kwargs):
+        context = dict()
+        mkid = request.GET.get('id')
+        context['group_id'] = mkid
+        context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
 
-    template = 'mk.html'
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
-    context = dict()
-    context['group_id'] = mkid
-    context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
+    def post(self, request, *args, **kwargs):
+        try:
+            action = getattr(self, request.POST['sub_action'])
+            return action(request)
 
-    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+        except (AttributeError, KeyError):
+            return HttpResponseServerError('No method')
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+            return HttpResponseServerError('failed')
+
+        return HttpResponse(json.dumps({'msg':'success'}))
+
+# @auth_decorator
+# def bonus_class_view(request):
+
+#     from application.api import mk_add_student, mk_remove_student, mk_attendance
+
+#     bonus_class_handlers = {
+#         'addStudent': mk_add_student,
+#         'removeStudent': mk_remove_student,
+#         'setAttendance': mk_attendance
+#     }
+
+#     try:
+#         return bonus_class_handlers[request.GET.get('requestType')](request)
+#     except KeyError:
+#         pass
+
+#     mkid = request.GET.get('id')
+
+#     template = 'mk.html'
+
+#     context = dict()
+#     context['group_id'] = mkid
+#     context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
+
+#     return 
