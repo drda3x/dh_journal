@@ -182,7 +182,7 @@ class Students(models.Model):
     last_name = models.CharField(max_length=30, verbose_name=u'Имя')
     father_name = models.CharField(max_length=30, verbose_name=u'Отчество', null=True, blank=True)
     phone = models.CharField(verbose_name=u'Телефон', max_length=20)
-    e_mail = models.CharField(max_length=30, verbose_name=u'e-mail')
+    e_mail = models.CharField(max_length=30, verbose_name=u'e-mail', null=True, blank=True)
     org = models.BooleanField(verbose_name=u'Орг', default=False)
     is_deleted = models.BooleanField(verbose_name=u'Удален', default=False)
 
