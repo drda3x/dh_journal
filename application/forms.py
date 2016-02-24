@@ -4,7 +4,7 @@ from django.utils.functional import cached_property
 
 from django import forms
 from django.core.exceptions import ValidationError
-from application.models import Groups, WEEK, PassTypes
+from application.models import Groups, WEEK, PassTypes, BonusClasses
 
 
 class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
@@ -61,8 +61,8 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
 try:
     class GroupsForm(forms.ModelForm):
 
-        _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-        _available_passes = CommaSeparatedSelectIntegerWithUpdate(label='Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
+        _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
+        _available_passes = CommaSeparatedSelectIntegerWithUpdate(label=u'Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
 
         class Meta:
             model = Groups
@@ -77,3 +77,22 @@ except Exception:
             class Meta:
                 model = Groups
                 fields = ['name', 'start_date', 'time', 'end_date', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_opened', 'is_settable']
+
+
+try:
+    class BonusClassesForm(forms.ModelForm):
+
+        _available_passes = CommaSeparatedSelectIntegerWithUpdate(label=u'Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
+
+        class Meta:
+            model = BonusClasses
+            fields = ['date', 'time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
+
+except Exception:
+        class BonusClassesForm(forms.ModelForm):
+
+            _available_passes = None
+
+            class Meta:
+                model = BonusClasses
+                fields = ['date', 'time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']

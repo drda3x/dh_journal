@@ -13,7 +13,7 @@ from django.template.context_processors import csrf
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student
 
-from application.utils.passes import get_color_classes
+from application.utils.passes import get_color_classes, PassLogic
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 from application.models import Lessons, User, Passes
@@ -413,7 +413,8 @@ class BonusClassView(TemplateView):
             else:
                 return HttpResponseServerError('failed')
 
-        except:
+        except Exception:
+            from traceback import format_exc
             print format_exc()
             return HttpResponseServerError()
 
@@ -434,10 +435,16 @@ class BonusClassView(TemplateView):
         last_lesson = Lessons.objects.filter(group_id=gid, student_id=stid).order_by('date').last()
 
         if last_lesson and last_lesson.date >= group.last_lesson:
-            day_after = group.get_calendar(1, datetime.combine(last_lesson.date, datetime.min.time()))[0]
+            day_after = group.get_calendar(1, datetime.datetime.combine(last_lesson.date, datetime.datetime.min.time()))[0]
             pass_date = day_after.date()
         else:
             pass_date = group.last_lesson
+
+        _pass = Passes(
+            student_id=stid,
+            group_id=gid,
+            
+        )
         # Создаем фантомный абонемент, который, до того как по нему пошли отметки, будет каждый раз начинаться с последнего занятия!!!
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент

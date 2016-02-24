@@ -332,7 +332,7 @@ class Passes(models.Model):
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
     # group = models.ManyToManyField(Groups, verbose_name=u'Группа', null=True, blank=True)
     group = models.ForeignKey(Groups, verbose_name=u'Группа', null=True, blank=True)
-    start_date = models.DateField(verbose_name=u'Начало действия абонемента')
+    start_date = models.DateField(verbose_name=u'Начало действия абонемента', null=True, blank=True)
     end_date = models.DateField(verbose_name=u'Окончание действия абонемента', null=True, blank=True)
     pass_type = models.ForeignKey(PassTypes, verbose_name=u'Абонемент', null=True, blank=True, default=None)
     lessons = models.PositiveIntegerField(verbose_name=u'Количество оставшихся занятий')
@@ -579,6 +579,11 @@ class BonusClasses(models.Model):
     teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
     can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
+    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+
+    @property
+    def available_passes(self):
+        return self._available_passes.split(',')
 
     def repr_short(self):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)

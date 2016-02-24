@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from models import *
-from forms import GroupsForm
+from forms import GroupsForm, BonusClassesForm
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -12,6 +12,10 @@ from application.models import User as CustomUser
 
 class GroupAdmin(admin.ModelAdmin):
     form = GroupsForm
+
+
+class BonusClassAdmin(admin.ModelAdmin):
+    form = BonusClassesForm
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -53,5 +57,5 @@ admin.site.register(Groups, GroupAdmin)
 admin.site.register(PassTypes)
 admin.site.register(DanceHalls)
 admin.site.register(Log)
-admin.site.register(BonusClasses)
+admin.site.register(BonusClasses, BonusClassAdmin)
 #admin.site.register(SampoPrises)
