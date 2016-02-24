@@ -148,6 +148,10 @@ class Groups(models.Model):
     def time_repr(self):
         return str(self.time or '')[0:-3]
 
+    @property
+    def simple_repr(self):
+        return u'%s %s' % (self.name, '-'.join(self.days))
+
     def __unicode__(self):
 
         leader = self.teacher_leader.last_name if self.teacher_leader else ''
@@ -323,6 +327,38 @@ class GroupList(models.Model):
         unique_together = ('group', 'student')
 
 
+class BonusClasses(models.Model):
+
+    date = models.DateField(verbose_name=u'Дата')
+    time = models.TimeField(verbose_name=u'Время', null=True, blank=True)
+    hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
+    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
+    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
+    can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
+    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+
+    @property
+    def available_passes(self):
+        return self._available_passes.split(',')
+
+    def repr_short(self):
+        return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)
+
+    def __unicode__(self):
+        return u'%s %s %s %s' % (
+            self.date.strftime('%d.%m.%Y'),
+            self.hall.station,
+            self.teacher_leader.last_name if self.teacher_leader else u'',
+            self.teacher_follower.last_name if self.teacher_follower else u''
+        )
+
+    class Meta:
+        unique_together = ('date', 'hall')
+        app_label = u'application'
+        verbose_name = u'Мастер-класс'
+        verbose_name_plural = u'Мастер-классы'
+
+
 class Passes(models.Model):
 
     u"""
@@ -342,6 +378,7 @@ class Passes(models.Model):
     skips_origin = models.PositiveIntegerField(verbose_name=u'Количество изначально заданных пропусков', null=True, blank=True)
     opener = models.ForeignKey(User, null=True, blank=True)
     creation_date = models.DateField(verbose_name=u'Дата содания(оплаты абонемента)', null=True, blank=True, auto_now=True)
+    bonus_class = models.ForeignKey(BonusClasses, verbose_name=u'Мастер-класс', null=True, blank=True)
 
     @property
     def one_group_pass(self):
@@ -569,38 +606,6 @@ class SampoPrises(models.Model):
         app_label = u'application'
         verbose_name = u'Цены на сампо'
         verbose_name_plural= u'Цены на сампо'
-
-
-class BonusClasses(models.Model):
-
-    date = models.DateField(verbose_name=u'Дата')
-    time = models.TimeField(verbose_name=u'Время', null=True, blank=True)
-    hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
-    teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
-    teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
-    can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
-
-    @property
-    def available_passes(self):
-        return self._available_passes.split(',')
-
-    def repr_short(self):
-        return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)
-
-    def __unicode__(self):
-        return u'%s %s %s %s' % (
-            self.date.strftime('%d.%m.%Y'), 
-            self.hall.station, 
-            self.teacher_leader.last_name if self.teacher_leader else u'', 
-            self.teacher_follower.last_name if self.teacher_follower else u''
-        )
-
-    class Meta:
-        unique_together = ('date', 'hall')
-        app_label = u'application'
-        verbose_name = u'Мастер-класс'
-        verbose_name_plural = u'Мастер-классы'
 
 
 class BonusClassList(models.Model):

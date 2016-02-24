@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block head %}
+    <style type="text/css">
+        .center{
+            text-align: center !important;
+        }
+    </style>
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
 	<script type="text/javascript" src="../static/js/mk2.js"></script>
@@ -40,8 +45,14 @@
 
 	    	$(document).on('submit', function() {
 	    		var form = $(this).data('modalpopover').$tip,
-	    			data = form.find('select').val();
-	    		
+	    			data = {};
+
+                form.find('select').each(function() {
+                    var fieldName = $(this).attr('name');
+                    data[fieldName] = $(this).val();
+                    data[fieldName + '_str'] = $(this).find('option[value='+data[fieldName]+']').text();
+                });
+
 	    		$(this).trigger('add-form-submit', data)
 	    	})
 	    }
@@ -70,9 +81,13 @@
 	    <td>{{ record.student.first_name }}</td>
 	    <td>{{ record.student.str_phone }}</td>
 	    <td>{% if record.student.e_mail %}{{ record.student.e_mail }}{% endif %}</td>
-	    <td><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
-	    <td>
-			<a data-class="add" class="add" href="#">Добавить</a>
+	    <td class="center"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
+	    <td class="center">
+            {% if record.group %}
+                {{ record.group.simple_repr }}(<a class="del" href="#">удалить</a>)
+            {% else %}
+			    <a data-class="add" class="add" href="#">Добавить</a>
+            {% endif %}
 		</td>
 		<td></td>
     </tr>
@@ -145,13 +160,19 @@
 
 <div class="form hidden">
     <div>
-        <select>
+        <select name="gid">
             <option data-value="null" value="-1">-- выберите группу --</option>
             {% for group in groups %}
             <option data-value="{{group.name}}" value={{group.id}}>{{group.name}}</option>
             {% endfor %}
         </select>
-        <button class="submit" onclick="$(document).trigger('submit')">Внести</button>
+        <select name="ptid">
+            <option data-value="null" value="-1">-- выберите абонемент --</option>
+            {% for pt in pass_types %}
+            <option data-value="{{pt.name}}" value={{pt.id}}>{{pt.name}}</option>
+            {% endfor %}
+        </select>
+        <button class="submit btn btn-primary" onclick="$(document).trigger('submit')">Добавить</button>
     </div>
 </div>
 

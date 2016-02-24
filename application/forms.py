@@ -82,7 +82,11 @@ except Exception:
 try:
     class BonusClassesForm(forms.ModelForm):
 
-        _available_passes = CommaSeparatedSelectIntegerWithUpdate(label=u'Абонементы', choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple())
+        _available_passes = CommaSeparatedSelectIntegerWithUpdate(
+            label=u'Абонементы',
+            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')),
+            widget=forms.CheckboxSelectMultiple()
+        )
 
         class Meta:
             model = BonusClasses

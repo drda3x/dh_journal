@@ -259,6 +259,10 @@ def get_student_groups(student, include_closed=False):
 
 def get_student_lesson_status(student, group, _date):
 
+    html_color_classes = {
+            key: val for val, key in get_color_classes()
+        }
+
     if isinstance(_date, dict):
         date = _date['date']
 
@@ -284,10 +288,6 @@ def get_student_lesson_status(student, group, _date):
     try:
         lesson = Lessons.objects.get(student=student, group=group, date=date)
 
-        html_color_classes = {
-            key: val for val, key in get_color_classes()
-        }
-
         buf = {
             'pass': True,
             'sign': 'долг' if debt else lesson.sign,
@@ -310,6 +310,35 @@ def get_student_lesson_status(student, group, _date):
         return buf
 
     except Lessons.DoesNotExist:
+
+        if date.date() >= group.last_lesson:
+            p = Passes.objects.filter(student=student, group=group, start_date__isnull=True).order_by('pk')
+            if p.exists():
+                fantom_lessons = p.aggregate(Sum('lessons')).get('lessons__sum')
+                calendar = group.get_calendar(fantom_lessons, group.last_lesson)
+
+                try:
+                    day_num = calendar.index(date)
+
+                    lessons = reduce(lambda a, x: a + [x] * x.lessons, p, [])
+                    # for p1 in p:
+                    #     lessons += [p1] * p1.lessons
+
+                    cur_pass = lessons[day_num]
+
+                    return {
+                        'pass': True,
+                        'sign': '',
+                        'sign_type': 's',
+                        'attended': Lessons.STATUSES['not_processed'],
+                        'pid': cur_pass.id,
+                        'first': False,
+                        'last': False,
+                        'color': html_color_classes[cur_pass.color]
+                    }
+                except ValueError:
+                    pass
+
         return {
             'pass': False,
             'color': 'text-error' if debt else '',

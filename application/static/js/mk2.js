@@ -38,6 +38,7 @@ function sendRequest(_data, subAction, callback) {
         this.$element = $(selector);
         this.rowSelectorClass = '.row-selector';
         this.currentRow = null;
+        this.add_td = null;
 
         // fill data
         this.names = this.$element.find('tr:eq(0)').children().map(function(i, element) {
@@ -86,20 +87,28 @@ function sendRequest(_data, subAction, callback) {
         }, this));
 
         $(window).on('add-form-submit', $.proxy(function(event, data) {
-            sendRequest({
-                    gid: data,
-                    stid: this.currentRow.id
-                },
-                'add_pass',
-                function(err, data) {
-                    if(err) {
-                        console.log(err);
-                    } else {
-                        console.log('success');
-                        $(document).data('modalpopover').hide();
-                    }
+            var _data = {},
+                model = this.currentRow,
+                td = model.jq('pass');
+
+            for(var i in data) {
+              _data[i] = data[i];
+            }
+
+            model.pass = '';
+            td.addClass('loading2');
+            _data.stid = model.id;
+            _data.mkid = window.pageParams.group_id;
+
+            sendRequest(_data, 'add_pass', function(err, data) {
+                if(err) {
+                    console.log(err);
+                } else {
+                    model.pass = $('<div>'+_data.gid_str+'(<a class="del" href="#">удалить</a>)' + '</div>');
+                    td.removeClass('loading2');
                 }
-            )
+            });
+
         }, this));
     }
 
@@ -118,8 +127,8 @@ function sendRequest(_data, subAction, callback) {
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
-                    '<td><input class="attendance" type="checkbox" /></td>' +
-                    '<td><a data-class="add" class="add" href="#">Добавить</a></td>' +
+                    '<td class="center"><input class="attendance" type="checkbox" /></td>' +
+                    '<td class="center"><a data-class="add" class="add" href="#">Добавить</a></td>' +
                     '<td></td>' +
                '</tr>'
             );
@@ -160,7 +169,7 @@ function sendRequest(_data, subAction, callback) {
         });
 
         this.__sort();
-    }
+    };
 
     /**
      * Создать объект-обертку для удобной работы с DOM'ом строки... 
@@ -197,7 +206,11 @@ function sendRequest(_data, subAction, callback) {
                     }
                 } else {
                     return function(val) {
-                        _elem.text(val);
+                        if(typeof val == 'object') {
+                          _elem.html(val);
+                        } else {
+                          _elem.text(val);
+                        }
                     }                    
                 }
 
@@ -205,8 +218,19 @@ function sendRequest(_data, subAction, callback) {
 
         }
 
+        res.jq = (function(tds, names) {
+            return function(name) {
+                for(var i= 0, j= names.length; i<j; i++) {
+                    if(names[i] == name) {
+                        return $(tds[i]);
+                    }
+                }
+                return null;
+            }
+        })(tds, this.names);
+
         return res;
-    }
+    };
 
     /**
      * Получить дочерний элемент ячейки, если он есть.
@@ -218,16 +242,16 @@ function sendRequest(_data, subAction, callback) {
             var variants = {
                 id: $('<input class="row-selector" type="checkbox" />'),
                 pass: $('<a data-class="add" class="add" href="#">Добавить</a>')
-            }
+            };
 
             result = variants.hasOwnProperty(param) ? variants[param] : null
         } else {
-            var child = param.children().first()
+            var child = param.children().first();
             result = child.size() > 0 ? child : null;
         }
         
         return result;
-    }
+    };
 
     Table.prototype.__cacheRowData = function(row) {
         var cache = {},
@@ -242,7 +266,7 @@ function sendRequest(_data, subAction, callback) {
         row.data('cache', cache);
 
         return this;
-    }
+    };
 
     /**
      * Обновить кеш строк
@@ -296,21 +320,87 @@ function sendRequest(_data, subAction, callback) {
         var self = this,
             rows = this.$element.find('tr:gt(0)');
 
-        rows.each(function() {
+        var handlers = {
+            attendance: function(event, model, target, table) {
+                var $td = target.parent(),
+                    loading = 'loading2',
+                    requestData = {
+                        gid: window.pageParams.group_id,
+                        stid: model.id,
+                        val: target.prop('checked')
+                    };
+
+                $td.addClass(loading);
+
+                sendRequest(requestData, 'attendance', function(err, data) {
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        $td.removeClass(loading);
+                    }
+                });
+            },
+            add: function(event, model, target, table) {
+                target.modalpopover({
+                    content: $('.form').html(),
+                    html: true,
+                    trigger: 'manual',
+                    placement: 'bottom'
+                }).modalpopover('show');
+
+                table.currentRow = model;
+            },
+            del: function(event, model, target, table) {
+                var $td = model.jq('pass'),
+                    loading = 'loading2';
+
+                model.pass = '';
+                $td.addClass(loading);
+
+                sendRequest({
+                        stid: model.id,
+                        gid: window.pageParams.group_id
+                    },
+                    'delete_pass',
+                    function(err, data) {
+                        if(err) {
+                            console.log(err);
+                        } else {
+                            $td.removeClass(loading);
+                            $td.html('<a data-class="add" class="add" href="#">Добавить</a>');
+                        }
+                    }
+                )
+            }
+        };
+
+        rows.off('click')
+        .click(function(event) {
+            var $this = $(this),
+                model = $this.data('model'),
+                $target = $(event.target),
+                handler = $target.attr('class');
+
+            if(handlers.hasOwnProperty(handler)) {
+              handlers[handler](event, model, $target, self)
+            }
+        });
+
+/*        rows.each(function() {
             var $this = $(this),
                 model = $this.data('model');
 
             $this.find('.attendance').change(model, function(event) {
                 var $td = $(this).parent(),
                     loading = 'loading2';
-                $td.addClass(loading)
+                $td.addClass(loading);
 
                 sendRequest({
                     gid: window.pageParams.group_id,
                     stid: event.data.id,
                     val: $(this).prop('checked')
-                }, 
-                'attendance', 
+                },
+                'attendance',
                 function(err, data) {
                     if(err) {
                         console.log(err);
@@ -328,13 +418,32 @@ function sendRequest(_data, subAction, callback) {
                     placement: 'bottom'
                 })
             })
+            .off('click')
             .click(model, function() {
                 self.currentRow = model;
                 $(this).modalpopover('show');
             });
 
-        });
-    }
+            $this.find('.del')
+            .off('click')
+            .click(function() {
+                sendRequest({
+                        stid: model.id,
+                        gid: window.pageParams.group_id
+                    },
+                    'delete_pass',
+                    function(err, data) {
+                        if(err) {
+                            console.log(err);
+                        } else {
+                            alert('OK')
+                        }
+                    }
+                )
+            });
+
+        });*/
+    };
 
     Table.prototype.__getNameIndex = function(name) {
         for(var i= this.names.length - 1; i>=0; i--) {
@@ -344,7 +453,7 @@ function sendRequest(_data, subAction, callback) {
         }
 
         return NaN;
-    }
+    };
 
     /**
      * Получить список выбранных пользователем строк таблицы
@@ -359,7 +468,7 @@ function sendRequest(_data, subAction, callback) {
         if(arguments.length == 0) {
             return rows
         } else {
-            var args = arguments
+            var args = arguments;
             var oneElement = args.length == 1;
             return rows.map(function(elem) {
                 if(oneElement) {
@@ -426,7 +535,7 @@ function sendRequest(_data, subAction, callback) {
         for(var i in this.$data) {
             this.$data[i] = '';
         }
-    }
+    };
     
     W.StudentCard = StudentCard;
 

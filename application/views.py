@@ -16,7 +16,7 @@ from application.logic.student import add_student as _add_student, remove_studen
 from application.utils.passes import get_color_classes, PassLogic
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes
+from application.models import Lessons, User, Passes, GroupList
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details
@@ -421,7 +421,7 @@ class BonusClassView(TemplateView):
     def attendance(self, request):
         gid = request.POST['gid']
         student_id = request.POST['stid']
-        val = request.POST['val'] == u'true'
+        val = request.POST.get('val') == u'true'
 
         BonusClassList.objects.get(group_id=gid, student_id=student_id).update(attendance=val)
 
@@ -429,22 +429,27 @@ class BonusClassView(TemplateView):
 
     def add_pass(self, request):
         gid = int(request.POST['gid'])
-        stid = int(request.POST['stid'])
-
+        mkid = int(request.POST['mkid'])
+        student = Students.objects.get(pk=int(request.POST['stid']))
+        pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
         group = Groups.objects.get(pk=gid)
-        last_lesson = Lessons.objects.filter(group_id=gid, student_id=stid).order_by('date').last()
 
-        if last_lesson and last_lesson.date >= group.last_lesson:
-            day_after = group.get_calendar(1, datetime.datetime.combine(last_lesson.date, datetime.datetime.min.time()))[0]
-            pass_date = day_after.date()
-        else:
-            pass_date = group.last_lesson
+        # last_lesson = Lessons.objects.filter(group_id=gid, student=student).order_by('date').last()
+        # if last_lesson and last_lesson.date >= group.last_lesson:
+        #     day_after = group.get_calendar(1, datetime.datetime.combine(last_lesson.date, datetime.datetime.min.time()))[0]
+        #     pass_date = day_after.date()
+        # else:
+        #     pass_date = group.last_lesson
+
+        _add_student(gid, student.first_name, student.last_name, student.phone, group_list_orm=GroupList)
 
         _pass = Passes(
-            student_id=stid,
+            student=student,
             group_id=gid,
-            
+            pass_type=pass_type,
+            bonus_class_id=mkid
         )
+        _pass.save()
         # Создаем фантомный абонемент, который, до того как по нему пошли отметки, будет каждый раз начинаться с последнего занятия!!!
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
@@ -452,12 +457,34 @@ class BonusClassView(TemplateView):
         
         return HttpResponse(200)
 
+    def delete_pass(self, request):
+
+        mkid = int(request.POST['gid'])
+        stid = int(request.POST['stid'])
+        p = Passes.objects.get(bonus_class_id=mkid, student_id=stid)
+
+        if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
+            GroupList.objects.get(group=p.group, student_id=stid).delete()
+
+        p.delete()
+
+        return HttpResponse(200)
+
     def get(self, request, *args, **kwargs):
         context = dict()
         mkid = request.GET.get('id')
+        mk = BonusClasses.objects.select_related().get(pk=mkid)
+        passes = {i.student.id: i.group for i in Passes.objects.filter(bonus_class_id=mk).only('group', 'student')}
         context['group_id'] = mkid
-        context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid, active=True)
+        context['students'] = [
+            {
+                'student': i.student,
+                'group': passes.get(i.student.id)
+            }
+            for i in BonusClassList.objects.select_related().filter(group=mk, active=True)
+        ]
         context['groups'] = Groups.objects.all()
+        context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
 
         return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
