@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
+    <link rel="stylesheet" href="../static/shortcard/short_card.css" />
     <style type="text/css">
         .center{
             text-align: center !important;
@@ -7,6 +8,7 @@
     </style>
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
+	<script type="text/javascript" src="../static/shortcard/short_card.js"></script>
 	<script type="text/javascript" src="../static/js/mk2.js"></script>
 	<script>
 
@@ -20,6 +22,30 @@
 
 	        // create StudentCard
 	        var studentCard = new window.StudentCard('#editStudent');
+
+            // create ContextMenu
+            var contextMenu = window.createShortcard().init();
+
+            // save current model of table
+            var tableContext = null;
+
+            contextMenu.addElement('Изменить', function(event) {
+                $('#editStudentBtn').trigger('click');
+
+                for(var i in table.currentRow) {
+                    if(studentCard.$data.hasOwnProperty(i)) {
+                        studentCard.$data[i] = table.currentRow[i];
+                    }
+                }
+            });
+
+            contextMenu.addElement('Удалить', function() {
+                console.log('delete')
+            });
+
+            contextMenu.addElement('Коментарий', function() {
+                console.log('comment');
+            });
 
 	        $('#editStudentBtn').click(function() {
 	        	studentCard.clear();
@@ -43,6 +69,11 @@
 	        	)
 	        });
 
+	        $(document).on('table-row-click', function(event, data, model) {
+	            tableContext = model;
+	            contextMenu.show(data.pageX, data.pageY);
+	        });
+
 	    	$(document).on('submit', function() {
 	    		var form = $(this).data('modalpopover').$tip,
 	    			data = {};
@@ -54,6 +85,11 @@
                 });
 
 	    		$(this).trigger('add-form-submit', data)
+	    	});
+
+	    	$(document).click(function() {
+	    	    tableContext = null;
+	    	    contextMenu.hide();
 	    	})
 	    }
     </script>

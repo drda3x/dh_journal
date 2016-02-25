@@ -348,7 +348,6 @@ function sendRequest(_data, subAction, callback) {
                     placement: 'bottom'
                 }).modalpopover('show');
 
-                table.currentRow = model;
             },
             del: function(event, model, target, table) {
                 var $td = model.jq('pass'),
@@ -377,12 +376,16 @@ function sendRequest(_data, subAction, callback) {
         rows.off('click')
         .click(function(event) {
             var $this = $(this),
-                model = $this.data('model'),
                 $target = $(event.target),
                 handler = $target.attr('class');
 
+            self.currentRow = $this.data('model');
+
             if(handlers.hasOwnProperty(handler)) {
-              handlers[handler](event, model, $target, self)
+              handlers[handler](event, self.currentRow, $target, self)
+            } else {
+                event.stopPropagation();
+                $(document).trigger('table-row-click', [event, self.currentRow]);
             }
         });
 
