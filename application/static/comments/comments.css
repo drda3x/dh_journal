@@ -1,0 +1,51 @@
+#commentWidget {
+    position: absolute;
+    top: 15px;
+}
+
+#commentWidgetContent {
+    overflow-y: scroll;
+    height: 450px;
+}
+
+.comment-content {
+    padding: 5px 15px;
+    margin: 5px 0;
+}
+
+.comment-content textarea {
+    width: 97%;
+    height: 100px;
+    cursor: default;
+    margin-bottom: 0;
+}
+
+.comment-content textarea:hover {
+    cursor: default;
+}
+
+.delete-comment {
+    float: right;
+    margin-left: 15px;
+    padding: 0 3px;
+}
+
+.edit-comment {
+    float: right;
+    margin: 0;
+    padding: 0 3px;
+}
+
+.comment-date {
+    display: inline-block;
+}
+
+.comment-buttonsblock {
+    display: inline-block;
+    width: 377px;
+    padding-top: 3px;
+}
+
+#saveCommentButtonBlock {
+    display: none;
+}

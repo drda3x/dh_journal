@@ -57,26 +57,26 @@ function sendRequest(_data, subAction, callback) {
 
         // Events adding
         // Добавляем функционал для выбора всех строк таблицы
-        this.$element.click($.proxy(function(event) {
-            var $target = $(event.target);
-
-            // Если кликнули в первый input - проставляем всем остальным его значение
-            // иначе - смотрим, что у всех input'ов, за исключением первого, проставлены галочки. В этом сдучае
-            // проставляем галочку у первого input'a...
-            if($target.is(this.rowSelectorClass)) {
-                if(parseInt($target.val()) < 0) {
-                    this.$element.find(this.rowSelectorClass).each(function() {
-                        $(this).prop('checked', $target.prop('checked'))
-                    });
-                } else {
-                    var all_checked = true;
-                    this.$element.find(this.rowSelectorClass + ':gt(0)').each(function() {
-                        all_checked =  !$(this).prop('checked') ? false : all_checked;
-                    });
-                    this.$element.find(this.rowSelectorClass + ':eq(0)').prop('checked', all_checked);
-                }
-            }
-        }, this));
+        //this.$element.click($.proxy(function(event) {
+        //    var $target = $(event.target);
+        //
+        //    // Если кликнули в первый input - проставляем всем остальным его значение
+        //    // иначе - смотрим, что у всех input'ов, за исключением первого, проставлены галочки. В этом сдучае
+        //    // проставляем галочку у первого input'a...
+        //    if($target.is(this.rowSelectorClass)) {
+        //        if(parseInt($target.val()) < 0) {
+        //            this.$element.find(this.rowSelectorClass).each(function() {
+        //                $(this).prop('checked', $target.prop('checked'))
+        //            });
+        //        } else {
+        //            var all_checked = true;
+        //            this.$element.find(this.rowSelectorClass + ':gt(0)').each(function() {
+        //                all_checked =  !$(this).prop('checked') ? false : all_checked;
+        //            });
+        //            this.$element.find(this.rowSelectorClass + ':eq(0)').prop('checked', all_checked);
+        //        }
+        //    }
+        //}, this));
         
         this.__sort();
 
@@ -121,13 +121,13 @@ function sendRequest(_data, subAction, callback) {
         var curName,
             tr = $(
                 '<tr>' +
-                    '<td><input class="row-selector" type="checkbox" /></td>' +
+                    '<td class="cp"><input class="row-selector" type="checkbox" /></td>' +
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
-                    '<td class="center"><input class="attendance" type="checkbox" /></td>' +
+                    '<td class="center cp"><input class="attendance" type="checkbox" /></td>' +
                     '<td class="center"><a data-class="add" class="add" href="#">Добавить</a></td>' +
                     '<td></td>' +
                '</tr>'
@@ -318,7 +318,7 @@ function sendRequest(_data, subAction, callback) {
 
     Table.prototype.__refreshRowsEvents = function() {
         var self = this,
-            rows = this.$element.find('tr:gt(0)');
+            rows = this.$element.find('tr');
 
         var handlers = {
             attendance: function(event, model, target, table) {
@@ -370,8 +370,26 @@ function sendRequest(_data, subAction, callback) {
                         }
                     }
                 )
+            },
+            'row-selector': function(event, model, target, table) {
+                // Если кликнули в первый input - проставляем всем остальным его значение
+                // иначе - смотрим, что у всех input'ов, за исключением первого, проставлены галочки. В этом сдучае
+                // проставляем галочку у первого input'a...
+                if(parseInt(target.val()) < 0) {
+                    table.$element.find('.row-selector').each(function() {
+                        $(this).prop('checked', target.prop('checked'))
+                    });
+                } else {
+                    var all_checked = true;
+                    table.$element.find('.row-selector:gt(0)').each(function() {
+                        all_checked =  !$(this).prop('checked') ? false : all_checked;
+                    });
+                    table.$element.find('.row-selector:eq(0)').prop('checked', all_checked);
+                }
             }
         };
+
+        var delegate_to = ['attendance', 'row-selector'];
 
         rows.off('click')
         .click(function(event) {
@@ -379,11 +397,28 @@ function sendRequest(_data, subAction, callback) {
                 $target = $(event.target),
                 handler = $target.attr('class');
 
+            // Если кликнули в 1ю ячейку 1й строки...
+            if($this.index() == 0 && !($target.is('.row-selector') || $target.has('input').length > 0)) {
+                return;
+            }
+
             self.currentRow = $this.data('model');
 
             if(handlers.hasOwnProperty(handler)) {
               handlers[handler](event, self.currentRow, $target, self)
             } else {
+
+                // Если кликнули по ячейке содержащей элемент из массива delegate_to
+                var new_target;
+                for(var i= delegate_to.length-1; i>=0; i--) {
+                    new_target = $target.find('.'+delegate_to[i]);
+                    if(new_target.size() > 0) {
+                        new_target.trigger('click');
+                        //handlers[delegate_to[i]](event, self.currentRow, new_target, self);
+                        return false;
+                    }
+                }
+
                 event.stopPropagation();
                 $(document).trigger('table-row-click', [event, self.currentRow]);
             }
@@ -524,13 +559,25 @@ function sendRequest(_data, subAction, callback) {
 
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
-            sendRequest(this.$data, 'add', function(err, data) {
+
+            var alert = this.$element.find('.alert');
+            alert.text('Обработка данных');
+            alert.show();
+
+            sendRequest(this.$data, 'add', $.proxy(function(err, data) {
                 if(err) {
                     console.log(err);
                 } else {
                     $(window).trigger('add-student-submit', data);
+                    alert.text('Сохранено');
+
+                    setTimeout(function() {
+                        alert.fadeOut(500);
+                    }, 3000);
+
+                    this.clear();
                 }
-            })
+            }, this))
         }, this));
     }
 

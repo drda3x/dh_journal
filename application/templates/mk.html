@@ -1,14 +1,22 @@
 {% extends "base.html" %}
 {% block head %}
     <link rel="stylesheet" href="../static/shortcard/short_card.css" />
+    <link rel="stylesheet" href="../static/comments/comments.css" />
     <style type="text/css">
         .center{
             text-align: center !important;
+        }
+        .fixed{
+            width: 92px !important;
+        }
+        .cp{
+            cursor: pointer;
         }
     </style>
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
 	<script type="text/javascript" src="../static/shortcard/short_card.js"></script>
+	<script type="text/javascript" src="../static/comments/comments.js"></script>
 	<script type="text/javascript" src="../static/js/mk2.js"></script>
 	<script>
 
@@ -16,6 +24,24 @@
 	        // add global params
 	        if(!window.pageParams) window.pageParams = {};
 	        window.pageParams.group_id = {{ group_id }};
+
+            // Some useful functions
+            function sendDeleteRequest(_ids, t) {
+                var ids = _ids instanceof Array ? _ids : [_ids];
+                sendRequest({
+		        		gid: window.pageParams.group_id,
+		        		ids: JSON.stringify(ids)
+		        	},
+		        	'delete',
+		        	function(err, data) {
+		        		if(err) {
+		        			console.log(err);
+		        		} else {
+		        			t.deleteRow(ids);
+		        		}
+		        	}
+	        	)
+            }
 
 	        // create Table instance
 	        var table = new window.Table('table');
@@ -25,6 +51,9 @@
 
             // create ContextMenu
             var contextMenu = window.createShortcard().init();
+
+            // create CommentWidget
+            var commentWidget = window.createComment();
 
             // save current model of table
             var tableContext = null;
@@ -40,11 +69,11 @@
             });
 
             contextMenu.addElement('Удалить', function() {
-                console.log('delete')
+                sendDeleteRequest(table.currentRow.id, table)
             });
 
             contextMenu.addElement('Коментарий', function() {
-                console.log('comment');
+                commentWidget.show();
             });
 
 	        $('#editStudentBtn').click(function() {
@@ -53,20 +82,7 @@
 
 	        $('#deleteStudentBtn').click(function() {
 	        	var to_delete = table.getSelectedRows('id');
-
-	        	sendRequest({
-		        		gid: window.pageParams.group_id,
-		        		ids: JSON.stringify(to_delete)
-		        	}, 
-		        	'delete',
-		        	function(err, data) {
-		        		if(err) {
-		        			console.log(err);
-		        		} else {
-		        			table.deleteRow(to_delete);
-		        		}
-		        	}
-	        	)
+	        	sendDeleteRequest(to_delete, table)
 	        });
 
 	        $(document).on('table-row-click', function(event, data, model) {
@@ -99,25 +115,25 @@
 	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
 	<table class="table table-bordered table-striped table-hover">
 	<tr class="shotcard-disabled" data-index="0">
-	    <th data-name="id"><input class="row-selector" type="checkbox" value="-1" /></th>
+	    <th data-name="id" class="cp"><input class="row-selector" type="checkbox" value="-1" /></th>
 	    <th data-name="cnt">№</th>
 	    <th data-name="last_name" style="min-width: 100px;">Фамилия</th>
 	    <th data-name="first_name" style="min-width: 100px;">Имя</th>
 	    <th data-name="phone" style="min-width: 133px;">Телефон</th>
 	    <th data-name="e_mail" style="min-width: 150px;">E-mail</th>
-	    <th data-name="id">Присутствие</th>
+	    <th class="fixed" data-name="id">Присутствие</th>
 	    <th data-name="pass">Приобретенный абонемент</th>
 	    <th data-name="comment" style="min-width: 120px;">Коментарий</th>
 	</tr>
 	{% for record in students %}
 	<tr data-index="{{ forloop.counter }}">
-	    <td><input class="row-selector" type="checkbox" value="{{ record.student.id }}" /></td>
+	    <td class="cp"><input class="row-selector" type="checkbox" value="{{ record.student.id }}" /></td>
 	    <td>{{ forloop.counter }}</td>
 	    <td>{{ record.student.last_name }}</td>
 	    <td>{{ record.student.first_name }}</td>
 	    <td>{{ record.student.str_phone }}</td>
 	    <td>{% if record.student.e_mail %}{{ record.student.e_mail }}{% endif %}</td>
-	    <td class="center"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
+	    <td class="center cp"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
 	    <td class="center">
             {% if record.group %}
                 {{ record.group.simple_repr }}(<a class="del" href="#">удалить</a>)
@@ -157,7 +173,7 @@
     <div id="editStudent" class="modal hide fade">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999;"></div>
+            <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999; display: none">сохранено</div>
         </div>
         <div class="form-horizontal" id="editStudentContent">
             <input type="hidden" name="stid" class="data" id="stid" />
