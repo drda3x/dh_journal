@@ -42,7 +42,7 @@
             </div>
         </div>
          */
-    }.toString()));
+    }));
 
     var comment_html_template = $(parse(function() {
         /*
