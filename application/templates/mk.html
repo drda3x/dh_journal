@@ -73,6 +73,7 @@
             });
 
             contextMenu.addElement('Коментарий', function() {
+                commentWidget.setHeader('Коментарий - ' + table.currentRow.last_name + ' ' + table.currentRow.first_name);
                 commentWidget.show();
             });
 
