@@ -28,10 +28,8 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h3 class="ib">Коментарии - <span></span></h3>
             </div>
-            <div style="margin: 4px 0 0 170px; z-index: 9999;" class="alert ib"></div>
-            <div id="commentWidgetContent">
-
-            </div>
+            <div style="margin: 4px 0 0 170px; z-index: 9999; display:none;" class="alert ib"></div>
+            <div id="commentWidgetContent"></div>
             <div class="modal-footer">
                 <span id="addCommentButtonBlock">
                     <button id="addComment" class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn">Добавить</button>
@@ -56,8 +54,7 @@
                 <button style="margin-left: 15px; display: none;" class="btn btn-mini cancel-edit-comment">Отмена</button>
                 <button class="btn btn-mini save-comment" style="display: none;">Сохранить</button>
             </div>
-            <textarea readonly="" maxlength="100">
-            </textarea>
+            <textarea readonly="" maxlength="100"></textarea>
         </div>
         */
     }));

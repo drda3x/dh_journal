@@ -36,6 +36,18 @@
     padding: 0 3px;
 }
 
+.cancel-edit-comment {
+    float: right;
+    margin-left: 15px;
+    padding: 0 3px;
+}
+
+.save-comment {
+    float: right;
+    margin: 0;
+    padding: 0 3px;
+}
+
 .comment-date {
     display: inline-block;
 }
