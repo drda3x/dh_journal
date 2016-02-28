@@ -242,6 +242,7 @@
 
     Comment.prototype.remove = function() {
         this.html.remove();
+
         
     }
 
