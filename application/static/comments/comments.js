@@ -51,7 +51,7 @@
     var comment_html_template = $(parse(function() {
         /*
         <div class="comment-content">
-            <div class="comment-date">27.02.2016 13:23</div>
+            <div class="comment-date"></div>
             <div class="comment-buttonsblock">
                 <button class="btn btn-mini btn-danger delete-comment">Удалить</button>
                 <button class="btn btn-mini edit-comment">Изменить</button>
@@ -77,6 +77,8 @@
         this.saveButton = this.html.find('#saveComment');
         this.cancelButton = this.html.find('#cancelButton');
 
+        this.allComments = [];
+
         var newComment;
 
         this.addButton.click($.proxy(function() {
@@ -92,16 +94,29 @@
         }, this));
 
         this.saveButton.click($.proxy(function() {
-            newComment.readOnly(true);
-            newComment.editButton.show();
-            newComment.deleteButton.show();
-
+            newComment.saveButton.trigger('click');
+            this.allComments.unshift(newComment);
             this.setAddState();
+            newComment = undefined;
         }, this));
 
-        this.cancelButton.click($.proxy(this.setAddState, this));
+        this.cancelButton.click($.proxy(function() {
+            if(newComment.text == '') {
+                newComment.remove();
+            } else {
+                newComment.readOnly(true);
+            }
+            this.setAddState();
+            newComment = undefined;
+        }, this))
 
         this.html.on('hidden', $.proxy(this.hide, this));
+        $(document).on('ctrl_enter_pressed', $.proxy(function() {
+            if(newComment) {
+                this.saveButton.trigger('click');
+            }
+            this.setAddState();
+        }, this));
     }
 
     Widget.prototype.setEditState = function() {
@@ -115,11 +130,32 @@
     };
 
     Widget.prototype.show = function() {
+        var comment, buff;
+        for(var i= 0, j= this.allComments.length; i<j; i++) {
+
+            if(this.allComments[i] instanceof Comment) {
+                this.allComments[i].show();
+            } else {
+                buff = this.allComments[i];
+                comment = this.createComment();
+                comment.text = buff.text;
+                comment.date = new Date(buff.date);
+                this.allComments[i] = comment;
+            }
+        }
+
         this.html.modal('show');
     };
 
     Widget.prototype.hide = function() {
-        this.content.empty();
+        $.map(this.allComments, $.proxy(function(elem, i) {
+            if(elem.deleted) {
+                delete this.allComments[i];
+            }
+        }, this));
+        this.content.children().hide();
+        this.setAddState();
+        $(document).trigger('comment-save');
     };
 
     Widget.prototype.setHeader = function(newHeader) {
@@ -127,83 +163,103 @@
     };
 
     Widget.prototype.createComment = function() {
-        var comment = comment_html_template.clone(),
-            editButton = comment.find('.edit-comment'),
-            saveButton = comment.find('.save-comment'),
-            cancelButton = comment.find('.cancel-edit-comment'),
-            deleteButton = comment.find('.delete-comment'),
-            textArea = comment.find('textarea'),
-            date = comment.find('.comment-date'),
-            buffer;
+        return new Comment(this.content);
+    };
 
-        this.content.prepend(comment);
 
-        editButton.click(function() {
-            editButton.hide();
-            deleteButton.hide();
-            saveButton.show();
-            cancelButton.show();
-            textArea.prop('readonly', false);
-            textArea.focus();
-            buffer = textArea.val();
-        });
+    function Comment(container) {
+        this.html = comment_html_template.clone();
+        this.editButton = this.html.find('.edit-comment');
+        this.saveButton = this.html.find('.save-comment');
+        this.cancelButton = this.html.find('.cancel-edit-comment');
+        this.deleteButton = this.html.find('.delete-comment');
+        this.textArea = this.html.find('textarea');
+        this.date_html = this.html.find('.comment-date');
+        this.deleted = false;
 
-        cancelButton.click(function() {
-            editButton.show();
-            deleteButton.show();
-            saveButton.hide();
-            cancelButton.hide();
-            textArea.prop('readonly', true);
-            textArea.val(buffer);
-        });
+        this.__defineGetter__('text', $.proxy(function() {
+            return this.textArea.val();
+        }, this));
 
-        saveButton.click(function() {
-            editButton.show();
-            deleteButton.show();
-            saveButton.hide();
-            cancelButton.hide();
-            textArea.prop('readonly', true);
-        });
+        this.__defineSetter__('text', $.proxy(function(val) {
+            this.textArea.val(val);
+        }, this));
 
-        deleteButton.click(function() {
-            comment.remove();
-        });
+        this.__defineGetter__('date', $.proxy(function() {
+            return this.date_html.text();
+        }, this));
 
-        textArea.keydown($.proxy(function(e) {
+        this.__defineSetter__('date', $.proxy(function(newDate) {
+            this.date_html.text(addZero(newDate.getDate()) + '.' + addZero(newDate.getMonth() + 1) + '.' + newDate.getFullYear()  + ' ' + addZero(newDate.getHours()) + ':' + addZero(newDate.getMinutes()))
+        }, this));
+
+        this.date = new Date();
+
+        var buffer;
+
+        this.editButton.click($.proxy(function() {
+            this.editButton.hide();
+            this.deleteButton.hide();
+            this.saveButton.show();
+            this.cancelButton.show();
+            this.readOnly(false);
+            this.focus();
+            buffer = this.text;
+        }, this));
+
+        this.cancelButton.click($.proxy(function() {
+            this.editButton.show();
+            this.deleteButton.show();
+            this.saveButton.hide();
+            this.cancelButton.hide();
+            console.log(buffer);
+            this.text = buffer;
+            this.readOnly(true);
+        }, this));
+
+        this.saveButton.click($.proxy(function() {
+            this.editButton.show();
+            this.deleteButton.show();
+            this.saveButton.hide();
+            this.cancelButton.hide();
+            this.readOnly(true);
+        }, this));
+
+        this.deleteButton.click($.proxy(function() {
+            this.deleted = true;
+            this.html.remove();
+        }, this));
+
+        this.textArea.keydown($.proxy(function(e) {
             if(e.ctrlKey && e.keyCode === 13) {
-                saveButton.trigger('click');
-                this.setAddState();
+                this.saveButton.trigger('click');
+                $(document).trigger('ctrl_enter_pressed');
             }
         }, this));
 
-        comment.saveButton = saveButton;
-        comment.cancelButton = cancelButton;
-        comment.editButton = editButton;
-        comment.deleteButton = deleteButton;
+        this.appendTo(container);
+    }
 
-        comment.text = function(newText) {
-            textArea.text(newText);
-        };
+    Comment.prototype.remove = function() {
+        this.html.remove();
+    }
 
-        comment.date = function(newDate) {
-            if(newDate == undefined) {
-                date.text()
-            } else {
-                date.text(addZero(newDate.getDate()) + '.' + addZero(newDate.getMonth() + 1) + '.' + newDate.getFullYear()  + ' ' + addZero(newDate.getHours()) + ':' + addZero(newDate.getMinutes()))
-            }
-        };
+    Comment.prototype.show = function() {
+        this.html.show();
+    }
 
-        comment.readOnly = function(val) {
-            textArea.prop('readonly', val);
-        };
+    Comment.prototype.appendTo = function(container) {
+        container.prepend(this.html);
+        return this;
+    }
 
-        comment.focus = function() {
-            textArea.focus();
-        };
+    Comment.prototype.readOnly = function(val) {
+        this.textArea.prop('readonly', val);
+    }
 
-        return comment;
-    };
-
+    Comment.prototype.focus = function() {
+        this.textArea.focus();
+    }
 
     w.createComment = function() {
         return new Widget();
