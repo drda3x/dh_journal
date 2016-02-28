@@ -12,6 +12,21 @@
         .cp{
             cursor: pointer;
         }
+        td.align-center {
+            text-align: center;
+        }
+        td > .comment-label{
+            margin-left: 7px !important;
+        }
+        td > .comment-edit{
+            display: none;
+        }
+        td.comment:hover > .comment-main{
+            display: none;
+        }
+        td.comment:hover > .comment-edit{
+            display: inline;
+        }
     </style>
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
@@ -74,6 +89,7 @@
 
             contextMenu.addElement('Коментарий', function() {
                 commentWidget.setHeader('Коментарий - ' + table.currentRow.last_name + ' ' + table.currentRow.first_name);
+                commentWidget.allComments = table.currentRow.comment;
                 commentWidget.show();
             });
 
@@ -107,7 +123,41 @@
 	    	$(document).click(function() {
 	    	    tableContext = null;
 	    	    contextMenu.hide();
-	    	})
+	    	});
+
+            function updateComments() {
+                table.$element.find('tr:gt(0)').each(function() {
+                    var model = $(this).data('model'),
+                        val = model.comment[0],
+                        td = $(this).find('td:last');
+
+                    td.empty();
+                    model.comment.length == 0 ? td.addClass('align-center') : td.removeClass('align-center');
+
+                    var link = (function(l, v) {
+                        switch(l) {
+                            case 0: 
+                                return $('<a class="comment-edit-main" href="#">Добавить</a>');
+                            case 1: 
+                                return $('<span class="comment-main">'+v.text+'</span><a href="#" class="comment-edit">'+v.text+'</a>');
+                            default: 
+                                return $('<span class="comment-main">'+v.text+'</span><a href="#" class="comment-edit">'+v.text+'</a><span class="label label-info comment-label">+'+(l - 1)+'</span>');
+                        }
+                    })(model.comment.length, val);
+
+                    link.click(function(event) {
+                        event.stopPropagation();
+                        commentWidget.setHeader('Коментарий - ' + model.last_name + ' ' + model.first_name);
+                        commentWidget.allComments = model.comment;
+                        commentWidget.show();
+                    });
+                    td.append(link);
+                });
+            }
+
+            // Работу с коментариями нельзя сделать только внутри таблицы =(
+            $(document).on('comment-save', updateComments);
+            updateComments();
 	    }
     </script>
 {% endblock %}
@@ -142,7 +192,7 @@
 			    <a data-class="add" class="add" href="#">Добавить</a>
             {% endif %}
 		</td>
-		<td></td>
+		<td class="comment" data-mem='[]'></td>
     </tr>
 	{% endfor %}
 <!-- {# 	{% for student in group_detail.students %}

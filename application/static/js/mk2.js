@@ -129,7 +129,7 @@ function sendRequest(_data, subAction, callback) {
                     '<td></td>' +
                     '<td class="center cp"><input class="attendance" type="checkbox" /></td>' +
                     '<td class="center"><a data-class="add" class="add" href="#">Добавить</a></td>' +
-                    '<td></td>' +
+                    '<td data-mem="[]"></td>' +
                '</tr>'
             );
 
@@ -184,19 +184,31 @@ function sendRequest(_data, subAction, callback) {
             elem = $(tds[i]);
             inner = this.__getTdInner(elem);
 
-            res.__defineGetter__(propertyName, (function(_elem, _inner) {
-
+            res.__defineGetter__(propertyName, (function(_elem, _inner, res, propertyName) {
                 if(_inner && _inner.is('input')) {
                     return function() {
                         return _inner.val();
                     }
                 } else {
                     return function() {
+                        var m = _elem.data('mem');
+
+                        if(m != undefined) {
+                            if(m instanceof Array) {
+                                var filtered = $.grep(m, function(elem) {
+                                    return elem != undefined;
+                                });
+                                res[propertyName] = filtered;
+                                return filtered;
+                            }
+                            
+                        }
+
                         return _elem.text();
                     }
                 }
 
-            })(elem, inner));
+            })(elem, inner, res, propertyName));
 
             res.__defineSetter__(propertyName, (function(_elem, _inner) {
 
@@ -206,15 +218,17 @@ function sendRequest(_data, subAction, callback) {
                     }
                 } else {
                     return function(val) {
-                        if(typeof val == 'object') {
+                        if(val instanceof jQuery) {
                           _elem.html(val);
+                        } else if(typeof val == 'object') {
+                            _elem.data('mem', val);
                         } else {
                           _elem.text(val);
                         }
                     }                    
                 }
 
-            })(elem, inner));
+            })(elem, inner, res.mem));
 
         }
 
@@ -241,7 +255,8 @@ function sendRequest(_data, subAction, callback) {
         if(typeof param == 'string') {
             var variants = {
                 id: $('<input class="row-selector" type="checkbox" />'),
-                pass: $('<a data-class="add" class="add" href="#">Добавить</a>')
+                pass: $('<a data-class="add" class="add" href="#">Добавить</a>'),
+                comment: $('<a class="comment-add" href="#">Добавить</a>')
             };
 
             result = variants.hasOwnProperty(param) ? variants[param] : null
@@ -423,64 +438,6 @@ function sendRequest(_data, subAction, callback) {
                 $(document).trigger('table-row-click', [event, self.currentRow]);
             }
         });
-
-/*        rows.each(function() {
-            var $this = $(this),
-                model = $this.data('model');
-
-            $this.find('.attendance').change(model, function(event) {
-                var $td = $(this).parent(),
-                    loading = 'loading2';
-                $td.addClass(loading);
-
-                sendRequest({
-                    gid: window.pageParams.group_id,
-                    stid: event.data.id,
-                    val: $(this).prop('checked')
-                },
-                'attendance',
-                function(err, data) {
-                    if(err) {
-                        console.log(err);
-                    } else {
-                        $td.removeClass(loading);
-                    }
-                })
-            });
-
-            $this.find('.add').each(function() {
-                $(this).modalpopover({
-                    content: $('.form').html(),
-                    html: true,
-                    trigger: 'manual',
-                    placement: 'bottom'
-                })
-            })
-            .off('click')
-            .click(model, function() {
-                self.currentRow = model;
-                $(this).modalpopover('show');
-            });
-
-            $this.find('.del')
-            .off('click')
-            .click(function() {
-                sendRequest({
-                        stid: model.id,
-                        gid: window.pageParams.group_id
-                    },
-                    'delete_pass',
-                    function(err, data) {
-                        if(err) {
-                            console.log(err);
-                        } else {
-                            alert('OK')
-                        }
-                    }
-                )
-            });
-
-        });*/
     };
 
     Table.prototype.__getNameIndex = function(name) {
