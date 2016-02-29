@@ -527,9 +527,10 @@ function sendRequest(_data, subAction, callback) {
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
 
-            var alert = this.$element.find('.alert');
-            alert.text('Обработка данных');
-            alert.show();
+            var alert1 = this.$element.find('.alert1'),
+                alert2 = this.$element.find('.alert2');
+
+            alert1.css('display', 'inline-block');
 
             this.$data.gid = window.pageParams.group_id;
 
@@ -540,10 +541,11 @@ function sendRequest(_data, subAction, callback) {
                     data.edit = this.$element.hasClass('edit');
                     $(window).trigger('add-student-submit', data);
 
-                    alert.text('Сохранено');
+                    alert1.hide();
+                    alert2.css('display', 'inline-block');
 
                     setTimeout(function() {
-                        alert.fadeOut(500);
+                        alert2.fadeOut(500);
                     }, 3000);
 
                     if(!data.edit) {
