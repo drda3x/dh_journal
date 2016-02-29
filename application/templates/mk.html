@@ -83,7 +83,6 @@
                             console.error(err);
                         } else {
                             comment.id = data.id;
-                            console.log(comment);
                             if(comment.hasOwnProperty('newone')) {
                                 widgetData.model.comment.unshift(comment);
                                 //commentWidget.saveComment(comment);

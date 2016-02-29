@@ -175,10 +175,15 @@ class BonusClasses(models.Model):
     teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
     can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
     _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+    _available_groups = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+
+    @property
+    def available_groups(self):
+        return self._available_groups.split(',') if self._available_groups else []
 
     @property
     def available_passes(self):
-        return self._available_passes.split(',')
+        return self._available_passes.split(',') if self._available_passes else []
 
     def repr_short(self):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)

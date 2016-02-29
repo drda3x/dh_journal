@@ -519,7 +519,7 @@ class BonusClassView(TemplateView):
             }
             for i in BonusClassList.objects.select_related().filter(group=mk, active=True)
         ]
-        context['groups'] = Groups.objects.all()
+        context['groups'] = Groups.objects.filter(pk__in=mk.available_groups)
         context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
 
         return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
