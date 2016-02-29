@@ -10,7 +10,10 @@ function sendRequest(_data, subAction, callback) {
         data[i] = _data[i];
     }
 
-    data['id'] = window.pageParams.group_id;
+    if(!data.hasOwnProperty('id')) {
+        data['id'] = window.pageParams.group_id;
+    }
+
     data['sub_action'] = subAction;
 
     $.ajax({
@@ -83,7 +86,14 @@ function sendRequest(_data, subAction, callback) {
         // Подписки на еветны от других виджетов
         // data - StudentCard.$data
         $(window).on('add-student-submit', $.proxy(function(event, data) {
-            this.createRow(data);
+            if(data.edit) {
+                for(var i in this.currentRow) {
+                    this.currentRow[i] = data[i];
+                }
+            } else {
+                this.createRow(data);
+            }
+
         }, this));
 
         $(window).on('add-form-submit', $.proxy(function(event, data) {
@@ -521,18 +531,24 @@ function sendRequest(_data, subAction, callback) {
             alert.text('Обработка данных');
             alert.show();
 
+            this.$data.gid = window.pageParams.group_id;
+
             sendRequest(this.$data, 'add', $.proxy(function(err, data) {
                 if(err) {
                     console.log(err);
                 } else {
+                    data.edit = this.$element.hasClass('edit');
                     $(window).trigger('add-student-submit', data);
+
                     alert.text('Сохранено');
 
                     setTimeout(function() {
                         alert.fadeOut(500);
                     }, 3000);
 
-                    this.clear();
+                    if(!data.edit) {
+                        this.clear();
+                    }
                 }
             }, this))
         }, this));

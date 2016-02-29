@@ -114,6 +114,8 @@
 
             contextMenu.addElement('Изменить', function(event) {
                 $('#editStudentBtn').trigger('click');
+                $('#editStudent .btn-primary').val('Изменить');
+                $('#editStudent').addClass('edit');
 
                 for(var i in table.currentRow) {
                     if(studentCard.$data.hasOwnProperty(i)) {
@@ -137,6 +139,8 @@
             });
 
 	        $('#editStudentBtn').click(function() {
+                $('#editStudent .btn-primary').val('Добавить');
+                $('#editStudent').removeClass('edit');
 	        	studentCard.clear();
 	        });
 
@@ -274,7 +278,7 @@
             <h3 class="ib">Карточка ученика</h3><div class="alert ib" style="width: 200px; z-index: 9999; display: none">сохранено</div>
         </div>
         <div class="form-horizontal" id="editStudentContent">
-            <input type="hidden" name="stid" class="data" id="stid" />
+            <input type="hidden" name="id" class="data" id="stid" />
             <div class="modal-body">
                 <div class="control-group">
                     <label class="control-label" for="last_name">Фамилия</label>

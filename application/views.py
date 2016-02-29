@@ -11,7 +11,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 
-from application.logic.student import add_student as _add_student, remove_student as _remove_student
+from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
 
 from application.utils.passes import get_color_classes, PassLogic
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
@@ -391,15 +391,27 @@ class BonusClassView(TemplateView):
     template_name = 'mk.html'
 
     def add(self, request):
-        _json = _add_student(
-            request.POST['id'],
-            request.POST['first_name'],
-            request.POST['last_name'],
-            request.POST['phone'],
-            request.POST['e_mail'],
-            request.POST.get('is_org'),
-            BonusClassList
-        )
+
+        if request.POST.get('id'):
+            _json = _edit_student(
+                request.POST['id'],
+                request.POST['phone'],
+                request.POST['first_name'],
+                request.POST['last_name'],
+                request.POST['e_mail'],
+                request.POST.get('is_org')
+            )
+
+        else:
+            _json = _add_student(
+                request.POST['gid'],
+                request.POST['first_name'],
+                request.POST['last_name'],
+                request.POST['phone'],
+                request.POST['e_mail'],
+                request.POST.get('is_org'),
+                BonusClassList
+            )
 
         return HttpResponse(json.dumps(_json)) if _json else HttpResponseServerError('failed')
 
