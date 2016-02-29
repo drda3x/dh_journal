@@ -70,6 +70,46 @@
             // create CommentWidget
             var commentWidget = window.createComment();
 
+            // Настройка сохранения коментов
+            commentWidget.sendSaveRequest = function(event, comment, widgetData) {
+                (function(event, comment, widgetData) {
+                    sendRequest({
+                        cid: comment.id,
+                        stid: comment.student,
+                        text: comment.text,
+                        group: comment.group
+                    }, 'save_comment', function(err, data) {
+                        if(err) {
+                            console.error(err);
+                        } else {
+                            comment.id = data.id;
+                            console.log(comment);
+                            if(comment.hasOwnProperty('newone')) {
+                                widgetData.model.comment.unshift(comment);
+                                //commentWidget.saveComment(comment);
+                                commentWidget.setAddState();
+                            }
+                            comment.changeState('unavailable');
+                            updateComments();
+                        }
+                    })
+                })(event, comment, widgetData);
+            };
+
+            commentWidget.sendDeleteRequest = function(event, comment, widgetData) {
+                sendRequest({
+                    cid: comment.id
+                }, 'delete_comment', function(err, data) {
+                    if(!err) {
+                        widgetData.model.comment = $.grep(widgetData.model.comment, function(elem, i) {
+                            return !elem.deleted;
+                        });
+                        comment.remove();
+                        updateComments();
+                    }
+                });
+            };
+
             // save current model of table
             var tableContext = null;
 
@@ -90,7 +130,11 @@
             contextMenu.addElement('Коментарий', function() {
                 commentWidget.setHeader('Коментарий - ' + table.currentRow.last_name + ' ' + table.currentRow.first_name);
                 commentWidget.allComments = table.currentRow.comment;
-                commentWidget.show();
+                commentWidget.show({
+                    student: table.currentRow.id,
+                    group: window.pageParams.group_id,
+                    model: table.currentRow
+                });
             });
 
 	        $('#editStudentBtn').click(function() {
@@ -149,14 +193,18 @@
                         event.stopPropagation();
                         commentWidget.setHeader('Коментарий - ' + model.last_name + ' ' + model.first_name);
                         commentWidget.allComments = model.comment;
-                        commentWidget.show();
+                        commentWidget.show({
+                            student: model.id,
+                            group: window.pageParams.group_id,
+                            model: model
+                        });
                     });
                     td.append(link);
                 });
             }
 
             // Работу с коментариями нельзя сделать только внутри таблицы =(
-            $(document).on('comment-save', updateComments);
+            //$(document).on('comment-widget-hide', updateComments);
             updateComments();
 	    }
     </script>
@@ -192,7 +240,7 @@
 			    <a data-class="add" class="add" href="#">Добавить</a>
             {% endif %}
 		</td>
-		<td class="comment" data-mem='[]'></td>
+		<td class="comment" data-mem='{{ record.comments }}'></td>
     </tr>
 	{% endfor %}
 <!-- {# 	{% for student in group_detail.students %}

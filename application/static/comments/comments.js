@@ -40,7 +40,7 @@
                     <button id="closeComment" class="btn" data-dismiss="modal" aria-hidden="true">Закрыть</button>
                 </span>
                 <span id="saveCommentButtonBlock">
-                    <button id="saveComment" class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn" rel="tooltip" title="сохранять можно через Ctrl+Enter">Сохранить</button>
+                    <button id="saveComment" class="btn btn-primary" style="margin: 5px 0 5px 15px;" class="btn" rel="tooltip" title="">Сохранить</button>
                     <button id="cancelButton" class="btn">Отмена</button>
                 </span>
             </div>
@@ -59,6 +59,7 @@
                 <button class="btn btn-mini save-comment" style="display: none;">Сохранить</button>
             </div>
             <textarea readonly="" maxlength="100"></textarea>
+            <!--<div class="comment-screen-saver" style="width: 510px; height: 150px; opacity: 0.3; background-color: #ffffff; position: absolute; display: none;"><img src="../img/preloader2.gif"></div>-->
         </div>
         */
     }));
@@ -68,6 +69,8 @@
         this.header = this.html.find('h3');
         this.content = this.html.find('#commentWidgetContent');
         this.html.appendTo('body');
+        this.group = null;
+        this.student = null;
 
         this.addButtons = this.html.find('#addCommentButtonBlock');
         this.editButtons = this.html.find('#saveCommentButtonBlock');
@@ -76,7 +79,7 @@
         this.closeButton = this.html.find('#closeComment');
         this.saveButton = this.html.find('#saveComment');
         this.cancelButton = this.html.find('#cancelButton');
-
+        this.changableParams = null;
         this.allComments = [];
 
         var newComment;
@@ -94,9 +97,8 @@
         }, this));
 
         this.saveButton.click($.proxy(function() {
+            newComment.newone = true;
             newComment.saveButton.trigger('click');
-            this.allComments.unshift(newComment);
-            this.setAddState();
             newComment = undefined;
         }, this));
 
@@ -108,16 +110,37 @@
             }
             this.setAddState();
             newComment = undefined;
-        }, this))
+        }, this));
 
         this.html.on('hidden', $.proxy(this.hide, this));
         $(document).on('ctrl_enter_pressed', $.proxy(function() {
-            if(newComment) {
-                this.saveButton.trigger('click');
-            }
+            //if(newComment) {
+            //    this.saveComment(newComment);
+            //}
             this.setAddState();
         }, this));
+
+        $(document).on('save-comment', $.proxy(function() {
+            var args = [];
+            for(var i= 0, j= arguments.length; i<j; i++) {
+              args[i] = arguments[i];
+            }
+            this.sendSaveRequest.apply(this, args.concat([this.changableParams]));
+        },this));
+
+        $(document).on('remove-comment', $.proxy(function() {
+            var args = [];
+            for(var i= 0, j= arguments.length; i<j; i++) {
+              args[i] = arguments[i];
+            }
+            this.sendDeleteRequest.apply(this, args.concat([this.changableParams]));
+        }, this));
     }
+
+    Widget.prototype.saveComment = function(newComment) {
+        this.allComments.unshift(newComment);
+        this.setAddState();
+    };
 
     Widget.prototype.setEditState = function() {
         this.addButtons.hide();
@@ -129,16 +152,25 @@
         this.editButtons.hide();
     };
 
-    Widget.prototype.show = function() {
+    Widget.prototype.show = function(params) {
         var comment, buff;
-        for(var i= 0, j= this.allComments.length; i<j; i++) {
 
+        this.content.children().hide();
+        this.setAddState();
+        this.changableParams = params;
+        this.student = params.student;
+        this.group = params.group;
+
+        for(var i= 0, j= this.allComments.length; i<j; i++) {
             if(this.allComments[i] instanceof Comment) {
                 this.allComments[i].show();
             } else {
                 buff = this.allComments[i];
                 comment = this.createComment();
+                comment.id = buff.id;
                 comment.text = buff.text;
+                comment.student = this.student;
+                comment.mk = this.group;
                 comment.date = new Date(buff.date);
                 this.allComments[i] = comment;
             }
@@ -147,25 +179,30 @@
         this.html.modal('show');
     };
 
-    Widget.prototype.hide = function() {
-        $.map(this.allComments, $.proxy(function(elem, i) {
-            if(elem.deleted) {
-                delete this.allComments[i];
-            }
-        }, this));
-        this.content.children().hide();
-        this.setAddState();
-        $(document).trigger('comment-save');
-    };
+    //Widget.prototype.hide = function() {
+    //    $.map(this.allComments, $.proxy(function(elem, i) {
+    //        if(elem.deleted) {
+    //            delete this.allComments[i];
+    //        }
+    //    }, this));
+    //
+    //    //$(document).trigger('comment-widget-hide');
+    //};
 
     Widget.prototype.setHeader = function(newHeader) {
         this.header.text(newHeader);
     };
 
     Widget.prototype.createComment = function() {
-        return new Comment(this.content);
+        var comment = new Comment(this.content);
+        comment.student = this.student;
+        comment.group = this.group;
+        return comment;
     };
 
+    Widget.prototype.sendSaveRequest = function() {};
+
+    Widget.prototype.sendDeleteRequest = function() {};
 
     function Comment(container) {
         this.html = comment_html_template.clone();
@@ -175,7 +212,9 @@
         this.deleteButton = this.html.find('.delete-comment');
         this.textArea = this.html.find('textarea');
         this.date_html = this.html.find('.comment-date');
+        this.screenSaver = this.html.find('.comment-screen-saver');
         this.deleted = false;
+        this.id = null;
 
         this.__defineGetter__('text', $.proxy(function() {
             return this.textArea.val();
@@ -202,7 +241,7 @@
             this.deleteButton.hide();
             this.saveButton.show();
             this.cancelButton.show();
-            this.readOnly(false);
+            this.changeState('available');
             this.focus();
             buffer = this.text;
         }, this));
@@ -212,9 +251,8 @@
             this.deleteButton.show();
             this.saveButton.hide();
             this.cancelButton.hide();
-            console.log(buffer);
             this.text = buffer;
-            this.readOnly(true);
+            this.changeState('unavailable');
         }, this));
 
         this.saveButton.click($.proxy(function() {
@@ -222,46 +260,74 @@
             this.deleteButton.show();
             this.saveButton.hide();
             this.cancelButton.hide();
-            this.readOnly(true);
+            this.changeState('loading');
+            $(document).trigger('save-comment', this);
         }, this));
 
         this.deleteButton.click($.proxy(function() {
             this.deleted = true;
-            this.html.remove();
+            this.changeState('loading');
+            $(document).trigger('remove-comment', this);
         }, this));
 
         this.textArea.keydown($.proxy(function(e) {
             if(e.ctrlKey && e.keyCode === 13) {
                 this.saveButton.trigger('click');
-                $(document).trigger('ctrl_enter_pressed');
+                //$(document).trigger('ctrl_enter_pressed');
             }
         }, this));
 
         this.appendTo(container);
     }
 
+    Comment.prototype.changeState = function(newState) {
+
+      var self = this,
+          states = {
+          unavailable: function() {
+            self.html.css('opacity', 1);
+            self.html.find('.comment-buttonsblock').show();
+            self.textArea.prop('readonly', true);
+          },
+          available: function() {
+            self.html.css('opacity', 1);
+            self.html.find('.comment-buttonsblock').show();
+            self.textArea.prop('readonly', false);
+          },
+          loading: function() {
+            self.html.css('opacity', 0.5);
+            self.html.find('.comment-buttonsblock').hide();
+            //self.screenSaver.css('top', self.html.position().top);
+            ////self.screenSaver.width(self.textArea.width());
+            ////self.screenSaver.height(self.textArea.height());
+            //self.screenSaver.show();
+          }
+      };
+
+      if(states.hasOwnProperty(newState)) states[newState]();
+
+    };
+
     Comment.prototype.remove = function() {
         this.html.remove();
-
-        
-    }
+    };
 
     Comment.prototype.show = function() {
         this.html.show();
-    }
+    };
 
     Comment.prototype.appendTo = function(container) {
         container.prepend(this.html);
         return this;
-    }
+    };
 
     Comment.prototype.readOnly = function(val) {
         this.textArea.prop('readonly', val);
-    }
+    };
 
     Comment.prototype.focus = function() {
         this.textArea.focus();
-    }
+    };
 
     w.createComment = function() {
         return new Widget();

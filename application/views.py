@@ -21,7 +21,7 @@ from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details
 
-from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList
+from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments
 
 
 def custom_proc(request):
@@ -470,6 +470,33 @@ class BonusClassView(TemplateView):
 
         return HttpResponse(200)
 
+    @staticmethod
+    def save_comment(request):
+        try:
+            cid = request.POST.get('cid')
+            if cid:
+                comment = Comments.objects.get(pk=cid)
+                comment.text = request.POST.get('text')
+                comment.save()
+            else:
+                comment = Comments(
+                    student_id=request.POST['stid'],
+                    bonus_class_id=request.POST['group'],
+                    text=request.POST.get('text'),
+                    add_date=datetime.datetime.now()
+                )
+                comment.save()
+
+            return HttpResponse(json.dumps({'id': comment.id}))
+
+        except Exception:
+            from traceback import format_exc; print format_exc()
+            return HttpResponseServerError('failed')
+
+    def delete_comment(self, request):
+        Comments.objects.get(pk=request.POST['cid']).delete()
+        return HttpResponse(200)
+
     def get(self, request, *args, **kwargs):
         context = dict()
         mkid = request.GET.get('id')
@@ -479,7 +506,16 @@ class BonusClassView(TemplateView):
         context['students'] = [
             {
                 'student': i.student,
-                'group': passes.get(i.student.id)
+                'group': passes.get(i.student.id),
+                'comments': json.dumps([
+                    {'id': comment.id, 'text': comment.text, 'date': [
+                        comment.add_date.year,
+                        comment.add_date.month,
+                        comment.add_date.day,
+                        comment.add_date.hour,
+                        comment.add_date.minute
+                    ]} for comment in Comments.objects.filter(bonus_class_id=mkid, student=i.student).order_by('-add_date')
+                ]) or '[]'
             }
             for i in BonusClassList.objects.select_related().filter(group=mk, active=True)
         ]
