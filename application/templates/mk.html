@@ -136,6 +136,9 @@
             });
 
             contextMenu.addElement('Удалить', function() {
+                if(!confirm("Восстановить удаляемую запись будет невозможно. Продолжить?")) {
+                    return;
+                }
                 sendDeleteRequest(table.currentRow.id, table)
             });
 
@@ -157,6 +160,9 @@
 
 	        $('#deleteStudentBtn').click(function() {
 	        	var to_delete = table.getSelectedRows('id');
+	        	if(to_delete.length == 0 || !confirm('Восстановить удаляемые записи будет не возможно. Продолжить?')) {
+	        	    return;
+	        	}
 	        	sendDeleteRequest(to_delete, table)
 	        });
 
