@@ -43,6 +43,8 @@ function sendRequest(_data, subAction, callback) {
         this.currentRow = null;
         this.add_td = null;
 
+        this.errorCallback = null; // Outer callback, called on errors
+
         // fill data
         this.names = this.$element.find('tr:eq(0)').children().map(function(i, element) {
             return $(element).data('name')
@@ -114,7 +116,7 @@ function sendRequest(_data, subAction, callback) {
                 if(err) {
                     console.log(err);
                 } else {
-                    model.pass = $('<div>'+_data.gid_str+'(<a class="del" href="#">удалить</a>)' + '</div>');
+                    model.pass = $('<div>'+_data.gid_str+'<span>(<a class="del" href="#">удалить</a>)</span>' + '</div>');
                     td.removeClass('loading2');
                 }
             });
@@ -137,9 +139,9 @@ function sendRequest(_data, subAction, callback) {
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
-                    '<td class="center cp"><input class="attendance" type="checkbox" /></td>' +
-                    '<td class="center"><a data-class="add" class="add" href="#">Добавить</a></td>' +
-                    '<td data-mem="[]"></td>' +
+                    '<td class="center cp no-click"><input class="attendance" type="checkbox" /></td>' +
+                    '<td class="center no-events no-click"><a data-class="add" class="add" href="#">Добавить</a></td>' +
+                    '<td class="comment no-click" data-mem="[]"></td>' +
                '</tr>'
             );
 
@@ -376,8 +378,10 @@ function sendRequest(_data, subAction, callback) {
             },
             del: function(event, model, target, table) {
                 var $td = model.jq('pass'),
-                    loading = 'loading2';
+                    loading = 'loading2',
+                    buffer;
 
+                buffer = model.jq('pass').clone();
                 model.pass = '';
                 $td.addClass(loading);
 
@@ -387,10 +391,18 @@ function sendRequest(_data, subAction, callback) {
                     },
                     'delete_pass',
                     function(err, data) {
+                        $td.removeClass(loading);
                         if(err) {
-                            console.log(err);
+                            if(self.hasOwnProperty('errorCallback')) {
+                                try{
+                                    buffer.find('span').remove();
+                                    model.pass = buffer.html();
+                                    self.errorCallback(err);
+                                } catch(e) {
+
+                                }
+                            }
                         } else {
-                            $td.removeClass(loading);
                             $td.html('<a data-class="add" class="add" href="#">Добавить</a>');
                         }
                     }
@@ -423,7 +435,7 @@ function sendRequest(_data, subAction, callback) {
                 handler = $target.attr('class');
 
             // Если кликнули в 1ю ячейку 1й строки...
-            if($this.index() == 0 && !($target.is('.row-selector') || $target.has('input').length > 0)) {
+            if(($this.index() == 0 && !($target.is('.row-selector') || $target.has('input').length > 0))) {
                 return;
             }
 
@@ -445,7 +457,9 @@ function sendRequest(_data, subAction, callback) {
                 }
 
                 event.stopPropagation();
-                $(document).trigger('table-row-click', [event, self.currentRow]);
+                if(!$target.is('td.no-click') && !$target.is('button')) {
+                    $(document).trigger('table-row-click', [event, self.currentRow]);
+                }
             }
         });
     };

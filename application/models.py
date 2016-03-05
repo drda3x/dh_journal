@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import datetime, math, calendar as calendar_origin
 from django.db import models
 from django.utils.functional import cached_property
@@ -28,6 +29,12 @@ class User(UserOrigin):
             last_name=self.last_name
         )
 
+    def __json__(self):
+        return dict(
+            first_name=self.first_name,
+            last_name=self.last_name
+        )
+
     class Meta:
         app_label = u'application'
         verbose_name = u'Преподаватель'
@@ -44,6 +51,12 @@ class DanceHalls(models.Model):
 
     def __unicode__(self):
         return self.station
+
+    def __json__(self):
+        return dict(
+            station=self.station,
+            prise=self.prise
+        )
 
     class Meta:
         app_label = u'application'
@@ -148,9 +161,20 @@ class Groups(models.Model):
     def time_repr(self):
         return str(self.time or '')[0:-3]
 
-    @property
-    def simple_repr(self):
-        return u'%s %s' % (self.name, '-'.join(self.days))
+    def __json__(self):
+        return dict(
+            name=self.name,
+            start_date=self.start_date.strftime('%d.%m.%Y') if self.start_date else u'',
+            end_date=self.end_date.strftime('%d.%m.%Y') if self.end_date else u'',
+            time=self.time_repr,
+            teacher_leader=self.teacher_leader.__json__() if self.teacher_leader else {},
+            teacher_follower=self.teacher_follower.__json__() if self.teacher_follower else {},
+            is_opened=self.is_opened,
+            is_settable=self.is_settable,
+            days=self.days,
+            available_passes=self.available_passes,
+            dance_hall=self.dance_hall.__json__()
+        )
 
     def __unicode__(self):
 

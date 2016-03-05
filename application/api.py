@@ -17,7 +17,7 @@ from django.http.response import HttpResponse, HttpResponseNotFound, HttpRespons
 from django.db.models import Q
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student
-from application.utils.passes import PassLogic
+from application.utils.passes import PassLogic, GhostPass
 from application.utils.groups import get_group_students_list, get_student_lesson_status, get_student_groups
 from application.utils.phones import check_phone
 from application.utils.date_api import get_count_of_weekdays_per_interval
@@ -470,7 +470,6 @@ def process_lesson(request):
                     _pt = int(p['pass_type']) if 'pass_type' in p else None
 
                     # Списываем с другого абонемента
-                    # Списываем с другого абонемента
                     if date <= now and _pt == -1:
 
                         another_person_pass = Passes.objects.get(pk=p['from_another'])
@@ -606,15 +605,21 @@ def process_lesson(request):
                                             debt_val = 0
 
             if old_passes and date.date() <= group.last_lesson:
-                for pass_orm_object in Passes.objects.select_related().filter(pk__in=old_passes):
+                orm_objects = Passes.objects.select_related().filter(pk__in=old_passes)
+                calendar = [
+                    (i.date, i.group_pass) for i in Lessons.objects.filter(group_pass__in=orm_objects, date__gte=date).only('date', 'group_pass')
+                ]
 
-                    if pass_orm_object:
-                        pass_calendar = Lessons.objects.filter(group_pass=pass_orm_object, date__gte=date).values_list('date', flat=True)
+                for pass_orm_object in orm_objects:
+                    wrapped = PassLogic.wrap(pass_orm_object)
 
-                        if date.date() in pass_calendar:
-                            wrapped = PassLogic.wrap(pass_orm_object)
-                            wrapped.new_pass = False
-                            attended_passes.append(wrapped)
+                    if isinstance(wrapped, GhostPass):
+                        wrapped.make_it_real(date)
+                        attended_passes.append(wrapped)
+
+                    if (date.date(), pass_orm_object) in calendar:
+                        wrapped.new_pass = False
+                        attended_passes.append(wrapped)
 
             for _pass in attended_passes:
                 if _pass and date <= now:

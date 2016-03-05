@@ -72,6 +72,10 @@
 	        // create Table instance
 	        var table = new window.Table('table');
 
+            table.errorCallback = function(err) {
+                windowAlert.error('Ошибка при удалении абонемента: <br>' + err.responseText);
+            };
+
 	        // create StudentCard
 	        var studentCard = new window.StudentCard('#editStudent');
 
@@ -80,6 +84,8 @@
 
             // create CommentWidget
             var commentWidget = window.createComment();
+
+            var windowAlert = window.createWindowAlert();
 
             // Настройка сохранения коментов
             commentWidget.sendSaveRequest = function(event, comment, widgetData) {
@@ -171,17 +177,29 @@
 	            contextMenu.show(data.pageX, data.pageY);
 	        });
 
-	    	$(document).on('submit', function() {
-	    		var form = $(this).data('modalpopover').$tip,
-	    			data = {};
+	    	$(document).on('submit', function(event) {
+	    		var form = $(document).data('modalpopover').$tip,
+	    			data = {},
+	    			errors = [];
 
                 form.find('select').each(function() {
                     var fieldName = $(this).attr('name');
                     data[fieldName] = $(this).val();
+
+                    if(data[fieldName] < 0) {
+                        errors.push($(this).data('error'));
+                    }
+
                     data[fieldName + '_str'] = $(this).find('option[value='+data[fieldName]+']').text();
                 });
 
-	    		$(this).trigger('add-form-submit', data)
+                if(errors.length > 0) {
+                    var str = errors.join('<br>');
+                    windowAlert.error('Ошибка при добавлении абонемента: <br>' + str);
+
+                } else {
+                    $(this).trigger('add-form-submit', data)
+                }
 	    	});
 
 	    	$(document).click(function() {
@@ -252,15 +270,18 @@
 	    <td>{{ record.student.first_name }}</td>
 	    <td>{{ record.student.str_phone }}</td>
 	    <td>{% if record.student.e_mail %}{{ record.student.e_mail }}{% endif %}</td>
-	    <td class="center cp"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
-	    <td class="center">
+	    <td class="center cp no-click"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
+	    <td class="center no-click">
             {% if record.group %}
-                {{ record.group.simple_repr }}(<a class="del" href="#">удалить</a>)
+                {{ record.group.repr }}
+                {% if record.group.editable %}
+                    <span>(<a class="del" href="#">удалить</a>)</span>
+                {% endif %}
             {% else %}
 			    <a data-class="add" class="add" href="#">Добавить</a>
             {% endif %}
 		</td>
-		<td class="comment" data-mem='{{ record.comments }}'></td>
+		<td class="comment no-click" data-mem='{{ record.comments }}'></td>
     </tr>
 	{% endfor %}
 <!-- {# 	{% for student in group_detail.students %}
@@ -333,13 +354,13 @@
 
 <div class="form hidden">
     <div>
-        <select name="gid">
+        <select name="gid" data-error="Не выбрана группа">
             <option data-value="null" value="-1">-- выберите группу --</option>
             {% for group in groups %}
-            <option data-value="{{group.name}}" value={{group.id}}>{{group.name}}</option>
+            <option data-value="{{group.repr}}" value={{group.id}}>{{group.repr}}</option>
             {% endfor %}
         </select>
-        <select name="ptid">
+        <select name="ptid" data-error="Не выбран абонемент">
             <option data-value="null" value="-1">-- выберите абонемент --</option>
             {% for pt in pass_types %}
             <option data-value="{{pt.name}}" value={{pt.id}}>{{pt.name}}</option>

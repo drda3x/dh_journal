@@ -467,20 +467,22 @@ class BonusClassView(TemplateView):
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
         # надо впихивать после него, а если абонемента нет или он уже кончился, то новый впихиваем на следующее занятие...
         
-        return HttpResponse(200)
+        return HttpResponse(200, json)
 
     def delete_pass(self, request):
-
         mkid = int(request.POST['gid'])
         stid = int(request.POST['stid'])
         p = Passes.objects.get(bonus_class_id=mkid, student_id=stid)
 
-        if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
-            GroupList.objects.get(group=p.group, student_id=stid).delete()
+        if p.start_date is None:
+            if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
+                GroupList.objects.get(group=p.group, student_id=stid).delete()
 
-        p.delete()
+            p.delete()
+            return HttpResponse(200)
 
-        return HttpResponse(200)
+        else:
+            return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
 
     @staticmethod
     def save_comment(request):
@@ -513,7 +515,13 @@ class BonusClassView(TemplateView):
         context = dict()
         mkid = request.GET.get('id')
         mk = BonusClasses.objects.select_related().get(pk=mkid)
-        passes = {i.student.id: i.group for i in Passes.objects.filter(bonus_class_id=mk).only('group', 'student')}
+        passes = {
+            i.student.id: {
+                'self': i.group,
+                'repr': '%s c %s (%s)' % (i.group.dance_hall.station, i.group.start_date.strftime('%d.%m'), i.group.time_repr),
+                'editable': i.start_date is None
+            } for i in Passes.objects.filter(bonus_class_id=mk).only('group', 'student')
+        }
         context['group_id'] = mkid
         context['students'] = [
             {
@@ -531,7 +539,10 @@ class BonusClassView(TemplateView):
             }
             for i in BonusClassList.objects.select_related().filter(group=mk, active=True)
         ]
-        context['groups'] = Groups.objects.filter(pk__in=mk.available_groups)
+        context['groups'] = [
+            dict(id=i.id, repr='%s c %s (%s)' % (i.dance_hall.station, i.start_date.strftime('%d.%m'), i.time_repr))
+            for i in Groups.objects.filter(pk__in=mk.available_groups)
+        ]
         context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
 
         return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))

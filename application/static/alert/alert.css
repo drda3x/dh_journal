@@ -1,0 +1,10 @@
+#window-main-alert {
+    border: 2px solid;
+    font-weight: bold;
+    left: 25%;
+    top: 30px;
+    position: absolute;
+    width: 50%;
+    display: none;
+    text-align: center;
+}
