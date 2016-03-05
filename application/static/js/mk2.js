@@ -102,7 +102,6 @@ function sendRequest(_data, subAction, callback) {
             var _data = {},
                 model = this.currentRow,
                 td = model.jq('pass');
-
             for(var i in data) {
               _data[i] = data[i];
             }
@@ -117,6 +116,7 @@ function sendRequest(_data, subAction, callback) {
                     console.log(err);
                 } else {
                     model.pass = $('<div>'+_data.gid_str+'<span>(<a class="del" href="#">удалить</a>)</span>' + '</div>');
+                    td.parent().find('td:eq(6) input').prop('checked', true);
                     td.removeClass('loading2');
                 }
             });

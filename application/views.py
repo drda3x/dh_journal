@@ -466,7 +466,8 @@ class BonusClassView(TemplateView):
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
         # надо впихивать после него, а если абонемента нет или он уже кончился, то новый впихиваем на следующее занятие...
-        
+        BonusClassList.objects.get(group_id=gid, student=student).update(attendance=True)
+
         return HttpResponse(200, json)
 
     def delete_pass(self, request):
@@ -527,6 +528,7 @@ class BonusClassView(TemplateView):
             {
                 'student': i.student,
                 'group': passes.get(i.student.id),
+                'attendance': i.attendance,
                 'comments': json.dumps([
                     {'id': comment.id, 'text': comment.text, 'date': [
                         comment.add_date.year,
