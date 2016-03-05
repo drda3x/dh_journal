@@ -41,6 +41,38 @@ class User(UserOrigin):
         verbose_name_plural = u'Преподаватели'
 
 
+class Dances(models.Model):
+    """
+    ORM-модель "Танец"
+    """
+
+    name = models.CharField(max_length=50, verbose_name=u'Наименование')
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Танцевальное направление'
+        verbose_name_plural = u'Танцевальные направления'
+
+
+class GroupLevels(models.Model):
+    """
+    ORM-модель уровни групп
+    """
+    name = models.CharField(max_length=50, verbose_name='Наименование')
+    string_code = models.CharField(max_length=50, verbose_name='Код')
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Уровень группы'
+        verbose_name_plural = u'Уровни групп'
+
+
 class DanceHalls(models.Model):
     """
     Зал
@@ -48,6 +80,8 @@ class DanceHalls(models.Model):
 
     station = models.CharField(max_length=50, verbose_name=u'Станция метро')
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
+    address = models.CharField(max_length=200, verbose_name=u'Адрес', null=True, blank=True)
+    time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
 
     def __unicode__(self):
         return self.station
@@ -71,9 +105,12 @@ class Groups(models.Model):
     """
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
+    dance = models.ForeignKey(Dances, null=True, blank=True, verbose_name=u'Направление')
+    level = models.ForeignKey(GroupLevels, null=True, blank=True, verbose_name=u'Уровень')
     start_date = models.DateField(verbose_name=u'Дата начала группы')
     end_date = models.DateField(verbose_name=u'Дата окончания группы', null=True, blank=True, default=None)
     time = models.TimeField(verbose_name=u'Время начала занятия', null=True, blank=True, default=None)
+    end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
     is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
