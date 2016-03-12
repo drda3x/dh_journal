@@ -103,7 +103,7 @@ try:
 
         class Meta:
             model = BonusClasses
-            fields = ['date', 'time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
+            fields = ['date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
 
 except Exception:
         class BonusClassesForm(forms.ModelForm):
@@ -112,4 +112,4 @@ except Exception:
 
             class Meta:
                 model = BonusClasses
-                fields = ['date', 'time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
+                fields = ['date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
