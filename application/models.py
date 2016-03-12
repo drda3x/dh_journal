@@ -230,7 +230,8 @@ class Groups(models.Model):
 class BonusClasses(models.Model):
 
     date = models.DateField(verbose_name=u'Дата')
-    time = models.TimeField(verbose_name=u'Время', null=True, blank=True)
+    time = models.TimeField(verbose_name=u'Время начала', null=True, blank=True)
+    end_time = models.TimeField(verbose_name=u'Время окончания', null=True, blank=True)
     hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
     teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
