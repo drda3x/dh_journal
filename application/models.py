@@ -78,17 +78,18 @@ class DanceHalls(models.Model):
     Зал
     """
 
-    station = models.CharField(max_length=50, verbose_name=u'Станция метро')
+    name = models.CharField(max_length=50, verbose_name=u'Наименование', null=True, blank=True)
+    station = models.CharField(max_length=50, verbose_name=u'Станция метро', null=True, blank=True)
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
     address = models.CharField(max_length=200, verbose_name=u'Адрес', null=True, blank=True)
     time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
 
     def __unicode__(self):
-        return self.station
+        return self.name
 
     def __json__(self):
         return dict(
-            station=self.station,
+            station=self.name,
             prise=self.prise
         )
 
