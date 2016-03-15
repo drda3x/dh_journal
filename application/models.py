@@ -85,7 +85,7 @@ class DanceHalls(models.Model):
     time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
 
     def __unicode__(self):
-        return self.name
+        return self.name if self.name else u''
 
     def __json__(self):
         return dict(
@@ -249,7 +249,7 @@ class BonusClasses(models.Model):
         return self._available_passes.split(',') if self._available_passes else []
 
     def repr_short(self):
-        return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.station)
+        return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.name)
 
     def __unicode__(self):
         return u'%s %s %s %s' % (
