@@ -9,31 +9,44 @@ __all__ = (
 	'add_student'
 )
 
-def add_student(group_id, first_name, last_name,  phone, e_mail=None, is_org=False, group_list_orm=GroupList):
+
+def add_student(group_id, student_main_data, e_mail=None, is_org=False, group_list_orm=GroupList): #first_name, last_name,  phone
+    """
+    :param group_id: Int
+    :param student_main_data: tuple (first_name, last_name,  phone) or instance of application.models.Students
+    :param e_mail: str
+    :param is_org: bool
+    :param group_list_orm: GroupList.__class__
+    :return: bool
+    """
+
     try:
-        first_name = first_name.replace(' ', '')
-        last_name = last_name.replace(' ', '')
-        phone = check_phone(phone)
-        e_mail = e_mail.replace(' ', '') if e_mail else None
+        if isinstance(student_main_data, Students):
+            student = student_main_data
+        else:
+            first_name, last_name, phone = (lambda x: (x[0].replace(' ', ''), x[1].replace(' ', ''), check_phone(x[2])))(student_main_data)
+
+            try:
+                student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
+                e_mail = e_mail.replace(' ', '') if e_mail else None
+                group_id = int(group_id)
+                is_org = is_org == u'true'
+
+            except Students.DoesNotExist:
+                student = Students(
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone=phone,
+                    e_mail=e_mail,
+                    org=is_org
+                )
+
+                student.save()
+
         group_id = int(group_id)
-        is_org = is_org == u'true'
 
         try:
-            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
             group_list = group_list_orm.objects.get(student=student, group_id=group_id)
-
-        except Students.DoesNotExist:
-            student = Students(
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                e_mail=e_mail,
-                org=is_org
-            )
-
-            student.save()
-
-            group_list = None
 
         except group_list_orm.DoesNotExist:
             group_list = None

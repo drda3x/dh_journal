@@ -101,9 +101,7 @@ def add_student(request, group_list_orm=GroupList):
     try:
         _json = _add_student(
             request.GET['id'],
-            request.GET['first_name'],
-            request.GET['last_name'],
-            request.GET['phone'],
+            (request.GET['first_name'], request.GET['last_name'], request.GET['phone']),
             request.GET['e_mail'],
             request.GET.get('is_org')
         )
@@ -833,7 +831,7 @@ def change_group(request):
                 'id': int(_json['new_group'])
             }
 
-            add_student(request)
+            _add_student(int(_json['new_group']), student_orm)
             lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
             last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
             passes = []
