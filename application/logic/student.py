@@ -38,7 +38,7 @@ def add_student(group_id, student_main_data, e_mail=None, is_org=False, group_li
                     last_name=last_name,
                     phone=phone,
                     e_mail=e_mail,
-                    org=is_org
+                    org=is_org == u'true'
                 )
 
                 student.save()
