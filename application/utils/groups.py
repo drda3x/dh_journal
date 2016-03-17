@@ -312,7 +312,7 @@ def get_student_lesson_status(student, group, _date):
     except Lessons.DoesNotExist:
 
         if date.date() >= group.last_lesson:
-            p = Passes.objects.filter(student=student, group=group, start_date__isnull=True).order_by('pk')
+            p = Passes.objects.select_related('bonus_class').filter(student=student, group=group, start_date__isnull=True).order_by('pk')
             if p.exists():
                 fantom_lessons = p.aggregate(Sum('lessons')).get('lessons__sum')
                 calendar = group.get_calendar(fantom_lessons, group.last_lesson)

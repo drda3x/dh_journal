@@ -451,7 +451,7 @@ class BonusClassView(TemplateView):
         # else:
         #     pass_date = group.last_lesson
 
-        _add_student(gid, student.first_name, student.last_name, student.phone, group_list_orm=GroupList)
+        _add_student(gid, student, group_list_orm=GroupList)
 
         _pass = Passes(
             student=student,
@@ -464,7 +464,7 @@ class BonusClassView(TemplateView):
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
         # надо впихивать после него, а если абонемента нет или он уже кончился, то новый впихиваем на следующее занятие...
-        BonusClassList.objects.get(group_id=gid, student=student).update(attendance=True)
+        BonusClassList.objects.get(group_id=mkid, student=student).update(attendance=True)
 
         return HttpResponse(200, json)
 
@@ -475,7 +475,12 @@ class BonusClassView(TemplateView):
 
         if p.start_date is None:
             if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
-                GroupList.objects.get(group=p.group, student_id=stid).delete()
+
+                try:
+                    GroupList.objects.get(group=p.group, student_id=stid).delete()
+
+                except GroupList.DoesNotExist:
+                    pass
 
             p.delete()
             return HttpResponse(200)
