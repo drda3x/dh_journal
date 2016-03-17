@@ -2,7 +2,7 @@
 
 import datetime
 
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Min
 from django.contrib.auth.models import User
 
 from application.utils.passes import get_color_classes
@@ -314,8 +314,8 @@ def get_student_lesson_status(student, group, _date):
         if date.date() >= group.last_lesson:
             p = Passes.objects.select_related('bonus_class').filter(student=student, group=group, start_date__isnull=True).order_by('pk')
             if p.exists():
-                fantom_lessons = p.aggregate(Sum('lessons')).get('lessons__sum')
-                calendar = group.get_calendar(fantom_lessons, group.last_lesson)
+                fantom_lessons = p.aggregate(Sum('lessons'), Min('bonus_class__date'))
+                calendar = group.get_calendar(fantom_lessons['lessons__sum'], group.last_lesson if group.last_lesson >= fantom_lessons['bonus_class__date__min'] else fantom_lessons['bonus_class__date__min'])
 
                 try:
                     day_num = calendar.index(date)
