@@ -114,12 +114,16 @@ class Groups(models.Model):
     end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
-    is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
+    #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
     _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
+    @property
+    def is_opened(self):
+        return self.end_date is None
+    
     @property
     def available_passes(self):
         return self._available_passes.split(',')
@@ -188,8 +192,14 @@ class Groups(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
 
-        if not self.is_opened and not self.end_date:
-            self.end_date = datetime.datetime.now()
+        if self.end_date is None:
+            next_group = Groups.objects.filter(dance_hall=self.dance_hall, time=self.time, _days=self._days, start_date__gte=self.start_date).order_by('start_date').first()
+
+            if next_group:
+                self.end_date = next_group.start_date()
+
+        # if not self.is_opened and not self.end_date:
+        #     self.end_date = datetime.datetime.now()
         # elif self.is_opened:
         #     self.end_date = None
 
