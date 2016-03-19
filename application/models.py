@@ -99,11 +99,25 @@ class DanceHalls(models.Model):
         verbose_name_plural = u'Залы'
 
 
+class OpenedGroupManager(models.Manager):
+    def get_queryset(self):
+        return super(OpenedGroupManager, self).get_queryset().filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=datetime.datetime.now().date()))
+
+
+class ClosedGroupsManager(models.Manager):
+    def get_queryset(self):
+        return super(ClosedGroupsManager, self).get_queryset().filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
+
+
 class Groups(models.Model):
 
     u"""
     Группы
     """
+
+    opened = OpenedGroupManager()
+    closed = ClosedGroupsManager()
+    objects = models.Manager()
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     dance = models.ForeignKey(Dances, null=True, blank=True, verbose_name=u'Направление')
