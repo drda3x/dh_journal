@@ -2,7 +2,9 @@
 import datetime
 import re
 import json
+from django.contrib import auth
 from django.views.generic import TemplateView
+from django.contrib.sessions.backends.db import SessionStore
 from pytz import timezone, UTC
 from project.settings import TIME_ZONE
 from django.shortcuts import render_to_response, redirect
@@ -47,48 +49,43 @@ def prev_cur(arr):
         prev = elem
 
 
-def index_view(request):
+# def index_view(request):
 
-    user = check_auth(request)
-    main_template = 'main_view.html'
-    login_template = 'login.html'
+#     user = check_auth(request)
+#     main_template = 'main_view.html'
+#     login_template = 'login.html'
 
-    if user:
+#     if user:
 
-        context = dict()
-        context['user'] = user
+#         context = dict()
+#         context['user'] = user
 
-        if user.teacher:
+#         if user.teacher:
 
-            context['groups'] = get_groups_list(user)
-            context['now'] = datetime.datetime.now().date()
+#             context['groups'] = get_groups_list(user)
+#             context['now'] = datetime.datetime.now().date()
 
-            other_groups = context['groups'].get('other')
+#             other_groups = context['groups'].get('other')
 
-            if other_groups:
-                other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+#             if other_groups:
+#                 other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
 
-                try:
-                    for prev, cur in prev_cur(other_groups):
-                        if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-                            other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-                except TypeError:
-                    pass
+#                 try:
+#                     for prev, cur in prev_cur(other_groups):
+#                         if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
+#                             other_groups.insert(other_groups.index(cur), {'name': 'divider'})
+#                 except TypeError:
+#                     pass
 
-        elif user.sampo_admin:
-            return sampo_view(request)
+#         elif user.sampo_admin:
+#             return sampo_view(request)
 
-        return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+#         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
-    else:
-        args = {}
-        args.update(csrf(request))
-        return render_to_response(login_template, args, context_instance=RequestContext(request, processors=[custom_proc]))
-
-
-def user_log_out(request):
-    log_out(request)
-    return redirect('/')
+#     else:
+#         args = {}
+#         args.update(csrf(request))
+#         return render_to_response(login_template, args, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 @auth_decorator
@@ -387,7 +384,98 @@ def sampo_view(request):
 # УРА ТОВАРИЩИ!!!
 
 
+class BaseView(TemplateView):
+    """
+    Базовый класс для всех вьюшек
+    проверяет авторизацию и если надо выбрасывает на страницу авторизации
+    """
+
+    abstract = True
+
+    def get_authenticated_user(self, request):
+
+        try:
+            user = User.objects.get(pk=request.session.get('uid'))
+        except User.DoesNotExist:
+            user = None
+
+        if user and user.is_authenticated():
+            return user
+        else:
+            return None
+
+    def dispatch(self, request, *args, **kwargs):
+        user = self.get_authenticated_user(request)
+
+        if user:
+            self.request = request
+            self.request.user = user
+            return super(BaseView, self).dispatch(request, *args, **kwargs)
+
+        else:
+            return redirect('/login')
+
+    def get_context_data(self, **kwargs):
+        context = super(BaseView, self).get_context_data(**kwargs)
+
+        return context
+
+
+class IndexView(BaseView):
+    template_name = 'main_view.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+
+
+
+        return context
+        
+
+class LoginView(TemplateView):
+    u"""
+    Вьюшка для работы с авторизацией
+    """
+
+    template_name = 'login.html'
+
+    @staticmethod
+    def login(username, password, remember=False):
+        user = auth.authenticate(username=username, password=password)
+
+        if user and user.is_active:
+            if remember:
+                auth.login(request, user)
+
+            session = SessionStore()
+            session['uid'] = user.id
+
+            return session
+
+        else:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        username = request.POST['username'] if 'username' in request.POST else None
+        password = request.POST['password'] if 'password' in request.POST else None
+        remember = 'remember' in request.POST
+
+        request.session = self.login(username, password, remember)
+        return redirect('/')
+
+
+def user_log_out(request):
+    request.session.delete()
+    auth.logout(request)
+
+    return redirect('/')
+
+
 class BonusClassView(TemplateView):
+    """
+    Вьюшка для работы с мастер-классами
+    """
+
     template_name = 'mk.html'
 
     def add(self, request):
@@ -566,29 +654,3 @@ class BonusClassView(TemplateView):
             from traceback import format_exc
             print format_exc()
             return HttpResponseServerError('failed')
-
-# @auth_decorator
-# def bonus_class_view(request):
-
-#     from application.api import mk_add_student, mk_remove_student, mk_attendance
-
-#     bonus_class_handlers = {
-#         'addStudent': mk_add_student,
-#         'removeStudent': mk_remove_student,
-#         'setAttendance': mk_attendance
-#     }
-
-#     try:
-#         return bonus_class_handlers[request.GET.get('requestType')](request)
-#     except KeyError:
-#         pass
-
-#     mkid = request.GET.get('id')
-
-#     template = 'mk.html'
-
-#     context = dict()
-#     context['group_id'] = mkid
-#     context['students'] = BonusClassList.objects.select_related().filter(group__id=mkid)
-
-#     return 

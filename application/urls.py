@@ -34,6 +34,7 @@ urlpatterns += [
     url(r'^group/editstudent', api.edit_student),
     # url(r'^group/addpass', api.add_pass),
     url(r'^group', views.group_detail_view),
+    url(r'^login', views.LoginView.as_view()),
     url(r'^logout', views.user_log_out),
     url(r'^writeoffpass', api.write_off_the_pass),
     url(r'^processlesson', api.process_lesson),
@@ -60,5 +61,5 @@ urlpatterns += [
     url(r'getmcdetai', api.get_club_card_detail),
     url(r'sampo', views.sampo_view),
     url(r'mk', views.BonusClassView.as_view()),
-    url(r'', views.index_view)
+    url(r'', views.IndexView.as_view())
 ]

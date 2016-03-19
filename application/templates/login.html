@@ -11,7 +11,8 @@
   {% endif %}
 
     <div class="container">
-        <form action='.' method='post' class="form-signin">{% csrf_token %}
+        <form method='post' class="form-signin">
+            {% csrf_token %}
             <h3 class="form-signin-heading">ТСК "Динамика"</h3>
             <h4 class="form-signin-heading">электронный журнал</h4>
             <input id="username" name="username" type="text" placeholder="username or e-mail" class="input-block-level">
