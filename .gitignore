@@ -5,3 +5,5 @@
 venv/
 
 project/settings_local.py
+
+deploy/config.py
