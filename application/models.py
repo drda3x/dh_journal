@@ -61,8 +61,8 @@ class GroupLevels(models.Model):
     """
     ORM-модель уровни групп
     """
-    name = models.CharField(max_length=50, verbose_name='Наименование')
-    string_code = models.CharField(max_length=50, verbose_name='Код')
+    name = models.CharField(max_length=50, verbose_name=u'Наименование')
+    string_code = models.CharField(max_length=50, verbose_name=u'Код')
 
     def __unicode__(self):
         return self.name

@@ -1,0 +1,863 @@
+[ { "fields" : { "app_label" : "admin",
+        "model" : "logentry"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 1
+  },
+  { "fields" : { "app_label" : "auth",
+        "model" : "permission"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 2
+  },
+  { "fields" : { "app_label" : "auth",
+        "model" : "group"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 3
+  },
+  { "fields" : { "app_label" : "auth",
+        "model" : "user"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 4
+  },
+  { "fields" : { "app_label" : "contenttypes",
+        "model" : "contenttype"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 5
+  },
+  { "fields" : { "app_label" : "sessions",
+        "model" : "session"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 6
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "user"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 7
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "dances"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 8
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "grouplevels"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 9
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "dancehalls"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 10
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "groups"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 11
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "bonusclasses"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 12
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "canceledlessons"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 13
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "students"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 14
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "debts"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 15
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "comments"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 16
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "passtypes"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 17
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "grouplist"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 18
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "passes"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 19
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "lessons"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 20
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "sampopayments"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 21
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "sampopasses"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 22
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "sampopassusage"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 23
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "log"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 24
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "sampoprises"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 25
+  },
+  { "fields" : { "app_label" : "application",
+        "model" : "bonusclasslist"
+      },
+    "model" : "contenttypes.contenttype",
+    "pk" : 26
+  },
+  { "fields" : { "expire_date" : "2016-04-03T12:05:59Z",
+        "session_data" : "MDdmNTJlN2NmZmY2ZDI3Yjc2NzE3YWI5NTkwMTZhNmFjNGJmMzQzZjp7Il9hdXRoX3VzZXJfaGFzaCI6ImU1YmVhNTgwZWQxNGQ1M2U0NGQyNWQzNmNiNTAyOGIxZGI3YjFiYzUiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOiIxIn0="
+      },
+    "model" : "sessions.session",
+    "pk" : "2i9b5m2wa7zxrg675vy8856pmebfyla7"
+  },
+  { "fields" : { "codename" : "add_logentry",
+        "content_type" : 1,
+        "name" : "Can add log entry"
+      },
+    "model" : "auth.permission",
+    "pk" : 1
+  },
+  { "fields" : { "codename" : "change_logentry",
+        "content_type" : 1,
+        "name" : "Can change log entry"
+      },
+    "model" : "auth.permission",
+    "pk" : 2
+  },
+  { "fields" : { "codename" : "delete_logentry",
+        "content_type" : 1,
+        "name" : "Can delete log entry"
+      },
+    "model" : "auth.permission",
+    "pk" : 3
+  },
+  { "fields" : { "codename" : "add_permission",
+        "content_type" : 2,
+        "name" : "Can add permission"
+      },
+    "model" : "auth.permission",
+    "pk" : 4
+  },
+  { "fields" : { "codename" : "change_permission",
+        "content_type" : 2,
+        "name" : "Can change permission"
+      },
+    "model" : "auth.permission",
+    "pk" : 5
+  },
+  { "fields" : { "codename" : "delete_permission",
+        "content_type" : 2,
+        "name" : "Can delete permission"
+      },
+    "model" : "auth.permission",
+    "pk" : 6
+  },
+  { "fields" : { "codename" : "add_group",
+        "content_type" : 3,
+        "name" : "Can add group"
+      },
+    "model" : "auth.permission",
+    "pk" : 7
+  },
+  { "fields" : { "codename" : "change_group",
+        "content_type" : 3,
+        "name" : "Can change group"
+      },
+    "model" : "auth.permission",
+    "pk" : 8
+  },
+  { "fields" : { "codename" : "delete_group",
+        "content_type" : 3,
+        "name" : "Can delete group"
+      },
+    "model" : "auth.permission",
+    "pk" : 9
+  },
+  { "fields" : { "codename" : "add_user",
+        "content_type" : 4,
+        "name" : "Can add user"
+      },
+    "model" : "auth.permission",
+    "pk" : 10
+  },
+  { "fields" : { "codename" : "change_user",
+        "content_type" : 4,
+        "name" : "Can change user"
+      },
+    "model" : "auth.permission",
+    "pk" : 11
+  },
+  { "fields" : { "codename" : "delete_user",
+        "content_type" : 4,
+        "name" : "Can delete user"
+      },
+    "model" : "auth.permission",
+    "pk" : 12
+  },
+  { "fields" : { "codename" : "add_contenttype",
+        "content_type" : 5,
+        "name" : "Can add content type"
+      },
+    "model" : "auth.permission",
+    "pk" : 13
+  },
+  { "fields" : { "codename" : "change_contenttype",
+        "content_type" : 5,
+        "name" : "Can change content type"
+      },
+    "model" : "auth.permission",
+    "pk" : 14
+  },
+  { "fields" : { "codename" : "delete_contenttype",
+        "content_type" : 5,
+        "name" : "Can delete content type"
+      },
+    "model" : "auth.permission",
+    "pk" : 15
+  },
+  { "fields" : { "codename" : "add_session",
+        "content_type" : 6,
+        "name" : "Can add session"
+      },
+    "model" : "auth.permission",
+    "pk" : 16
+  },
+  { "fields" : { "codename" : "change_session",
+        "content_type" : 6,
+        "name" : "Can change session"
+      },
+    "model" : "auth.permission",
+    "pk" : 17
+  },
+  { "fields" : { "codename" : "delete_session",
+        "content_type" : 6,
+        "name" : "Can delete session"
+      },
+    "model" : "auth.permission",
+    "pk" : 18
+  },
+  { "fields" : { "codename" : "add_user",
+        "content_type" : 7,
+        "name" : "Can add Преподаватель"
+      },
+    "model" : "auth.permission",
+    "pk" : 19
+  },
+  { "fields" : { "codename" : "change_user",
+        "content_type" : 7,
+        "name" : "Can change Преподаватель"
+      },
+    "model" : "auth.permission",
+    "pk" : 20
+  },
+  { "fields" : { "codename" : "delete_user",
+        "content_type" : 7,
+        "name" : "Can delete Преподаватель"
+      },
+    "model" : "auth.permission",
+    "pk" : 21
+  },
+  { "fields" : { "codename" : "add_dances",
+        "content_type" : 8,
+        "name" : "Can add Танцевальное направление"
+      },
+    "model" : "auth.permission",
+    "pk" : 22
+  },
+  { "fields" : { "codename" : "change_dances",
+        "content_type" : 8,
+        "name" : "Can change Танцевальное направление"
+      },
+    "model" : "auth.permission",
+    "pk" : 23
+  },
+  { "fields" : { "codename" : "delete_dances",
+        "content_type" : 8,
+        "name" : "Can delete Танцевальное направление"
+      },
+    "model" : "auth.permission",
+    "pk" : 24
+  },
+  { "fields" : { "codename" : "add_grouplevels",
+        "content_type" : 9,
+        "name" : "Can add Уровень группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 25
+  },
+  { "fields" : { "codename" : "change_grouplevels",
+        "content_type" : 9,
+        "name" : "Can change Уровень группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 26
+  },
+  { "fields" : { "codename" : "delete_grouplevels",
+        "content_type" : 9,
+        "name" : "Can delete Уровень группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 27
+  },
+  { "fields" : { "codename" : "add_dancehalls",
+        "content_type" : 10,
+        "name" : "Can add Зал"
+      },
+    "model" : "auth.permission",
+    "pk" : 28
+  },
+  { "fields" : { "codename" : "change_dancehalls",
+        "content_type" : 10,
+        "name" : "Can change Зал"
+      },
+    "model" : "auth.permission",
+    "pk" : 29
+  },
+  { "fields" : { "codename" : "delete_dancehalls",
+        "content_type" : 10,
+        "name" : "Can delete Зал"
+      },
+    "model" : "auth.permission",
+    "pk" : 30
+  },
+  { "fields" : { "codename" : "add_groups",
+        "content_type" : 11,
+        "name" : "Can add Группу"
+      },
+    "model" : "auth.permission",
+    "pk" : 31
+  },
+  { "fields" : { "codename" : "change_groups",
+        "content_type" : 11,
+        "name" : "Can change Группу"
+      },
+    "model" : "auth.permission",
+    "pk" : 32
+  },
+  { "fields" : { "codename" : "delete_groups",
+        "content_type" : 11,
+        "name" : "Can delete Группу"
+      },
+    "model" : "auth.permission",
+    "pk" : 33
+  },
+  { "fields" : { "codename" : "add_bonusclasses",
+        "content_type" : 12,
+        "name" : "Can add Мастер-класс"
+      },
+    "model" : "auth.permission",
+    "pk" : 34
+  },
+  { "fields" : { "codename" : "change_bonusclasses",
+        "content_type" : 12,
+        "name" : "Can change Мастер-класс"
+      },
+    "model" : "auth.permission",
+    "pk" : 35
+  },
+  { "fields" : { "codename" : "delete_bonusclasses",
+        "content_type" : 12,
+        "name" : "Can delete Мастер-класс"
+      },
+    "model" : "auth.permission",
+    "pk" : 36
+  },
+  { "fields" : { "codename" : "add_canceledlessons",
+        "content_type" : 13,
+        "name" : "Can add Отмененное занятие"
+      },
+    "model" : "auth.permission",
+    "pk" : 37
+  },
+  { "fields" : { "codename" : "change_canceledlessons",
+        "content_type" : 13,
+        "name" : "Can change Отмененное занятие"
+      },
+    "model" : "auth.permission",
+    "pk" : 38
+  },
+  { "fields" : { "codename" : "delete_canceledlessons",
+        "content_type" : 13,
+        "name" : "Can delete Отмененное занятие"
+      },
+    "model" : "auth.permission",
+    "pk" : 39
+  },
+  { "fields" : { "codename" : "add_students",
+        "content_type" : 14,
+        "name" : "Can add Ученик"
+      },
+    "model" : "auth.permission",
+    "pk" : 40
+  },
+  { "fields" : { "codename" : "change_students",
+        "content_type" : 14,
+        "name" : "Can change Ученик"
+      },
+    "model" : "auth.permission",
+    "pk" : 41
+  },
+  { "fields" : { "codename" : "delete_students",
+        "content_type" : 14,
+        "name" : "Can delete Ученик"
+      },
+    "model" : "auth.permission",
+    "pk" : 42
+  },
+  { "fields" : { "codename" : "add_debts",
+        "content_type" : 15,
+        "name" : "Can add debts"
+      },
+    "model" : "auth.permission",
+    "pk" : 43
+  },
+  { "fields" : { "codename" : "change_debts",
+        "content_type" : 15,
+        "name" : "Can change debts"
+      },
+    "model" : "auth.permission",
+    "pk" : 44
+  },
+  { "fields" : { "codename" : "delete_debts",
+        "content_type" : 15,
+        "name" : "Can delete debts"
+      },
+    "model" : "auth.permission",
+    "pk" : 45
+  },
+  { "fields" : { "codename" : "add_comments",
+        "content_type" : 16,
+        "name" : "Can add Коментарий"
+      },
+    "model" : "auth.permission",
+    "pk" : 46
+  },
+  { "fields" : { "codename" : "change_comments",
+        "content_type" : 16,
+        "name" : "Can change Коментарий"
+      },
+    "model" : "auth.permission",
+    "pk" : 47
+  },
+  { "fields" : { "codename" : "delete_comments",
+        "content_type" : 16,
+        "name" : "Can delete Коментарий"
+      },
+    "model" : "auth.permission",
+    "pk" : 48
+  },
+  { "fields" : { "codename" : "add_passtypes",
+        "content_type" : 17,
+        "name" : "Can add Тип абонемента"
+      },
+    "model" : "auth.permission",
+    "pk" : 49
+  },
+  { "fields" : { "codename" : "change_passtypes",
+        "content_type" : 17,
+        "name" : "Can change Тип абонемента"
+      },
+    "model" : "auth.permission",
+    "pk" : 50
+  },
+  { "fields" : { "codename" : "delete_passtypes",
+        "content_type" : 17,
+        "name" : "Can delete Тип абонемента"
+      },
+    "model" : "auth.permission",
+    "pk" : 51
+  },
+  { "fields" : { "codename" : "add_grouplist",
+        "content_type" : 18,
+        "name" : "Can add Список группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 52
+  },
+  { "fields" : { "codename" : "change_grouplist",
+        "content_type" : 18,
+        "name" : "Can change Список группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 53
+  },
+  { "fields" : { "codename" : "delete_grouplist",
+        "content_type" : 18,
+        "name" : "Can delete Список группы"
+      },
+    "model" : "auth.permission",
+    "pk" : 54
+  },
+  { "fields" : { "codename" : "add_passes",
+        "content_type" : 19,
+        "name" : "Can add Абонемент"
+      },
+    "model" : "auth.permission",
+    "pk" : 55
+  },
+  { "fields" : { "codename" : "change_passes",
+        "content_type" : 19,
+        "name" : "Can change Абонемент"
+      },
+    "model" : "auth.permission",
+    "pk" : 56
+  },
+  { "fields" : { "codename" : "delete_passes",
+        "content_type" : 19,
+        "name" : "Can delete Абонемент"
+      },
+    "model" : "auth.permission",
+    "pk" : 57
+  },
+  { "fields" : { "codename" : "add_lessons",
+        "content_type" : 20,
+        "name" : "Can add Журнал посещения"
+      },
+    "model" : "auth.permission",
+    "pk" : 58
+  },
+  { "fields" : { "codename" : "change_lessons",
+        "content_type" : 20,
+        "name" : "Can change Журнал посещения"
+      },
+    "model" : "auth.permission",
+    "pk" : 59
+  },
+  { "fields" : { "codename" : "delete_lessons",
+        "content_type" : 20,
+        "name" : "Can delete Журнал посещения"
+      },
+    "model" : "auth.permission",
+    "pk" : 60
+  },
+  { "fields" : { "codename" : "add_sampopayments",
+        "content_type" : 21,
+        "name" : "Can add Оплата сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 61
+  },
+  { "fields" : { "codename" : "change_sampopayments",
+        "content_type" : 21,
+        "name" : "Can change Оплата сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 62
+  },
+  { "fields" : { "codename" : "delete_sampopayments",
+        "content_type" : 21,
+        "name" : "Can delete Оплата сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 63
+  },
+  { "fields" : { "codename" : "add_sampopasses",
+        "content_type" : 22,
+        "name" : "Can add Абонементы САМПО"
+      },
+    "model" : "auth.permission",
+    "pk" : 64
+  },
+  { "fields" : { "codename" : "change_sampopasses",
+        "content_type" : 22,
+        "name" : "Can change Абонементы САМПО"
+      },
+    "model" : "auth.permission",
+    "pk" : 65
+  },
+  { "fields" : { "codename" : "delete_sampopasses",
+        "content_type" : 22,
+        "name" : "Can delete Абонементы САМПО"
+      },
+    "model" : "auth.permission",
+    "pk" : 66
+  },
+  { "fields" : { "codename" : "add_sampopassusage",
+        "content_type" : 23,
+        "name" : "Can add Отметки о посещении сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 67
+  },
+  { "fields" : { "codename" : "change_sampopassusage",
+        "content_type" : 23,
+        "name" : "Can change Отметки о посещении сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 68
+  },
+  { "fields" : { "codename" : "delete_sampopassusage",
+        "content_type" : 23,
+        "name" : "Can delete Отметки о посещении сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 69
+  },
+  { "fields" : { "codename" : "add_log",
+        "content_type" : 24,
+        "name" : "Can add log"
+      },
+    "model" : "auth.permission",
+    "pk" : 70
+  },
+  { "fields" : { "codename" : "change_log",
+        "content_type" : 24,
+        "name" : "Can change log"
+      },
+    "model" : "auth.permission",
+    "pk" : 71
+  },
+  { "fields" : { "codename" : "delete_log",
+        "content_type" : 24,
+        "name" : "Can delete log"
+      },
+    "model" : "auth.permission",
+    "pk" : 72
+  },
+  { "fields" : { "codename" : "add_sampoprises",
+        "content_type" : 25,
+        "name" : "Can add Цены на сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 73
+  },
+  { "fields" : { "codename" : "change_sampoprises",
+        "content_type" : 25,
+        "name" : "Can change Цены на сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 74
+  },
+  { "fields" : { "codename" : "delete_sampoprises",
+        "content_type" : 25,
+        "name" : "Can delete Цены на сампо"
+      },
+    "model" : "auth.permission",
+    "pk" : 75
+  },
+  { "fields" : { "codename" : "add_bonusclasslist",
+        "content_type" : 26,
+        "name" : "Can add bonus class list"
+      },
+    "model" : "auth.permission",
+    "pk" : 76
+  },
+  { "fields" : { "codename" : "change_bonusclasslist",
+        "content_type" : 26,
+        "name" : "Can change bonus class list"
+      },
+    "model" : "auth.permission",
+    "pk" : 77
+  },
+  { "fields" : { "codename" : "delete_bonusclasslist",
+        "content_type" : 26,
+        "name" : "Can delete bonus class list"
+      },
+    "model" : "auth.permission",
+    "pk" : 78
+  },
+  { "fields" : { "date_joined" : "2016-03-20T12:01:54Z",
+        "email" : "",
+        "first_name" : "",
+        "groups" : [  ],
+        "is_active" : true,
+        "is_staff" : true,
+        "is_superuser" : true,
+        "last_login" : "2016-03-20T12:05:58Z",
+        "last_name" : "",
+        "password" : "pbkdf2_sha256$20000$7Uac95XFb2yQ$sHQraaHbJ51Sstryae1jF7YWiiWFv6uvg8j6BzJoDsM=",
+        "user_permissions" : [  ],
+        "username" : "root"
+      },
+    "model" : "auth.user",
+    "pk" : 1
+  },
+  { "fields" : { "date_joined" : "2016-03-20T12:06:58Z",
+        "email" : "",
+        "first_name" : "Тестовый",
+        "groups" : [  ],
+        "is_active" : true,
+        "is_staff" : true,
+        "is_superuser" : true,
+        "last_login" : null,
+        "last_name" : "Администратор",
+        "password" : "pbkdf2_sha256$20000$yQlhrVGUNxAJ$RFJsNwz6CcpEA5b48jeHSfDF52cXPjDK8GMv+fgBNjg=",
+        "user_permissions" : [  ],
+        "username" : "test_admin"
+      },
+    "model" : "auth.user",
+    "pk" : 2
+  },
+  { "fields" : { "date_joined" : "2016-03-20T12:08:24Z",
+        "email" : "",
+        "first_name" : "Тестовый",
+        "groups" : [  ],
+        "is_active" : true,
+        "is_staff" : false,
+        "is_superuser" : false,
+        "last_login" : null,
+        "last_name" : "Преподаватель",
+        "password" : "pbkdf2_sha256$20000$JPZKhLMWk7L6$Jgt1q3mnalfPXmeRz+5pNpKEu151gneik0ewcZRwRlc=",
+        "user_permissions" : [  ],
+        "username" : "test_user"
+      },
+    "model" : "auth.user",
+    "pk" : 3
+  },
+  { "fields" : { "date_joined" : "2016-03-20T12:13:42Z",
+        "email" : "",
+        "first_name" : "Тестовый",
+        "groups" : [  ],
+        "is_active" : true,
+        "is_staff" : false,
+        "is_superuser" : false,
+        "last_login" : null,
+        "last_name" : "Администратор сампо",
+        "password" : "pbkdf2_sha256$20000$ZdCbNoru1YxK$euP/XEriqPsx/hmPSzUQZhaw4JhiPbIVxxfsy7UfC1o=",
+        "user_permissions" : [  ],
+        "username" : "test_sampo"
+      },
+    "model" : "auth.user",
+    "pk" : 4
+  },
+  { "fields" : { "groups" : [  ],
+        "sampo_admin" : false,
+        "teacher" : true,
+        "user_permissions" : [  ]
+      },
+    "model" : "application.user",
+    "pk" : 2
+  },
+  { "fields" : { "groups" : [  ],
+        "sampo_admin" : false,
+        "teacher" : true,
+        "user_permissions" : [  ]
+      },
+    "model" : "application.user",
+    "pk" : 3
+  },
+  { "fields" : { "groups" : [  ],
+        "sampo_admin" : true,
+        "teacher" : false,
+        "user_permissions" : [  ]
+      },
+    "model" : "application.user",
+    "pk" : 4
+  },
+  { "fields" : { "action_flag" : 1,
+        "action_time" : "2016-03-20T12:06:59Z",
+        "change_message" : "",
+        "content_type" : 7,
+        "object_id" : "2",
+        "object_repr" : " ",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 1
+  },
+  { "fields" : { "action_flag" : 2,
+        "action_time" : "2016-03-20T12:07:46Z",
+        "change_message" : "Изменен first_name, last_name, is_staff, teacher и is_superuser.",
+        "content_type" : 7,
+        "object_id" : "2",
+        "object_repr" : "Администратор Тестовый",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 2
+  },
+  { "fields" : { "action_flag" : 1,
+        "action_time" : "2016-03-20T12:08:25Z",
+        "change_message" : "",
+        "content_type" : 7,
+        "object_id" : "3",
+        "object_repr" : " ",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 3
+  },
+  { "fields" : { "action_flag" : 2,
+        "action_time" : "2016-03-20T12:13:05Z",
+        "change_message" : "Изменен first_name, last_name и teacher.",
+        "content_type" : 7,
+        "object_id" : "3",
+        "object_repr" : "Преподаватель Тестовый",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 4
+  },
+  { "fields" : { "action_flag" : 1,
+        "action_time" : "2016-03-20T12:13:43Z",
+        "change_message" : "",
+        "content_type" : 7,
+        "object_id" : "4",
+        "object_repr" : " ",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 5
+  },
+  { "fields" : { "action_flag" : 2,
+        "action_time" : "2016-03-20T12:14:18Z",
+        "change_message" : "Изменен first_name, last_name и sampo_admin.",
+        "content_type" : 7,
+        "object_id" : "4",
+        "object_repr" : "Администратор сампо Тестовый",
+        "user" : 1
+      },
+    "model" : "admin.logentry",
+    "pk" : 6
+  }
+]

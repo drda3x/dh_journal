@@ -12,18 +12,19 @@ from django.http import HttpResponseServerError, HttpResponse
 from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
+from django.utils.timezone import make_aware
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
 
 from application.utils.passes import get_color_classes, PassLogic
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
-from application.utils.sampo import get_sampo_details
+from application.utils.sampo import get_sampo_details, write_log
 
-from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments
+from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 
 
 def custom_proc(request):
@@ -421,35 +422,42 @@ class BaseView(TemplateView):
         return context
 
 class IndexView(BaseView):
-    template_name = '' # Переопределяется в get_context_data
+    template_name = 'main_view.html'
+
+    def get(self, *args, **kwargs):
+        user = self.request.user
+
+        #Если пользователь - админ сампо, отправляем его на другую вьюшку
+        if user.teacher:
+            return super(IndexView, self).get(self.request, *args, **kwargs)
+        
+        elif user.sampo_admin:
+            return redirect('/sampo')
+
+        else:
+            # Всех остальных - лесом!
+            return HttpResponseServerError(403)
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-        user = self.request.user
 
-        if user.teacher:
-            self.template_name = 'main_view.html'
+        context['groups'] = get_groups_list(self.request.user)
+        context['now'] = datetime.datetime.now().date()
 
-            context['groups'] = get_groups_list(user)
-            context['now'] = datetime.datetime.now().date()
+        other_groups = context['groups'].get('other')
 
-            other_groups = context['groups'].get('other')
+        if other_groups:
+            other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
 
-            if other_groups:
-                other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
-
-                try:
-                    for prev, cur in prev_cur(other_groups):
-                        if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-                            other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-                except TypeError:
-                    pass
-
-        elif user.sampo_admin:
-            raise Exception('Sampo is not realized!')
+            try:
+                for prev, cur in prev_cur(other_groups):
+                    if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
+                        other_groups.insert(other_groups.index(cur), {'name': 'divider'})
+            except TypeError:
+                pass
 
         return context
-        
+
 
 class LoginView(TemplateView):
     u"""
@@ -474,14 +482,24 @@ class LoginView(TemplateView):
         else:
             return None
 
+    def get_context_data(self, status_code=200, *args, **kwargs):
+        context = super(LoginView, self).get_context_data(*args, **kwargs)
+        context['login_failed'] = status_code != 200
+
+        return context
+
     def post(self, request, *args, **kwargs):
         username = request.POST['username'] if 'username' in request.POST else None
         password = request.POST['password'] if 'password' in request.POST else None
         remember = 'remember' in request.POST
 
         request.session = self.login(username, password, remember)
-        return redirect('/')
+        if request.session:
+            return redirect('/')
 
+        else:
+            context = self.get_context_data(403)
+            return self.render_to_response(context)
 
 def user_log_out(request):
     request.session.delete()
@@ -490,7 +508,234 @@ def user_log_out(request):
     return redirect('/')
 
 
-class BonusClassView(TemplateView):
+class SampoView(BaseView):
+    """
+    Вьюшка для работы с САМПО
+    """
+
+    template_name = 'sampo_full.html'
+
+    # Исходники для функций ниже
+    # from application.api import add_sampo_payment, check_uncheck_sampo, write_off_sampo_record
+    def add_sampo_payment(self):
+        request_body = json.loads(self.request.GET['data'])
+        data = request_body['info']
+
+        date = data.get('date')
+        hhmm = data['time']
+        if hhmm:
+            hhmm = map(int, hhmm.split(':'))
+            now = make_aware(datetime.datetime.combine(
+                datetime.datetime.strptime(date, '%d.%m.%Y').date() if date else datetime.date.today(),
+                datetime.time(hhmm[0], hhmm[1])
+            ), timezone(TIME_ZONE))
+        else:
+            now = make_aware(datetime.datetime.combine(
+                datetime.datetime.strptime(date, '%d.%m.%Y').date(),
+                datetime.datetime.now().time()
+            ), timezone(TIME_ZONE)) if date else datetime.datetime.now(tz=timezone(TIME_ZONE)).replace(second=0, microsecond=0)
+
+        if self.request.GET['type'].startswith('cash'):
+            new_payment = SampoPayments(
+                date=now,
+                staff=self.request.user,
+                people_count=0,  # Кудрявцев сказал убрать
+                money=int(data['count']) * (-1 if self.request.GET['type'] == 'cash-wrt' else 1)
+            )
+
+            comment = data.get('reason')
+            if comment:
+                new_payment.comment = comment
+
+            new_payment.save()
+
+            passes, payments, _ = get_sampo_details(now)
+
+            return HttpResponse(
+                json.dumps({
+                    'payments': payments
+                }))
+
+        elif data and data['name'] and data['surname']:
+
+            new_payment = SampoPayments(
+                date=now,
+                staff=self.request.user,
+                people_count=1,
+                money=int(data['count'] or 0)
+            )
+            new_payment.save()
+
+            new_pass = SampoPasses(
+                name=data['name'],
+                surname=data['surname'],
+                payment=new_payment
+            )
+            new_pass.save()
+
+            passes, payments, _ = get_sampo_details(now)
+
+            return HttpResponse(
+                json.dumps({
+                    'pid': new_pass.id,
+                    'payments': payments
+                }))
+
+        else:
+            return HttpResponseServerError('Not all variables')
+
+    def check_uncheck_sampo(self):
+        action = self.request.GET.get('action')
+        time = self.request.GET.get('time')
+
+        if time:
+            hhmm = map(lambda x: int(x), self.request.GET['time'].split(':'))
+        else:
+            hhmm = [0, 0]
+
+        date_str = self.request.GET.get('date')
+
+        if date_str:
+            date = map(lambda x: int(x), date_str.split('.'))
+            date_params = dict(
+                zip(('day', 'month', 'year', 'hour', 'minute'), date+hhmm)
+            )
+            now = make_aware(datetime.datetime(**date_params), timezone(TIME_ZONE))
+        else:
+            now = make_aware(datetime.datetime.now(), timezone(TIME_ZONE)).replace(hour=hhmm[0], minute=hhmm[1], second=0, microsecond=0)
+
+        if action == 'check':
+            new_usage = SampoPassUsage(
+                sampo_pass_id=int(self.request.GET['pid']),
+                date=now
+            )
+
+            new_usage.save()
+
+            passes, payments, _ = get_sampo_details(now)
+
+            _json = json.dumps({
+                'payments': payments
+            })
+
+            return HttpResponse(_json)
+
+        elif action == 'uncheck':
+            # todo Если админ системы удалит запись отсюда за любой день кроме сегоднешнего, удалится не та запись!
+            # todo решать эту проблему лучше через передачу в функцию праильной даты...
+            last_usage = SampoPassUsage.objects.filter(
+                sampo_pass_id=int(self.request.GET['pid']),
+                date__range=(
+                    now.replace(hour=0, minute=0, second=0, microsecond=0),
+                    now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                )
+            ).last()
+
+            if last_usage:
+                last_usage.delete()
+
+            passes, payments, _ = get_sampo_details(now)
+
+            _json = json.dumps({
+                'payments': payments
+            })
+
+            return HttpResponse(_json)
+
+        else:
+            return HttpResponseServerError('failed')
+
+    def write_off_sampo_record(self):
+        pid = self.request.GET.get('pid')
+
+        if not pid:
+            return HttpResponseServerError('No record id')
+
+        if pid.startswith('p'):
+            to_delete, pass_to_delete = None, None
+
+            try:
+                to_delete = SampoPayments.objects.get(pk=int(pid[1:]))
+                msg = '%s удалил(а) запись из таблицы "Оплаты наличными": | %s |' % (self.request.user, to_delete)
+
+                try:
+                    pass_to_delete = SampoPasses.objects.get(payment=to_delete)
+                    SampoPassUsage.objects.filter(sampo_pass=pass_to_delete).delete()
+                    pass_to_delete.delete()
+                    msg = u'%s удалил(а) запись из таблицы "Абонементы на сампо": | %s |' % (self.request.user, pass_to_delete)
+
+                except SampoPasses.DoesNotExist:
+                    pass
+
+                to_delete.delete()
+                write_log(msg)
+
+            except SampoPassUsage.DoesNotExist:
+                pass
+
+        date_str = self.request.GET.get('date')
+
+        date = make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
+        date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
+        date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
+
+        response = dict()
+        passes, payments, _ = get_sampo_details(date_max)
+        usages = SampoPassUsage.objects.filter(
+            date__range=[date_min, date_max]
+        ).values_list('sampo_pass', flat=True)
+
+        def to_json(elem):
+            _json = elem.__json__()
+            _json['usage'] = long(elem.id) in usages
+            return _json
+
+        response['passes'] = map(to_json, passes)
+        response['payments'] = payments
+
+        return HttpResponse(json.dumps(response))
+
+    def get(self, request, *args, **kwargs):
+        actions = {
+            'add': self.add_sampo_payment,
+            'check': self.check_uncheck_sampo,
+            'uncheck': self.check_uncheck_sampo,
+            'del': self.write_off_sampo_record
+        }
+
+        action = request.GET.get('action')
+
+        if action:
+            return actions[action]()
+
+        else:
+            context = self.get_context_data(*args, **kwargs)
+
+            if not self.request.user.teacher:
+                self.template_name = 'main_view.html'
+
+            return self.render_to_response(context)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(SampoView, self).get_context_data(*args, **kwargs)
+
+        date_str = self.request.GET.get('date')
+
+        try:
+            date = datetime.datetime.strptime('%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S') if date_str else datetime.datetime.now()
+
+        except Exception:
+            return HttpResponseServerError('Не правильно указана дата')
+
+        context['passes'], context['today_payments'], context['totals'] = get_sampo_details(date)
+        context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
+        context['pass_signs_l'] = len(context['pass_signs'])
+        context['date'] = date.strftime('%d.%m.%Y')
+
+        return context
+
+
+class BonusClassView(BaseView):
     """
     Вьюшка для работы с мастер-классами
     """
@@ -550,13 +795,6 @@ class BonusClassView(TemplateView):
         student = Students.objects.get(pk=int(request.POST['stid']))
         pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
         group = Groups.objects.get(pk=gid)
-
-        # last_lesson = Lessons.objects.filter(group_id=gid, student=student).order_by('date').last()
-        # if last_lesson and last_lesson.date >= group.last_lesson:
-        #     day_after = group.get_calendar(1, datetime.datetime.combine(last_lesson.date, datetime.datetime.min.time()))[0]
-        #     pass_date = day_after.date()
-        # else:
-        #     pass_date = group.last_lesson
 
         _add_student(gid, student, group_list_orm=GroupList)
 
@@ -622,9 +860,9 @@ class BonusClassView(TemplateView):
         Comments.objects.get(pk=request.POST['cid']).delete()
         return HttpResponse(200)
 
-    def get(self, request, *args, **kwargs):
-        context = dict()
-        mkid = request.GET.get('id')
+    def get_context_data(self, *args, **kwargs):
+        context = super(BonusClassView, self).get_context_data(*args, **kwargs)
+        mkid = self.request.GET.get('id')
         mk = BonusClasses.objects.select_related().get(pk=mkid)
         passes = {
             i.student.id: {
@@ -657,7 +895,7 @@ class BonusClassView(TemplateView):
         ]
         context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
 
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request, processors=[custom_proc]))
+        return context
 
     def post(self, request, *args, **kwargs):
         try:

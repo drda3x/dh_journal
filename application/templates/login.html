@@ -6,8 +6,8 @@
 
 {% block content %}
 
-  {% if form.errors %}
-    <p class="error">Сожалеем, вы неправильно ввели логин или пароль</p>
+  {% if login_failed %}
+    <p class="error">Неверное имя пользователя или пароль</p>
   {% endif %}
 
     <div class="container">
