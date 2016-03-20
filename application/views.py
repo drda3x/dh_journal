@@ -420,14 +420,33 @@ class BaseView(TemplateView):
 
         return context
 
-
 class IndexView(BaseView):
-    template_name = 'main_view.html'
+    template_name = '' # Переопределяется в get_context_data
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
+        user = self.request.user
 
+        if user.teacher:
+            self.template_name = 'main_view.html'
 
+            context['groups'] = get_groups_list(user)
+            context['now'] = datetime.datetime.now().date()
+
+            other_groups = context['groups'].get('other')
+
+            if other_groups:
+                other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+
+                try:
+                    for prev, cur in prev_cur(other_groups):
+                        if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
+                            other_groups.insert(other_groups.index(cur), {'name': 'divider'})
+                except TypeError:
+                    pass
+
+        elif user.sampo_admin:
+            raise Exception('Sampo is not realized!')
 
         return context
         
