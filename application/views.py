@@ -345,40 +345,6 @@ def history_view(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-@auth_decorator
-def sampo_view(request):
-
-    from application.api import add_sampo_payment, check_uncheck_sampo, write_off_sampo_record
-
-    actions = {
-        'add': add_sampo_payment,
-        'check': check_uncheck_sampo,
-        'uncheck': check_uncheck_sampo,
-        'del': write_off_sampo_record
-    }
-
-    action = request.GET.get('action')
-
-    if action:
-        return actions[action](request)
-
-    date_str = request.GET.get('date')
-
-    try:
-        date = datetime.datetime.strptime('%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S') if date_str else datetime.datetime.now()
-
-    except Exception:
-        return HttpResponseServerError('Не правильно указана дата')
-
-    context = dict()
-    context['passes'], context['today_payments'], context['totals'] = get_sampo_details(date)
-    context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
-    context['pass_signs_l'] = len(context['pass_signs'])
-    context['date'] = date.strftime('%d.%m.%Y')
-    template = 'main_view.html' if not request.user.teacher else 'sampo_full.html'
-    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
-
-
 # С этого момента начинается эра нормального кода!!!
 # Теперь я буду потехоньку переписывать все на классы.
 # А когда-нибудь у меня будет нормальная структура всего проекта!!!
@@ -420,6 +386,7 @@ class BaseView(TemplateView):
         context = super(BaseView, self).get_context_data(**kwargs)
 
         return context
+
 
 class IndexView(BaseView):
     template_name = 'main_view.html'
@@ -500,6 +467,7 @@ class LoginView(TemplateView):
         else:
             context = self.get_context_data(403)
             return self.render_to_response(context)
+
 
 def user_log_out(request):
     request.session.delete()
@@ -911,3 +879,19 @@ class BonusClassView(BaseView):
             from traceback import format_exc
             print format_exc()
             return HttpResponseServerError('failed')
+
+
+class HistoryView(BaseView):
+    template_name = 'history.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(HistoryView, self).get_context_data(**kwargs)
+
+        border = datetime.datetime.now().date() - datetime.timedelta(days=90)
+        border.replace(day=1)
+        groups = get_groups_list(self.request.user, False)
+
+        context['groups'] = filter(lambda g: not g['orm'].end_date or g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else []))
+        context['user'] = self.request.user
+
+        return context
