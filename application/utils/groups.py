@@ -247,12 +247,12 @@ def get_teacher_students_list(teacher):
     return res
 
 
-def get_student_groups(student, include_closed=False):
-    params = dict(student=student)
-    if not include_closed:
-        params['group__is_opened'] = True
-
-    return [dt.group for dt in GroupList.objects.select_related().filter(**params)]
+def get_student_groups(student, opened_only=False):
+    group_list_filter = GroupList.objects.filter(student=student).values_list('student_id', flat=True)
+    if opened_only:
+        return Groups.opened.filter(pk__in=group_list_filter)
+    else:
+        return Groups.objects.filter(pk__in=group_list_filter)
 
 
 def get_student_lesson_status(student, group, _date):

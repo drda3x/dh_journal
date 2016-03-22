@@ -17,20 +17,23 @@ class AdminClubCardTestCase(AdminTestSetting, TestCase):
 
         dh = DanceHalls(
             prise=1000
-        ).save()
+        )
+        dh.save()
 
         pt = PassTypes(
             name='test_clubcard_pass',
             prise=1000,
             lessons=8,
             one_group_pass=False
-        ).save()
+        )
+        pt.save()
 
         student = Students(
             first_name='fn',
             last_name='ln',
             phone='89261112233'
-        ).save()
+        )
+        student.save()
 
         group = Groups(
             name='test_group',
@@ -39,17 +42,21 @@ class AdminClubCardTestCase(AdminTestSetting, TestCase):
             _days='4,5',
             _available_passes=str(pt.pk),
             dance_hall=dh
-        ).save()
+        )
+        group.save()
 
         group_list = GroupList(
             group=group,
             student=student
-        ).save()
+        )
+        group_list.save()
 
         self.group_pass = Passes(
             student=student,
-            group=group
+            group=group,
+            pass_type=pt
         )
+        self.group_pass.save()
 
     def test_access(self):
         response = self.client.get('/clubcards')

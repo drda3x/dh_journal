@@ -17,7 +17,7 @@ from django.utils.timezone import make_aware
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
 
 from application.utils.passes import get_color_classes, PassLogic
-from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list
+from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
 from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage
 from application.auth import auth_decorator
@@ -418,13 +418,12 @@ class LoginView(TemplateView):
 
     template_name = 'login.html'
 
-    @staticmethod
-    def login(username, password, remember=False):
+    def login(self, username, password, remember=False):
         user = auth.authenticate(username=username, password=password)
 
         if user and user.is_active:
             if remember:
-                auth.login(request, user)
+                auth.login(self.request, user)
 
             session = SessionStore()
             session['uid'] = user.id
@@ -981,4 +980,46 @@ class ClubCardsView(BaseView):
         return context
 
     def get_card_detail(self, card_id):
-        return HttpResponse(200)
+
+        _pass = Passes.objects.get(pk=int(card_id))
+        student = _pass.student
+        result_json = list()
+        now = datetime.datetime.now().date()
+
+        def get_lesson(date):
+            lesson = get_student_lesson_status(student, group, date)
+
+            # Состояние урока: 1 - доступен для отметки
+            #                  0 - отмечен по этому абонементу, не доступен для отметки
+            #                  -1 - отмечен по другому абонементу, не доступен для отметки
+            if not lesson['attended'] and date.date() <= now:
+                lesson['status'] = 1
+            elif 'pid' in lesson.iterkeys() and lesson['pid'] == _pass.id:
+                lesson['status'] = 0
+            else:
+                lesson['status'] = -1
+
+            return lesson
+
+        for group in get_student_groups(student, opened_only=True):
+
+            date_from = _pass.start_date if _pass.start_date >= group.start_date else group.start_date
+            date_to = group.end_date if group.end_date and group.end_date <= _pass.end_date else _pass.end_date
+            days = get_count_of_weekdays_per_interval(group.days, date_from, date_to)
+            group_calendar = filter(lambda x: x.date() <= date_to, group.get_calendar(days, date_from))
+            lessons_statuses = map(get_lesson, group_calendar)
+            lessons = zip(map(lambda d: d.strftime('%d.%m.%Y'), group_calendar), lessons_statuses)
+
+            group_json = {
+                'group': {
+                    'id': group.id,
+                    'name': '%s - %s c %s' % (group.name, ' '.join(group.days), group.time_repr)
+                },
+                'lessons': lessons
+            }
+
+            result_json.append(group_json)
+
+        _json = json.dumps(result_json)
+
+        return HttpResponse(_json)
