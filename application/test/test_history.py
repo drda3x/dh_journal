@@ -1,30 +1,28 @@
 # -*- coding:utf-8 -*-
 
 from django.test import TestCase
-from django.test.client import Client
+from tests_settings import AdminTestSetting, TeacherTestSetting, SampoAdminTestSetting
 
 
-class HistoryTestCase(TestCase):
+class AdminHistoryTestCase(AdminTestSetting, TestCase):
     """
     Доступ к странице истории
     """
 
-    client = Client()
-
-    def test_admin_access(self):
-        self.client.post('/login', {'username': 'test_admin', 'password': 'test_admin'})
-
+    def test_access(self):
         response = self.client.get('/history')
         self.assertEqual(response.status_code, 200)
 
-    def test_teacher_access(self):
-        self.client.post('/login', {'username': 'test_user', 'password': 'test_user'})
 
+class TeacherHistoryTestCase(TeacherTestSetting, TestCase):
+
+    def test_access(self):
         response = self.client.get('/history')
         self.assertEqual(response.status_code, 200)
 
-    def test_sampo_admin_access(self):
-        log_in_responce = self.client.post('/login', {'username': 'test_sampo', 'password': 'test_sampo'})
 
+class SampoAdminHistoryTestCase(SampoAdminTestSetting, TestCase):
+
+    def test_access(self):
         response = self.client.get('/history')
         self.assertEqual(response.status_code, 200)
