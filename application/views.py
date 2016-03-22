@@ -330,21 +330,6 @@ def club_cards(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-@auth_decorator
-def history_view(request):
-
-    template = 'history.html'
-    border = datetime.datetime.now().date() - datetime.timedelta(days=90)
-    border.replace(day=1)
-    groups = get_groups_list(request.user, False)
-    context = {
-        'groups': filter(lambda g: not g['orm'].end_date or g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])),
-        'user': request.user
-    }
-
-    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
-
-
 # С этого момента начинается эра нормального кода!!!
 # Теперь я буду потехоньку переписывать все на классы.
 # А когда-нибудь у меня будет нормальная структура всего проекта!!!
