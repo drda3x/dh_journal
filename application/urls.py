@@ -53,7 +53,7 @@ urlpatterns += [
     url(r'^delete_comment', api.delete_comment),
     url(r'^restorelesson', api.restore_lesson),
     url(r'writeoffdebt', api.write_off_debt),
-    url(r'clubcards', views.club_cards),
+    url(r'clubcards', views.ClubCardsView.as_view()),
     url(r'createmulty', api.create_multipass),
     url(r'restorestudent', api.restore_student),
     url(r'history', views.HistoryView.as_view()),
