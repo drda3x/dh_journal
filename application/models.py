@@ -128,15 +128,15 @@ class Groups(models.Model):
     end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
-    #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
+    is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
     _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
-    @property
-    def is_opened(self):
-        return self.end_date is None
+    # @property
+    # def is_opened(self):
+    #     return self.end_date is None
     
     @property
     def available_passes(self):
@@ -347,6 +347,18 @@ class Debts(models.Model):
     student = models.ForeignKey(Students)
     group = models.ForeignKey(Groups)
     val = models.FloatField(verbose_name=u'Сумма')
+
+    def __unicode__(self):
+        '%s - %s - %s' % (
+            self.date.strftime('%d.%m.%Y') if self.date else '',
+            self.student.__unicode__(),
+            self.group.__unicode__()
+        )
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Долг'
+        verbose_name_plural = u'Долги'
 
 
 class Comments(models.Model):

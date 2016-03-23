@@ -45,7 +45,9 @@
             <a id="editStudentBtn" role="button" class="btn" data-toggle="modal">Добавить</a>
             <a id="deleteStudentBtn" role="button" class="btn disabled allowdisable">Удалить</a>
             <a id="freezePassBtn" role="button" class="btn disabled allowdisable">Перенести абонемент(ы)</a>
+            {% if user.is_superuser %}
             <a id="changeGroupBtn" role="button" class="btn disabled allowdisable" href="#changeGroup" data-toggle="modal">Перевести в другую группу</a>
+            {% endif %}
 
             <!-- Форма "Карточка ученика" -->
             <div id="editStudent" class="modal hide fade">
@@ -157,6 +159,7 @@
                 </div>
             </div>
 
+        {% if user.is_superuser %}
             <div id="changeGroup" class="modal hide fade">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -181,6 +184,7 @@
                     <button class="btn" data-dismiss="modal">Отмена</button>
                 </div>
             </div>
+        {% endif %}
 
     {% endblock %}
 
