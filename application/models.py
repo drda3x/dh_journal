@@ -210,7 +210,7 @@ class Groups(models.Model):
             next_group = Groups.objects.filter(dance_hall=self.dance_hall, time=self.time, _days=self._days, start_date__gte=self.start_date).order_by('start_date').first()
 
             if next_group:
-                self.end_date = next_group.start_date()
+                self.end_date = next_group.start_date
 
         # if not self.is_opened and not self.end_date:
         #     self.end_date = datetime.datetime.now()
