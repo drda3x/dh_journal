@@ -207,7 +207,11 @@ class Groups(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
 
         if self.end_date is None:
-            next_group = Groups.objects.filter(dance_hall=self.dance_hall, time=self.time, _days=self._days, start_date__gte=self.start_date).order_by('start_date').first()
+            next_group = Groups.objects\
+                .filter(dance_hall=self.dance_hall, time=self.time, _days=self._days, start_date__gte=self.start_date)\
+                .exclude(pk=self.pk)\
+                .order_by('start_date')\
+                .first()
 
             if next_group:
                 self.end_date = next_group.start_date
