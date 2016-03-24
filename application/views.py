@@ -241,93 +241,93 @@ def print_lesson(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-@auth_decorator
-def club_cards(request):
-    context = {}
-    template = 'club_cards.html'
-    date_format = '%d%m%Y'
-
-    user = request.user
-    now = datetime.datetime.now()
-    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-        else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    date_to = get_last_day_of_month(date_from)
-
-    last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
-    down_border = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)).replace(day=1)
-
-    context['control_data'] = {
-        'constant': {
-            'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
-            'current_date_numval': date_from.strftime(date_format)
-        },
-        'date_control': map(
-            lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
-            filter(
-                lambda x: x >= down_border,
-                map(lambda x: get_month_offset(last_pass.end_date if last_pass else date_from, x), xrange(0, 8))
-            )
-        )
-    }
-
-    first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
-    all_passes = Passes.objects\
-        .filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from)\
-        .select_related('student').order_by('student__last_name', 'student__first_name')\
-        .order_by('-start_date')
-    for _p in all_passes:
-        _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
-        _p.money = _p.lessons * _p.one_lesson_prise
-
-    ordered = all_passes.order_by('start_date')
-    borders = (ordered.first(), ordered.last())
-    groups = get_groups_list(user)
-    date_group_list = {}
-
-    all_groups = groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])
-
-    if borders[0] and borders[1]:
-        for group in all_groups:
-            days = group['days'].split(' ')
-            count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
-            calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
-
-            for p in all_passes:
-                for d in filter(lambda x: p.start_date <= x.date() <= p.end_date and x <= now, calendar):
-                    if d not in date_group_list.iterkeys():
-                        date_group_list[d] = []
-
-                    date_group_list[d].append('g%dp%d' % (group['id'], p.id))
-
-    for group in all_groups:
-        group['students'] = ' s'.join(
-            [
-                str(s.id)
-                for s in filter(
-                    lambda st: st in [p.student for p in all_passes],
-                    get_group_students_list(group['id'])
-                )
-            ]
-        )
-
-        group['students'] = ('s' if group['students'] else '') + group['students']
-
-    students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in all_groups]
-
-    context['date_list'] = map(
-        lambda x: {'key': x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
-        date_group_list
-    )
-    context['expire'] = (now - datetime.timedelta(days=14)).date()
-    context['now'] = now.date()
-    context['user'] = user
-    context['date_list'].sort(key=lambda x: x['key'])
-    context['groups'] = groups
-    context['passes'] = all_passes
-    context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
-    context['students'] = students
-
-    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+# @auth_decorator
+# def club_cards(request):
+#     context = {}
+#     template = 'club_cards.html'
+#     date_format = '%d%m%Y'
+#
+#     user = request.user
+#     now = datetime.datetime.now()
+#     date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+#         else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+#     date_to = get_last_day_of_month(date_from)
+#
+#     last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
+#     down_border = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)).replace(day=1)
+#
+#     context['control_data'] = {
+#         'constant': {
+#             'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
+#             'current_date_numval': date_from.strftime(date_format)
+#         },
+#         'date_control': map(
+#             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+#             filter(
+#                 lambda x: x >= down_border,
+#                 map(lambda x: get_month_offset(last_pass.end_date if last_pass else date_from, x), xrange(0, 8))
+#             )
+#         )
+#     }
+#
+#     first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
+#     all_passes = Passes.objects\
+#         .filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from)\
+#         .select_related('student').order_by('student__last_name', 'student__first_name')\
+#         .order_by('-start_date')
+#     for _p in all_passes:
+#         _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
+#         _p.money = _p.lessons * _p.one_lesson_prise
+#
+#     ordered = all_passes.order_by('start_date')
+#     borders = (ordered.first(), ordered.last())
+#     groups = get_groups_list(user)
+#     date_group_list = {}
+#
+#     all_groups = groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])
+#
+#     if borders[0] and borders[1]:
+#         for group in all_groups:
+#             days = group['days'].split(' ')
+#             count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
+#             calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
+#
+#             for p in all_passes:
+#                 for d in filter(lambda x: p.start_date <= x.date() <= p.end_date and x <= now, calendar):
+#                     if d not in date_group_list.iterkeys():
+#                         date_group_list[d] = []
+#
+#                     date_group_list[d].append('g%dp%d' % (group['id'], p.id))
+#
+#     for group in all_groups:
+#         group['students'] = ' s'.join(
+#             [
+#                 str(s.id)
+#                 for s in filter(
+#                     lambda st: st in [p.student for p in all_passes],
+#                     get_group_students_list(group['id'])
+#                 )
+#             ]
+#         )
+#
+#         group['students'] = ('s' if group['students'] else '') + group['students']
+#
+#     students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in all_groups]
+#
+#     context['date_list'] = map(
+#         lambda x: {'key': x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
+#         date_group_list
+#     )
+#     context['expire'] = (now - datetime.timedelta(days=14)).date()
+#     context['now'] = now.date()
+#     context['user'] = user
+#     context['date_list'].sort(key=lambda x: x['key'])
+#     context['groups'] = groups
+#     context['passes'] = all_passes
+#     context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
+#     context['students'] = students
+#
+#     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 # С этого момента начинается эра нормального кода!!!
@@ -433,8 +433,8 @@ class LoginView(TemplateView):
         else:
             return None
 
-    def get_context_data(self, status_code=200, *args, **kwargs):
-        context = super(LoginView, self).get_context_data(*args, **kwargs)
+    def get_context_data(self, status_code=200, **kwargs):
+        context = super(LoginView, self).get_context_data(**kwargs)
         context['login_failed'] = status_code != 200
 
         return context
@@ -668,8 +668,8 @@ class SampoView(BaseView):
 
             return self.render_to_response(context)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(SampoView, self).get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super(SampoView, self).get_context_data(**kwargs)
 
         date_str = self.request.GET.get('date')
 
@@ -746,7 +746,6 @@ class BonusClassView(BaseView):
         mkid = int(request.POST['mkid'])
         student = Students.objects.get(pk=int(request.POST['stid']))
         pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
-        group = Groups.objects.get(pk=gid)
 
         _add_student(gid, student, group_list_orm=GroupList)
 
@@ -1023,3 +1022,58 @@ class ClubCardsView(BaseView):
         _json = json.dumps(result_json)
 
         return HttpResponse(_json)
+
+
+class PrintView(BaseView):
+    date_format = '%d%m%Y'
+
+    def __init__(self):
+        super(PrintView, self).__init__()
+
+        self.additional_contexts = {
+            'lesson': self.lesson_context,
+            'full': self.full_view_context
+        }
+
+    def lesson_context(self, context):
+        self.template_name = 'print_lesson.html'
+        date = datetime.datetime.strptime(self.request.GET['date'], self.date_format).date()
+        group = Groups.objects.get(pk=self.request.GET['id'])
+
+        context['group_name'] = group.name
+        context['date'] = date.strftime('%d.%m.%Y')
+        context['students'] = map(
+            lambda s: dict(data=get_student_lesson_status(s, group, date), info=s),
+            get_group_students_list(group)
+        )
+
+    def full_view_context(self, context):
+        self.template_name = 'print_full.html'
+        group_id = self.request.GET['id']
+        date = self.request.GET.get('date')
+
+        date_from = datetime.datetime.strptime(self.request.GET['date'], self.date_format) if date\
+            else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        date_to = get_last_day_of_month(date_from)
+
+        context['date_str'] = '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
+        context['group_detail'] = get_group_detail(group_id, date_from, date_to, date_format='%d.%m.%y')
+
+        context['subtype'] = self.request.GET.get('subtype', None)
+
+        if not context['subtype']:
+            raise TypeError('wrong subtype')
+
+    def get_context_data(self, **kwargs):
+        context = super(PrintView, self).get_context_data(**kwargs)
+
+        html_color_classes = {
+            key: val for val, key in get_color_classes()
+        }
+        context['passes_color_classes'] = [
+            {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
+        ]
+
+        self.additional_contexts[self.request['type']](context)
+
+        return context
