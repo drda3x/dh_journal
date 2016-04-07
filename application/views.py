@@ -868,14 +868,23 @@ class BonusClassView(BaseView):
 class HistoryView(BaseView):
     template_name = 'history.html'
 
+    @staticmethod
+    def __expire_check(qs):
+        today = datetime.datetime.now().date()
+        expire = datetime.timedelta(days=90)
+
+        return filter(
+            lambda g: today - g.end_date <= expire,
+            qs
+        )
+
     def get_context_data(self, **kwargs):
         context = super(HistoryView, self).get_context_data(**kwargs)
+        context['groups'] = self.__expire_check(Groups.closed.owner(self.request.user))
 
-        border = datetime.datetime.now().date() - datetime.timedelta(days=90)
-        border.replace(day=1)
-        groups = get_groups_list(self.request.user, False)
+        if self.request.user.is_superuser:
+            context['other_groups'] = self.__expire_check(Groups.closed.exclude_owner(self.request.user))
 
-        context['groups'] = filter(lambda g: not g['orm'].end_date or g['orm'].end_date >= border, groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else []))
         context['user'] = self.request.user
 
         return context
