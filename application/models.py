@@ -173,7 +173,7 @@ class Groups(models.Model):
 
     @property
     def end_date_str(self):
-        return self.__date_repr(self.end_date)
+        return self.__date_repr(self.end_date)    
 
     @property
     def last_lesson(self):

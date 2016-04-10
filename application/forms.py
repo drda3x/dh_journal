@@ -66,7 +66,14 @@ try:
         _available_passes = CommaSeparatedSelectIntegerWithUpdate(
             qs=PassTypes.objects.filter(one_group_pass=True).order_by('sequence'),
             label=u'Абонементы',
-            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple()
+            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple(),
+            required=False
+        )
+        _external_passes = CommaSeparatedSelectIntegerWithUpdate(
+            qs=PassTypes.objects.filter(one_group_pass=True).order_by('sequence'),
+            label=u'Абонементы для показа на внешних сайтах',
+            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple(),
+            required=False
         )
 
         class Meta:
@@ -78,6 +85,7 @@ except Exception:
 
             _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
             _available_passes = None
+            _external_passes = None
 
             class Meta:
                 model = Groups
