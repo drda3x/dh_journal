@@ -857,7 +857,7 @@ def change_group(request):
                     wrapped = PassLogic.wrap(new_pass)
                     wrapped.create_lessons(calendar[0], pass_lessons_len)
 
-                    _delete_lessons(p.group.id, p.student.id, calendar[0], pass_lessons_len)
+                    _delete_lessons(p.group.id, p.student.id, date, pass_lessons_len)
 
             # if isinstance(add_status, HttpResponseServerError):
             #     return HttpResponseServerError('failed adding')
