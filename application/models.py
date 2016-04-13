@@ -138,7 +138,8 @@ class Groups(models.Model):
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
+    _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
     @staticmethod
@@ -152,7 +153,11 @@ class Groups(models.Model):
     
     @property
     def available_passes(self):
-        return self._available_passes.split(',')
+        return self._available_passes.split(',') if self._available_passes else []
+
+    @property
+    def available_passes_external(self):
+        return (self._external_passes).split(',') if self._external_passes else []
 
     @property
     def days(self):
@@ -168,7 +173,7 @@ class Groups(models.Model):
 
     @property
     def end_date_str(self):
-        return self.__date_repr(self.end_date)
+        return self.__date_repr(self.end_date)    
 
     @property
     def last_lesson(self):

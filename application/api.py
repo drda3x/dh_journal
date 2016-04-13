@@ -834,8 +834,7 @@ def change_group(request):
             _add_student(int(_json['new_group']), student_orm)
             lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
             last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
-            passes = []
-            map(lambda x: passes.append(x.group_pass) if x.group_pass not in passes and x.group_pass.one_group_pass else None, lessons)
+            passes = set([l.group_pass for l in lessons])
             calendar = new_group.get_calendar(len(lessons), last_lesson.date + datetime.timedelta(days=1) if last_lesson else date)
 
             for p in passes:
@@ -858,7 +857,7 @@ def change_group(request):
                     wrapped = PassLogic.wrap(new_pass)
                     wrapped.create_lessons(calendar[0], pass_lessons_len)
 
-                    _delete_lessons(p.group.id, p.student.id, calendar[0], pass_lessons_len)
+                    _delete_lessons(p.group.id, p.student.id, date, pass_lessons_len)
 
             # if isinstance(add_status, HttpResponseServerError):
             #     return HttpResponseServerError('failed adding')
@@ -925,7 +924,7 @@ def get_club_card_detail(request):
         return HttpResponse(_json)
 
     except Exception:
-        format_exc()
+        print format_exc()
         return HttpResponseServerError('failed')
 
 

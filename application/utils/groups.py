@@ -257,8 +257,8 @@ def get_teacher_students_list(teacher):
     return res
 
 
-def get_student_groups(student, opened_only=False):
-    group_list_filter = GroupList.objects.filter(student=student).values_list('student_id', flat=True)
+def get_student_groups(student, opened_only=False, **kwargs):
+    group_list_filter = GroupList.objects.filter(student=student).values_list('group_id', flat=True)
     if opened_only:
         return Groups.opened.filter(pk__in=group_list_filter)
     else:
