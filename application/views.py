@@ -1077,3 +1077,7 @@ class PrintView(BaseView):
         self.additional_contexts[self.request['type']](context)
 
         return context
+
+
+class GroupView(BaseView):
+    pass
