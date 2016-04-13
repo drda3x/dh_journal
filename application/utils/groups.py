@@ -55,6 +55,10 @@ def get_groups_list(user, only_opened=True, only_closed=False):
             for g in group_manager.filter(
                 Q(teacher_leader=user) | Q(teacher_follower=user)
             )
+        ],
+        'bonus_classes': [
+            dict(id=g.id, sr=g.repr_short(), lr=g.__unicode__())
+            for g in BonusClasses.objects.filter(can_edit=True).filter(Q(teacher_leader=user) | Q(teacher_follower=user)).order_by('-date')
         ]
     }
 
