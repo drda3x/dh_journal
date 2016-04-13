@@ -17,6 +17,8 @@ def get_groups_list(user, opened=True):
     Получить список групп для конкретного пользоваетля
     """
 
+    # todo это вызывает ну оооочень много запросов к базе
+
     if not isinstance(user, User):
         return None
 

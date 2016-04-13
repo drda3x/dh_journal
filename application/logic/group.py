@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from datetime import datetime
+from copy import deepcopy
 from django.utils.functional import cached_property
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
@@ -11,9 +12,9 @@ class GroupLogic(object):
     def __init__(self, group_id, date=None):
         now = datetime.now()
 
-        self.orm = Groups.objects.get(pk=group_id)
-        self.date_1 = date or datetime.combine(self.orm.end_date, datetime.min.time()) if self.orm.end_date else datetime(now.year, now.month, 1)
-        self.date_2 = self.orm.end_datetime or get_last_day_of_month(now)
+        self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
+        self.date_1 = date or (datetime.combine(self.orm.end_date, datetime.min.time()) if self.orm.end_date else datetime(now.year, now.month, 1))
+        self.date_2 = self.orm.end_datetime or get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
 
     def __getattr__(self, item):
         try:
@@ -47,9 +48,13 @@ class GroupLogic(object):
         ).order_by('pk'))
 
     @cached_property
-    def calendar(self):
+    def __calendar(self):
         days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
         return self.orm.get_calendar(date_from=self.date_1, count=days, clean=False)
+
+    @property
+    def calendar(self):
+        return deepcopy(self.__calendar)
 
     @cached_property
     def comments(self):
@@ -113,6 +118,40 @@ class GroupLogic(object):
             )
 
         return net
+
+    def calc_money(self):
+        saldo = []
+        statuses = [Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
+        for day in self.calendar:
+            buf = {}
+            lessons = filter(lambda _l: _l.date == day['date'].date() and _l.status in statuses, self.lessons)
+
+            if lessons:
+                day_saldo = sum(
+                    map(lambda l: l.prise(), lessons),
+                    0
+                )
+
+                buf['day_total'] = day_saldo
+                buf['dance_hall'] = int(self.orm.dance_hall.prise)
+                buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
+                buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0)
+                buf['half_balance'] = round(buf['balance'] / 2, 1)
+                buf['date'] = day['date']
+                buf['canceled'] = day['canceled']
+
+            else:
+                buf['day_total'] = ''
+                buf['dance_hall'] = ''
+                buf['club'] = ''
+                buf['balance'] = ''
+                buf['half_balance'] = ''
+                buf['date'] = ''
+                buf['canceled'] = day['canceled']
+
+            saldo.append(buf)
+
+        return saldo
 
     class PhantomLesson(object):
 

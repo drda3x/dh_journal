@@ -1144,7 +1144,13 @@ class GroupView(BaseView):
 
         now = datetime.datetime.now()
         date_format = '%d%m%Y'
-        group = GroupLogic(self.request.GET['id'], self.request.GET.get('date'))
+
+        try:
+            request_date = datetime.datetime.strptime(self.request.GET['date'], date_format)
+        except KeyError:
+            request_date = None
+
+        group = GroupLogic(self.request.GET['id'], request_date)
 
         forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
         if group.last_lesson_ever:
@@ -1169,7 +1175,7 @@ class GroupView(BaseView):
                 )
             )
         }
-
+        group.calc_money()
         context['group_detail'] = {
             'id': group.id,
             'name': group.name,
@@ -1186,7 +1192,7 @@ class GroupView(BaseView):
             ],
             'last_lesson': group.last_lesson,
             'calendar': map(to_iso, group.calendar),
-            'moneys': '',
+            'moneys': group.calc_money(),
             'money_total': '',
             'full_teachers': group.teacher_leader and group.teacher_follower
         }
