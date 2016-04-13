@@ -13,13 +13,15 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
+from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
+from application.logic.group import GroupLogic
 
-from application.utils.passes import get_color_classes, PassLogic
+from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -1080,4 +1082,123 @@ class PrintView(BaseView):
 
 
 class GroupView(BaseView):
-    pass
+    template_name = 'group_detail.html'
+
+    @cached_property
+    def html_color_classes(self):
+        return {
+            key: val for val, key in get_color_classes()
+        }
+
+    def get_detail_repr(self, obj):
+        if isinstance(obj, GroupLogic.CanceledLesson):
+            return {
+                'pass': False,
+                'color': '',
+                'sign': '',
+                'attended': False,
+                'canceled': True
+            }
+
+        elif isinstance(obj, GroupLogic.PhantomLesson):
+            return {
+                'pass': True,
+                'sign': '',
+                'sign_type': 's',
+                'attended': Lessons.STATUSES['not_processed'],
+                'pid': obj.group_pass.id,
+                'first': False,
+                'last': False,
+                'color': self.html_color_classes[obj.group_pass.color]
+            }
+
+        elif isinstance(obj, Lessons):
+            return {
+                'pass': True,
+                'sign': obj.sign,
+                'sign_type': 's' if isinstance(obj.sign, str) else 'n',
+                'attended': obj.status == Lessons.STATUSES['attended'],
+                'pid': obj.group_pass.id,
+                'first': obj.is_first_in_pass,
+                'last': obj.is_last_in_pass,
+                'color': self.html_color_classes[obj.group_pass.color] if not obj.student.org else ORG_PASS_HTML_CLASS
+            }
+
+        else:
+            return {
+                'pass': False,
+                'color': 'text-error' if isinstance(obj, Debts) else '',
+                'sign': 'долг' if isinstance(obj, Debts) else '',
+                'sign_type': 's' if isinstance(obj, Debts) else '',
+                'attended': False,
+                'canceled': False,
+                'first': False,
+                'last': False
+            }
+
+    def get_context_data(self, **kwargs):
+        def to_iso(elem):
+            elem['date'] = elem['date'].strftime('%d.%m.%Y')
+
+            return elem
+
+        now = datetime.datetime.now()
+        date_format = '%d%m%Y'
+        group = GroupLogic(self.request.GET['id'], self.request.GET.get('date'))
+
+        forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
+        if group.last_lesson_ever:
+            forward_month = max(forward_month, group.last_lesson_ever.date)
+
+        border = datetime.datetime.combine(group.orm.start_date, datetime.datetime.min.time()).replace(day=1)
+
+        context = super(GroupView, self).get_context_data(**kwargs)
+        context['passes_color_classes'] = [
+            dict(name=n, val=v) for n, v in get_color_classes()
+        ]
+        context['control_data'] = {
+            'constant': {
+                'current_date_str': '%s %d' % (MONTH_RUS[group.date_1.month], group.date_1.year),
+                'current_date_numval': group.date_1.strftime(date_format)
+            },
+            'date_control': map(
+                lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+                filter(
+                    lambda x1: x1 >= border,
+                    map(lambda x: get_month_offset(forward_month, x), xrange(0, 8))
+                )
+            )
+        }
+
+        context['group_detail'] = {
+            'id': group.id,
+            'name': group.name,
+            'days': group.days,
+            'start_date': group.start_date,
+            'students': [
+                {
+                    'person': s['student'],
+                    'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+                    #'debt': get_student_total_debt(s, group),
+                    'pass_remaining': s['pass_remaining'],
+                    'last_comment': s['last_comment']
+                } for s in group.get_students_net()
+            ],
+            'last_lesson': group.last_lesson,
+            'calendar': map(to_iso, group.calendar),
+            'moneys': '',
+            'money_total': '',
+            'full_teachers': group.teacher_leader and group.teacher_follower
+        }
+
+        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        context['other_groups'] = Groups.opened.exclude(id=group.id)
+
+        for elem in context['pass_detail']:
+            elem['skips'] = '' if elem['skips'] is None else elem['skips']
+
+        for det in context['pass_detail']:
+            det['html_color_class'] = self.html_color_classes[det['color']]
+
+        return context
+

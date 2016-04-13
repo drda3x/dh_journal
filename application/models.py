@@ -593,7 +593,7 @@ class Lessons(models.Model):
 
     @cached_property
     def is_first_in_pass(self):
-        first_lesson = Lessons.objects.filter(group_pass=self.group_pass).earliest('date')
+        #first_lesson = Lessons.objects.filter(group_pass=self.group_pass).earliest('date')
         return self.group_pass.start_date == self.date
 
     @cached_property
