@@ -11,26 +11,35 @@ from application.utils.date_api import get_count_of_weekdays_per_interval, get_w
 from application.utils.passes import ORG_PASS_HTML_CLASS
 
 
-def get_groups_list(user, opened=True):
+def get_groups_list(user, only_opened=True, only_closed=False):
 
     u"""
     Получить список групп для конкретного пользоваетля
     """
 
-    if not isinstance(user, User):
+    if not isinstance(user, User) or only_closed and only_opened:
         return None
+
+    if not only_opened and not only_closed:
+        group_manager = Groups.objects
+
+    elif not only_closed:
+        group_manager = Groups.opened
+
+    else:
+        group_manager = Groups.closed
 
     if user.is_superuser:
         return {
             'self': [
                 {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'time': g.time_repr , 'orm': g}
-                for g in Groups.opened.filter(
+                for g in group_manager.filter(
                     Q(teacher_leader=user) | Q(teacher_follower=user),
                 )
             ],
             'other': [
                 {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', 'time': g.time_repr , 'orm': g}
-                for g in Groups.opened.exclude(
+                for g in group_manager.exclude(
                     Q(teacher_leader=user) | Q(teacher_follower=user)
                 )
             ],
@@ -43,7 +52,7 @@ def get_groups_list(user, opened=True):
     return {
         'self': [
             {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'time': g.time_repr , 'orm': g}
-            for g in Groups.opened.filter(
+            for g in group_manager.filter(
                 Q(teacher_leader=user) | Q(teacher_follower=user)
             )
         ]
@@ -134,7 +143,8 @@ def get_group_detail(group_id, _date_from, date_to, date_format='%d.%m.%Y'):
                 Lessons.objects.filter(
                     group=group,
                     date__gt=last_lesson_date,
-                    group_pass__creation_date__lte=last_lesson_date
+                    group_pass__start_date__lte=last_lesson_date,
+                    status__in=(Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended'], Lessons.STATUSES['not_processed'])
                 ),
                 0
             )

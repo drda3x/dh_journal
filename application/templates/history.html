@@ -16,9 +16,17 @@
         {% for group in groups %}
             <tr data-gid="{{ group.id }}">
                 <td>{{ group.name }}</td>
-                {% if user.is_superuser %}<td>{{ group.orm.teacher_leader }} - {{ group.orm.teacher_follower }}</td>{% endif %}
-                <td>{{ group.orm.start_date }}</td>
-                <td>{{ group.orm.end_date }}</td>
+                {% if user.is_superuser %}<td>{{ group.teachers_str }}</td>{% endif %}
+                <td>{{ group.start_date_str }}</td>
+                <td>{{ group.end_date_str }}</td>
+            </tr>
+        {% endfor %}
+        {% for group in other_groups %}
+            <tr data-gid="{{ group.id }}">
+                <td>{{ group.name }}</td>
+                {% if user.is_superuser %}<td>{{ group.teachers_str }}</td>{% endif %}
+                <td>{{ group.start_date_str }}</td>
+                <td>{{ group.end_date_str }}</td>
             </tr>
         {% endfor %}
     </table>
