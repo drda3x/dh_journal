@@ -3,8 +3,14 @@
 from datetime import datetime
 from copy import deepcopy
 from django.utils.functional import cached_property
+from django.db.models import Sum
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
+
+
+class copy_cache(cached_property):
+    def __get__(self, instance, type=None):
+        return deepcopy(super(copy_cache, self).__get__(instance, type))
 
 
 class GroupLogic(object):
@@ -15,6 +21,7 @@ class GroupLogic(object):
         self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
         self.date_1 = date or (datetime.combine(self.orm.end_date, datetime.min.time()) if self.orm.end_date else datetime(now.year, now.month, 1))
         self.date_2 = self.orm.end_datetime or get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
+        self.days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
 
     def __getattr__(self, item):
         try:
@@ -28,7 +35,7 @@ class GroupLogic(object):
 
     @cached_property
     def lessons(self):
-        return list(Lessons.objects.select_related('group_pass', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
+        return list(Lessons.objects.select_related('group_pass__pass_type', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
 
     @cached_property
     def debts(self):
@@ -47,14 +54,9 @@ class GroupLogic(object):
             start_date__isnull=True
         ).order_by('pk'))
 
-    @cached_property
-    def __calendar(self):
-        days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
-        return self.orm.get_calendar(date_from=self.date_1, count=days, clean=False)
-
-    @property
+    @copy_cache
     def calendar(self):
-        return deepcopy(self.__calendar)
+        return self.orm.get_calendar(date_from=self.date_1, count=self.days, clean=False)
 
     @cached_property
     def comments(self):
@@ -121,6 +123,8 @@ class GroupLogic(object):
 
     def calc_money(self):
         saldo = []
+        total = 0
+        total_rent = 0
         statuses = [Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
         for day in self.calendar:
             buf = {}
@@ -140,6 +144,9 @@ class GroupLogic(object):
                 buf['date'] = day['date']
                 buf['canceled'] = day['canceled']
 
+                total += buf['day_total']
+                total_rent += buf['dance_hall']
+
             else:
                 buf['day_total'] = ''
                 buf['dance_hall'] = ''
@@ -151,7 +158,28 @@ class GroupLogic(object):
 
             saldo.append(buf)
 
-        return saldo
+        totals = dict()
+        totals['day_total'] = sum(map(lambda x: x['day_total']or 0, saldo))
+        totals['dance_hall'] = total_rent #todo если отмена занятий, то возможно денег списывать не надо!
+        totals['club'] = round((totals['day_total'] - totals['dance_hall']) * 0.3, 0)
+        totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'], 0)
+        totals['half_balance'] = round(totals['balance'] / 2, 1)
+        totals['next_month_balance'] = -1000
+
+        try:
+            if filter(lambda dt: not dt['canceled'], self.calendar)[-1]['date'].date() <= self.orm.last_lesson:
+                totals['next_month_balance'] = sum(map(
+                    lambda l: l.prise(),
+                    list(Lessons.objects.filter(
+                        group=self.orm,
+                        date__gt=self.calendar[-1]['date'],
+                        group_pass__creation_date__lte=self.calendar[-1]['date']
+                    ))
+                ))
+        except IndexError:
+            pass
+
+        return saldo, totals
 
     class PhantomLesson(object):
 

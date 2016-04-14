@@ -1175,13 +1175,9 @@ class GroupView(BaseView):
                 )
             )
         }
-        group.calc_money()
-        context['group_detail'] = {
-            'id': group.id,
-            'name': group.name,
-            'days': group.days,
-            'start_date': group.start_date,
-            'students': [
+
+        day_balance, totals = group.calc_money()
+        students = [
                 {
                     'person': s['student'],
                     'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
@@ -1189,11 +1185,18 @@ class GroupView(BaseView):
                     'pass_remaining': s['pass_remaining'],
                     'last_comment': s['last_comment']
                 } for s in group.get_students_net()
-            ],
+            ]
+
+        context['group_detail'] = {
+            'id': group.id,
+            'name': group.name,
+            'days': group.days,
+            'start_date': group.start_date,
+            'students': students,
             'last_lesson': group.last_lesson,
             'calendar': map(to_iso, group.calendar),
-            'moneys': group.calc_money(),
-            'money_total': '',
+            'moneys': day_balance,
+            'money_total': totals,
             'full_teachers': group.teacher_leader and group.teacher_follower
         }
 

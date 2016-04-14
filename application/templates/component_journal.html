@@ -130,7 +130,7 @@
             {% if group_detail.full_teachers %}
             <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
             {% endif %}
-            {% if group_detail.money_total.next_month_balance %}
+            {% if group_detail.money_total.next_month_balance >= 0 %}
                 <div>На следующий месяц: <strong>{{ group_detail.money_total.next_month_balance }}</strong></div>
             {% endif %}
         </div>
