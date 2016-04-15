@@ -510,6 +510,18 @@ class Passes(models.Model):
     def one_lesson_prise(self):
         return round(float(self.pass_type.prise) / self.pass_type.lessons, 2)
 
+    @cached_property
+    def _lessons(self):
+        return list(Lessons.objects.filter(group_pass=self).order_by('date'))
+
+    @property
+    def first_lesson_date(self):
+        return self._lessons[0]
+
+    @property
+    def last_lesson_date(self):
+        return self._lessons[-1]
+
     def __json__(self):
         return dict(
             id=self.id,

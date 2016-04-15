@@ -35,7 +35,7 @@ class GroupLogic(object):
 
     @cached_property
     def lessons(self):
-        return list(Lessons.objects.select_related('group_pass__pass_type', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
+        return list(Lessons.objects.select_related('group_pass', 'group_pass__pass_type', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
 
     @cached_property
     def debts(self):
@@ -44,6 +44,9 @@ class GroupLogic(object):
     @cached_property
     def passes(self):
         return set([l.group_pass for l in self.lessons])
+
+    def get_pass_lessons(self, _pass):
+        return [l for l in self.lessons if l.group_pass == _pass]
 
     @cached_property
     def phantom_passes(self):

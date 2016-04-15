@@ -1119,8 +1119,8 @@ class GroupView(BaseView):
                 'sign_type': 's' if isinstance(obj.sign, str) else 'n',
                 'attended': obj.status == Lessons.STATUSES['attended'],
                 'pid': obj.group_pass.id,
-                'first': obj.is_first_in_pass,
-                'last': obj.is_last_in_pass,
+                'first': self.group.get_pass_lessons(obj.group_pass)[0].date == obj.date,
+                'last': self.group.get_pass_lessons(obj.group_pass)[-1].date == obj.date,
                 'color': self.html_color_classes[obj.group_pass.color] if not obj.student.org else ORG_PASS_HTML_CLASS
             }
 
@@ -1150,7 +1150,7 @@ class GroupView(BaseView):
         except KeyError:
             request_date = None
 
-        group = GroupLogic(self.request.GET['id'], request_date)
+        self.group = group = GroupLogic(self.request.GET['id'], request_date)
 
         forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
         if group.last_lesson_ever:
