@@ -384,7 +384,7 @@ class IndexView(BaseView):
         #Если пользователь - админ сампо, отправляем его на другую вьюшку
         if user.teacher:
             return super(IndexView, self).get(self.request, *args, **kwargs)
-        
+
         elif user.sampo_admin:
             return redirect('/sampo')
 
@@ -1119,9 +1119,9 @@ class GroupView(BaseView):
                 'sign_type': 's' if isinstance(obj.sign, str) else 'n',
                 'attended': obj.status == Lessons.STATUSES['attended'],
                 'pid': obj.group_pass.id,
-                'first': self.group.get_pass_lessons(obj.group_pass)[0].date == obj.date,
-                'last': self.group.get_pass_lessons(obj.group_pass)[-1].date == obj.date,
-                'color': self.html_color_classes[obj.group_pass.color] if not obj.student.org else ORG_PASS_HTML_CLASS
+                'first': self.group.lesson_is_last_in_pass(obj),
+                'last': self.group.lesson_is_first_in_pass(obj),
+                'color': '' if obj.status == Lessons.STATUSES['moved'] else self.html_color_classes[obj.group_pass.color] if not obj.student.org  else ORG_PASS_HTML_CLASS
             }
 
         else:
@@ -1180,6 +1180,7 @@ class GroupView(BaseView):
         students = [
                 {
                     'person': s['student'],
+                    'is_newbie': s['student'].pk in group.newbies,
                     'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
                     #'debt': get_student_total_debt(s, group),
                     'pass_remaining': s['pass_remaining'],

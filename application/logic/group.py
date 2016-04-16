@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 from django.utils.functional import cached_property
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 
@@ -19,7 +19,13 @@ class GroupLogic(object):
         now = datetime.now()
 
         self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
-        self.date_1 = date or (datetime.combine(self.orm.end_date, datetime.min.time()) if self.orm.end_date else datetime(now.year, now.month, 1))
+
+        try:
+            self.date_1 = max(date, (datetime.combine(self.orm.start_date, datetime.min.time())))
+
+        except TypeError:
+            self.date_1 = datetime(now.year, now.month, 1)
+
         self.date_2 = self.orm.end_datetime or get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
         self.days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
 
@@ -31,7 +37,14 @@ class GroupLogic(object):
 
     @cached_property
     def students(self):
-        return [obj.student for obj in GroupList.objects.select_related('student').filter(group=self.orm, active=True).order_by('student__last_name').only('student')]
+        return map(
+            lambda s: setattr(s.student, 'active', 1) or s.student,
+            GroupList.objects.select_related('student').filter(group=self.orm, active=True, student__is_deleted=False).order_by('student__last_name', 'student__first_name').only('student')
+        )
+
+    @cached_property
+    def newbies(self):
+        return [st.student_id for st in GroupList.objects.select_related('student').filter(group=self.orm, active=True, last_update__gte=datetime.now() - timedelta(days=14))]
 
     @cached_property
     def lessons(self):
@@ -45,8 +58,15 @@ class GroupLogic(object):
     def passes(self):
         return set([l.group_pass for l in self.lessons])
 
-    def get_pass_lessons(self, _pass):
-        return [l for l in self.lessons if l.group_pass == _pass]
+    def lesson_is_last_in_pass(self, lesson):
+        for _p in self.passes:
+            if _p == lesson.group_pass:
+                return _p.last_lesson_date == lesson.date
+
+    def lesson_is_first_in_pass(self, lesson):
+        for _p in self.passes:
+            if _p == lesson.group_pass:
+                return _p.first_lesson_date == lesson.date
 
     @cached_property
     def phantom_passes(self):
@@ -168,15 +188,15 @@ class GroupLogic(object):
         totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'], 0)
         totals['half_balance'] = round(totals['balance'] / 2, 1)
         totals['next_month_balance'] = -1000
-
+        
         try:
             if filter(lambda dt: not dt['canceled'], self.calendar)[-1]['date'].date() <= self.orm.last_lesson:
                 totals['next_month_balance'] = sum(map(
                     lambda l: l.prise(),
                     list(Lessons.objects.filter(
+                        Q(Q(group_pass__creation_date__lte=self.calendar[-1]['date']) | Q(group_pass__in=self.passes)),
                         group=self.orm,
-                        date__gt=self.calendar[-1]['date'],
-                        group_pass__creation_date__lte=self.calendar[-1]['date']
+                        date__gt=self.calendar[-1]['date']
                     ))
                 ))
         except IndexError:
