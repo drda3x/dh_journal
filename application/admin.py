@@ -14,6 +14,8 @@ class GroupAdmin(admin.ModelAdmin):
     form = GroupsForm
     list_display = (u'name', u'start_date', u'end_date', u'teacher_leader', u'teacher_follower')
     # list_filter = (u'is_opened',)
+    filter_horizontal = ('teachers',)
+
 
 class BonusClassAdmin(admin.ModelAdmin):
     form = BonusClassesForm
