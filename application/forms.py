@@ -78,7 +78,7 @@ try:
 
         class Meta:
             model = Groups
-            fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_settable']
+            fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'teachers', 'dance_hall', 'is_settable']
 
 except Exception:
         class GroupsForm(forms.ModelForm):
@@ -89,7 +89,7 @@ except Exception:
 
             class Meta:
                 model = Groups
-                fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_settable']
+                fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'teachers', 'dance_hall', 'is_settable']
 
 
 try:

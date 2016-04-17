@@ -135,6 +135,7 @@ class Groups(models.Model):
     end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
+    teachers = models.ManyToManyField(User, verbose_name=u'Преподаватели', null=True, blank=True, related_name=u'teachers')
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')

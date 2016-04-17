@@ -12,7 +12,8 @@ from application.models import User as CustomUser
 
 class GroupAdmin(admin.ModelAdmin):
     form = GroupsForm
-
+    list_display = (u'name', u'start_date', u'end_date', u'teacher_leader', u'teacher_follower')
+    # list_filter = (u'is_opened',)
 
 class BonusClassAdmin(admin.ModelAdmin):
     form = BonusClassesForm
@@ -49,10 +50,9 @@ class CustomUserAdmin(UserAdmin):
         # (u'Groups', {'fields': ('groups',)}),
     )
 
+
 admin.site.unregister(User)
 admin.site.register(CustomUser, CustomUserAdmin)
-
-
 admin.site.register(Groups, GroupAdmin)
 admin.site.register(PassTypes)
 admin.site.register(DanceHalls)
