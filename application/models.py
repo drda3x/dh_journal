@@ -7,12 +7,11 @@ from django.utils.functional import cached_property
 from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
 
-from application.utils.date_api import get_count_of_weekdays_per_interval
-from application.utils.date_api import get_week_offsets_from_start_date, WEEK, get_week_days_names
+
+from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names, MONTH_PARENT_FORM, WEEK
 from application.utils.phones import get_string_val
 
 calendar = calendar_origin.Calendar()
-
 
 class User(UserOrigin):
 
@@ -99,12 +98,20 @@ class DanceHalls(models.Model):
         verbose_name_plural = u'Залы'
 
 
-class OpenedGroupManager(models.Manager):
+class BaseGroupManager(models.Manager):
+    def owner(self, user):
+        return self.get_queryset().filter(models.Q(teacher_leader=user) | models.Q(teacher_follower=user))
+
+    def exclude_owner(self, user):
+        return self.get_queryset().exclude(models.Q(teacher_leader=user) | models.Q(teacher_follower=user))
+
+
+class OpenedGroupManager(BaseGroupManager):
     def get_queryset(self):
         return super(OpenedGroupManager, self).get_queryset().filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=datetime.datetime.now().date()))
 
 
-class ClosedGroupsManager(models.Manager):
+class ClosedGroupsManager(BaseGroupManager):
     def get_queryset(self):
         return super(ClosedGroupsManager, self).get_queryset().filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
 
@@ -115,9 +122,9 @@ class Groups(models.Model):
     Группы
     """
 
+    objects = BaseGroupManager()
     opened = OpenedGroupManager()
     closed = ClosedGroupsManager()
-    objects = models.Manager()
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     dance = models.ForeignKey(Dances, null=True, blank=True, verbose_name=u'Направление')
@@ -131,16 +138,26 @@ class Groups(models.Model):
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
+    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
+    _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
+
+    @staticmethod
+    def __date_repr(dt):
+        return u'%d %s %d' % (dt.day, MONTH_PARENT_FORM[dt.month].lower(), dt.year)
 
     @property
     def is_opened(self):
-        return self.end_date is None
+        now_date = datetime.datetime.now().date()
+        return self.end_date is None or self.end_date >= now_date
     
     @property
     def available_passes(self):
-        return self._available_passes.split(',')
+        return self._available_passes.split(',') if self._available_passes else []
+
+    @property
+    def available_passes_external(self):
+        return (self._external_passes).split(',') if self._external_passes else []
 
     @property
     def days(self):
@@ -151,11 +168,26 @@ class Groups(models.Model):
         return map(int,self._days.split(','))
 
     @property
+    def start_date_str(self):
+        return self.__date_repr(self.start_date)
+
+    @property
+    def end_date_str(self):
+        return self.__date_repr(self.end_date)    
+
+    @property
     def last_lesson(self):
         now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         _from = datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
         cnt = get_count_of_weekdays_per_interval(self.days, _from, now) + 1
         return self.start_date if now <= _from else filter(lambda x: x <= now, self.get_calendar(cnt))[-1].date()
+
+    @property
+    def teachers_str(self):
+        if self.teacher_leader and self.teacher_follower:
+            return u'%s - %s' % (self.teacher_leader, self.teacher_follower)
+        else:
+            return self.teacher_leader or self.teacher_follower
 
     def get_calendar(self, count, date_from=None, clean=True):
         start_date = date_from if date_from else self.start_date
@@ -207,10 +239,16 @@ class Groups(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
 
         if self.end_date is None:
-            next_group = Groups.objects.filter(dance_hall=self.dance_hall, time=self.time, _days=self._days, start_date__gte=self.start_date).order_by('start_date').first()
+            prev_group = Groups.objects.filter(
+                dance_hall=self.dance_hall,
+                time=self.time,
+                _days=self._days,
+                start_date__lt=self.start_date,
+            ).exclude(pk=self.pk).order_by('start_date').last()
 
-            if next_group:
-                self.end_date = next_group.start_date()
+            if prev_group and prev_group.end_date is None:
+                prev_group.end_date = self.start_date
+                prev_group.save()
 
         # if not self.is_opened and not self.end_date:
         #     self.end_date = datetime.datetime.now()
@@ -239,12 +277,23 @@ class Groups(models.Model):
         )
 
     def __unicode__(self):
+        today = datetime.datetime.now().date()
 
         leader = self.teacher_leader.last_name if self.teacher_leader else ''
         follower = self.teacher_follower.last_name if self.teacher_follower else ''
         days = '-'.join(self.days)
 
-        return u'%s - %s %s - %s %s' % (self.name, leader, follower, days, self.time_repr) + (u' - ЗАКРЫТА' if not self.is_opened else '')
+        if self.start_date > today:
+            return u'%s c %s %s, %s %s %s' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+
+        elif not self.is_opened:
+            if self.start_date == self.end_date:
+                return u'%s %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+            else:
+                return u'%s c %s по %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, leader, follower, days, self.time_repr)
+
+        else:
+            return u'%s - %s, %s - %s %s' % (self.name, leader, follower, days, self.time_repr)
 
     class Meta:
         app_label = u'application'
@@ -347,6 +396,18 @@ class Debts(models.Model):
     student = models.ForeignKey(Students)
     group = models.ForeignKey(Groups)
     val = models.FloatField(verbose_name=u'Сумма')
+
+    def __unicode__(self):
+        '%s - %s - %s' % (
+            self.date.strftime('%d.%m.%Y') if self.date else '',
+            self.student.__unicode__(),
+            self.group.__unicode__()
+        )
+
+    class Meta:
+        app_label = u'application'
+        verbose_name = u'Долг'
+        verbose_name_plural = u'Долги'
 
 
 class Comments(models.Model):
