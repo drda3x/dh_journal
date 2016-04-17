@@ -1210,7 +1210,7 @@ class GroupView(BaseView):
             'full_teachers': group.teacher_leader and group.teacher_follower
         }
 
-        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:
