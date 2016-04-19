@@ -1207,7 +1207,7 @@ class GroupView(BaseView):
             'calendar': map(to_iso, group.calendar),
             'moneys': day_balance,
             'money_total': totals,
-            'full_teachers': group.teacher_leader and group.teacher_follower
+            'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
         }
 
         context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()

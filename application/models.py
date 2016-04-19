@@ -133,16 +133,16 @@ class Groups(models.Model):
     end_date = models.DateField(verbose_name=u'Дата окончания группы', null=True, blank=True, default=None)
     time = models.TimeField(verbose_name=u'Время начала занятия', null=True, blank=True, default=None)
     end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
-    teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
-    teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
-    teachers = models.ManyToManyField(User, verbose_name=u'Преподаватели', null=True, blank=True, related_name=u'teachers')
+    # teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
+    # teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
+    teachers = models.ManyToManyField(User, verbose_name=u'Преподаватели', null=True, blank=True, related_name=u'allteachers')
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
     available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для преподавателей', related_name=u'avp', null=True, blank=True)
     external_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для показа на внешних сайтах', related_name=u'exp', null=True, blank=True)
-    # _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
-    # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
+    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
+    _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
     @staticmethod
@@ -282,21 +282,22 @@ class Groups(models.Model):
     def __unicode__(self):
         today = datetime.datetime.now().date()
 
-        leader = self.teacher_leader.last_name if self.teacher_leader else ''
-        follower = self.teacher_follower.last_name if self.teacher_follower else ''
+        # leader = self.teacher_leader.last_name if self.teacher_leader else ''
+        # follower = self.teacher_follower.last_name if self.teacher_follower else ''
+        teachers = ', '.join(map(lambda t: t.last_name, self.teachers.all()))
         days = '-'.join(self.days)
 
         if self.start_date > today:
-            return u'%s c %s %s, %s %s %s' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+            return u'%s c %s %s %s %s' % (self.name, self.start_date_str, teachers, days, self.time_repr)
 
         elif not self.is_opened:
             if self.start_date == self.end_date:
-                return u'%s %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+                return u'%s %s %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, teachers, days, self.time_repr)
             else:
-                return u'%s c %s по %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, leader, follower, days, self.time_repr)
+                return u'%s c %s по %s %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, teachers, days, self.time_repr)
 
         else:
-            return u'%s - %s, %s - %s %s' % (self.name, leader, follower, days, self.time_repr)
+            return u'%s - %s - %s %s' % (self.name, teachers, days, self.time_repr)
 
     class Meta:
         app_label = u'application'

@@ -34,15 +34,12 @@ def get_groups_list(user, only_opened=True, only_closed=False):
         return {
             'self': [
                 {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'time': g.time_repr , 'orm': g}
-                for g in group_manager.filter(
-                    Q(teacher_leader=user) | Q(teacher_follower=user),
-                )
+                for g in group_manager.filter(teachers=user)
             ],
             'other': [
-                {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', 'time': g.time_repr , 'orm': g}
-                for g in group_manager.exclude(
-                    Q(teacher_leader=user) | Q(teacher_follower=user)
-                )
+                # {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 't1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', 'time': g.time_repr , 'orm': g}
+                (lambda x: x.update(( ('t%d' % (i+1), val.last_name) for i, val in enumerate(g.teachers.all()))) or x)({'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'time': g.time_repr , 'orm': g}) #'t1': g.teacher_leader.last_name if g.teacher_leader else '', 't2':g.teacher_follower.last_name if g.teacher_follower else '', }
+                for g in group_manager.exclude(teachers=user)
             ],
             'bonus_classes': [
                 dict(id=g.id, sr=g.repr_short(), lr=g.__unicode__())
@@ -53,9 +50,7 @@ def get_groups_list(user, only_opened=True, only_closed=False):
     return {
         'self': [
             {'id': g.id, 'name': g.name, 'days': ' '.join(g.days), 'time': g.time_repr , 'orm': g}
-            for g in group_manager.filter(
-                Q(teacher_leader=user) | Q(teacher_follower=user)
-            )
+            for g in group_manager.filter(teachers=user)
         ],
         'bonus_classes': [
             dict(id=g.id, sr=g.repr_short(), lr=g.__unicode__())

@@ -63,7 +63,7 @@ class GroupsForm(forms.ModelForm):
 
     class Meta:
         model = Groups
-        fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'teachers', 'dance_hall', 'available_passes', 'external_passes', 'is_settable']
+        fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teachers', 'dance_hall', 'available_passes', 'external_passes', 'is_settable']
 
 try:
     class BonusClassesForm(forms.ModelForm):
