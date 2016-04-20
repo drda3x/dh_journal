@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from copy import deepcopy
 from django.utils.functional import cached_property
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 
@@ -49,6 +49,10 @@ class GroupLogic(object):
     @cached_property
     def lessons(self):
         return list(Lessons.objects.select_related('group_pass', 'group_pass__pass_type', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
+
+    @cached_property
+    def all_available_lessons(self):
+        return dict(Lessons.objects.filter(group=self.orm, student__in=self.students, status=Lessons.STATUSES['not_processed']).values_list('student').annotate(available_lessons=Count('student')))
 
     @cached_property
     def debts(self):
@@ -113,7 +117,7 @@ class GroupLogic(object):
                     temp_date = self.orm.last_lesson
 
                 dd = p.bonus_class.date if p.bonus_class.date > temp_date else temp_date
-                for phantom_lesson in self.orm.get_calendar(p.lessons, dd):
+                for phantom_lesson in filter(lambda _dd: self.date_1 <= _dd <= self.date_2, self.orm.get_calendar(p.lessons, dd)):
                     arr.append(self.PhantomLesson(phantom_lesson.date(), p))
 
             iterator = iter(arr)
@@ -137,7 +141,7 @@ class GroupLogic(object):
                 dict(
                     student=student,
                     lessons=_net,
-                    pass_remaining=len(filter(lambda l: l.status == Lessons.STATUSES['not_processed'], lessons)),
+                    pass_remaining=self.all_available_lessons.get(student.pk, 0) + sum([p.lessons for p in phantom_passes], 0),
                     last_comment=comments[-1] if comments else None
                 )
             )
