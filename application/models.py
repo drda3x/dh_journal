@@ -82,6 +82,8 @@ class DanceHalls(models.Model):
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
     address = models.CharField(max_length=200, verbose_name=u'Адрес', null=True, blank=True)
     time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
+    lon = models.FloatField(verbose_name=u'Широта', null=True, blank=True)
+    lat = models.FloatField(verbose_name=u'Долгота', null=True, blank=True)
 
     def __unicode__(self):
         return self.name if self.name else u''
@@ -89,7 +91,11 @@ class DanceHalls(models.Model):
     def __json__(self):
         return dict(
             station=self.name,
-            prise=self.prise
+            prise=self.prise,
+            address=self.address,
+            time_to_come=self.time_to_come,
+            lon=self.lon,
+            lat=self.lat
         )
 
     class Meta:
@@ -141,8 +147,8 @@ class Groups(models.Model):
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
     available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для преподавателей', related_name=u'avp', null=True, blank=True)
     external_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для показа на внешних сайтах', related_name=u'exp', null=True, blank=True)
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
-    _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
+    # _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
+    # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
     @staticmethod

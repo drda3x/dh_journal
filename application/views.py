@@ -1187,15 +1187,15 @@ class GroupView(BaseView):
 
         day_balance, totals = group.calc_money()
         students = [
-                {
-                    'person': s['student'],
-                    'is_newbie': s['student'].pk in group.newbies,
-                    'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
-                    #'debt': get_student_total_debt(s, group),
-                    'pass_remaining': s['pass_remaining'],
-                    'last_comment': s['last_comment']
-                } for s in group.get_students_net()
-            ]
+            {
+                'person': s['student'],
+                'is_newbie': s['student'].pk in group.newbies,
+                'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+                #'debt': get_student_total_debt(s, group),
+                'pass_remaining': s['pass_remaining'],
+                'last_comment': s['last_comment']
+            } for s in group.get_students_net()
+        ]
 
         context['group_detail'] = {
             'id': group.id,
