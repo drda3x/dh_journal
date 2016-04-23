@@ -206,11 +206,21 @@ def edit_student(request):
                             for record in records:
                                 back_up.append(deepcopy(record))
                                 setattr(record, field_name, student)
-                                record.save()
+
+                                try:
+                                    record.save()
+
+                                except Exception as e:
+                                    # Если сохранение провалилось по причине дубликата - удаляем дубликат...
+                                    if e.args[0] == 1062:
+                                        record.delete()
+
+                                    else:
+                                        raise e
 
                         human.delete()
 
-                    except Exception:
+                    except Exception as e:
                         # Если одно из сохранений провалилось - восстанавливаем предыдущее состояние
                         # для всех записей конкретного человека
                         for record in back_up:
