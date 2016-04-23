@@ -23,7 +23,7 @@ class GroupLogic(object):
 
         if self.orm.end_datetime:
             self.date_2 = self.orm.end_datetime
-            self.date_1 = deepcopy(self.date_2).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            self.date_1 = max(deepcopy(self.date_2).replace(day=1, hour=0, minute=0, second=0, microsecond=0), group_start_date)
 
         else:
             try:
