@@ -46,7 +46,10 @@ class GroupLogic(object):
     def students(self):
         return map(
             lambda s: setattr(s.student, 'active', 1) or s.student,
-            GroupList.objects.select_related('student').filter(group=self.orm, active=True, student__is_deleted=False).order_by('student__last_name', 'student__first_name').only('student')
+            GroupList.objects.select_related('student').filter(
+                Q(active=True) | Q(student__in=set([lesson.student for lesson in self.lessons])),
+                group=self.orm, student__is_deleted=False).order_by('student__last_name', 'student__first_name'
+            ).only('student')
         )
 
     @cached_property
@@ -55,7 +58,7 @@ class GroupLogic(object):
 
     @cached_property
     def lessons(self):
-        return list(Lessons.objects.select_related('group_pass', 'group_pass__pass_type', 'student').filter(group=self.orm, student__in=self.students, date__range=[self.date_1, self.date_2]).order_by('date'))
+        return list(Lessons.objects.select_related('group_pass', 'group_pass__pass_type', 'student').filter(group=self.orm, date__range=[self.date_1, self.date_2]).order_by('date'))
 
     @cached_property
     def all_available_lessons(self):
@@ -63,7 +66,7 @@ class GroupLogic(object):
 
     @cached_property
     def debts(self):
-        return list(Debts.objects.select_related('student').filter(group=self.orm, student__in=self.students))
+        return list(Debts.objects.select_related('student').filter(group=self.orm, date__range=[self.date_1, self.date_2]))
 
     @cached_property
     def passes(self):
@@ -223,7 +226,6 @@ class GroupLogic(object):
 
     class CanceledLesson(object):
         pass
-
 
 """
 
