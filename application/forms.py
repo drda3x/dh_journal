@@ -65,32 +65,9 @@ class GroupsForm(forms.ModelForm):
         model = Groups
         fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teachers', 'dance_hall', 'available_passes', 'external_passes', 'is_settable']
 
-try:
-    class BonusClassesForm(forms.ModelForm):
 
-        _available_passes = CommaSeparatedSelectIntegerWithUpdate(
-            qs=PassTypes.objects.filter(one_group_pass=True).order_by('sequence'),
-            label=u'Абонементы',
-            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')),
-            widget=forms.CheckboxSelectMultiple()
-        )
+class BonusClassesForm(forms.ModelForm):
 
-        _available_groups = CommaSeparatedSelectIntegerWithUpdate(
-            qs=Groups.objects.filter(is_opened=True),
-            label=u'Группы, в которые можно преобрести абонемент',
-            choices=((i.id, str(i)) for i in Groups.objects.filter(is_opened=True)),
-            widget=forms.CheckboxSelectMultiple()
-        )
-
-        class Meta:
-            model = BonusClasses
-            fields = ['date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
-
-except Exception:
-        class BonusClassesForm(forms.ModelForm):
-
-            _available_passes = None
-
-            class Meta:
-                model = BonusClasses
-                fields = ['date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'hall', 'can_edit']
+    class Meta:
+        model = BonusClasses
+        fields = ['date', 'time', 'end_time', 'hall', 'teachers', 'available_groups', 'available_passes', 'can_edit']

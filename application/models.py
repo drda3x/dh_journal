@@ -317,19 +317,14 @@ class BonusClasses(models.Model):
     time = models.TimeField(verbose_name=u'Время начала', null=True, blank=True)
     end_time = models.TimeField(verbose_name=u'Время окончания', null=True, blank=True)
     hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
+    # deprecated
     teacher_leader = models.ForeignKey(User, verbose_name=u'Преподаватель 1', null=True, blank=True, related_name='teacher1')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Преподаватель 2', null=True, blank=True, related_name='teacher2')
+    # =========================================================================================
+    teachers = models.ManyToManyField('User', verbose_name=u'Преподаватели')
     can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
-    _available_groups = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы', null=True, blank=True)
-
-    @property
-    def available_groups(self):
-        return self._available_groups.split(',') if self._available_groups else []
-
-    @property
-    def available_passes(self):
-        return self._available_passes.split(',') if self._available_passes else []
+    available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Доступные абонементы', null=True, blank=True)
+    available_groups = models.ManyToManyField('Groups', verbose_name=u'Доступные группы', null=True, blank=True)
 
     def repr_short(self):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.name)

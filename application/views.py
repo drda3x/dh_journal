@@ -844,9 +844,9 @@ class BonusClassView(BaseView):
         ]
         context['groups'] = [
             dict(id=i.id, repr='%s c %s (%s)' % (i.dance_hall.station, i.start_date.strftime('%d.%m'), i.time_repr))
-            for i in Groups.objects.filter(pk__in=mk.available_groups)
+            for i in mk.available_groups.all()
         ]
-        context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
+        context['pass_types'] = mk.available_passes.all()
 
         return context
 
