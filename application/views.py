@@ -13,13 +13,15 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
+from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
+from application.logic.group import GroupLogic
 
-from application.utils.passes import get_color_classes, PassLogic
+from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -241,93 +243,93 @@ def print_lesson(request):
     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-@auth_decorator
-def club_cards(request):
-    context = {}
-    template = 'club_cards.html'
-    date_format = '%d%m%Y'
-
-    user = request.user
-    now = datetime.datetime.now()
-    date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
-        else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    date_to = get_last_day_of_month(date_from)
-
-    last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
-    down_border = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)).replace(day=1)
-
-    context['control_data'] = {
-        'constant': {
-            'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
-            'current_date_numval': date_from.strftime(date_format)
-        },
-        'date_control': map(
-            lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
-            filter(
-                lambda x: x >= down_border,
-                map(lambda x: get_month_offset(last_pass.end_date if last_pass else date_from, x), xrange(0, 8))
-            )
-        )
-    }
-
-    first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
-    all_passes = Passes.objects\
-        .filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from)\
-        .select_related('student').order_by('student__last_name', 'student__first_name')\
-        .order_by('-start_date')
-    for _p in all_passes:
-        _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
-        _p.money = _p.lessons * _p.one_lesson_prise
-
-    ordered = all_passes.order_by('start_date')
-    borders = (ordered.first(), ordered.last())
-    groups = get_groups_list(user)
-    date_group_list = {}
-
-    all_groups = groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])
-
-    if borders[0] and borders[1]:
-        for group in all_groups:
-            days = group['days'].split(' ')
-            count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
-            calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
-
-            for p in all_passes:
-                for d in filter(lambda x: p.start_date <= x.date() <= p.end_date and x <= now, calendar):
-                    if d not in date_group_list.iterkeys():
-                        date_group_list[d] = []
-
-                    date_group_list[d].append('g%dp%d' % (group['id'], p.id))
-
-    for group in all_groups:
-        group['students'] = ' s'.join(
-            [
-                str(s.id)
-                for s in filter(
-                    lambda st: st in [p.student for p in all_passes],
-                    get_group_students_list(group['id'])
-                )
-            ]
-        )
-
-        group['students'] = ('s' if group['students'] else '') + group['students']
-
-    students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in all_groups]
-
-    context['date_list'] = map(
-        lambda x: {'key': x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
-        date_group_list
-    )
-    context['expire'] = (now - datetime.timedelta(days=14)).date()
-    context['now'] = now.date()
-    context['user'] = user
-    context['date_list'].sort(key=lambda x: x['key'])
-    context['groups'] = groups
-    context['passes'] = all_passes
-    context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
-    context['students'] = students
-
-    return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
+# @auth_decorator
+# def club_cards(request):
+#     context = {}
+#     template = 'club_cards.html'
+#     date_format = '%d%m%Y'
+#
+#     user = request.user
+#     now = datetime.datetime.now()
+#     date_from = datetime.datetime.strptime(request.GET['date'], date_format) if 'date' in request.GET\
+#         else now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+#     date_to = get_last_day_of_month(date_from)
+#
+#     last_pass = Passes.objects.filter(pass_type__one_group_pass=0).order_by('end_date').last()
+#     down_border = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)).replace(day=1)
+#
+#     context['control_data'] = {
+#         'constant': {
+#             'current_date_str': '%s %d' % (MONTH_RUS[date_from.month], date_from.year),
+#             'current_date_numval': date_from.strftime(date_format)
+#         },
+#         'date_control': map(
+#             lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+#             filter(
+#                 lambda x: x >= down_border,
+#                 map(lambda x: get_month_offset(last_pass.end_date if last_pass else date_from, x), xrange(0, 8))
+#             )
+#         )
+#     }
+#
+#     first_day_of_month = datetime.datetime(date_from.year, date_from.month, 1)
+#     all_passes = Passes.objects\
+#         .filter(pass_type__one_group_pass=0, start_date__lte=date_to, end_date__gte=date_from)\
+#         .select_related('student').order_by('student__last_name', 'student__first_name')\
+#         .order_by('-start_date')
+#     for _p in all_passes:
+#         _p.prev_month = len(_p.get_lessons_before_date(first_day_of_month))
+#         _p.money = _p.lessons * _p.one_lesson_prise
+#
+#     ordered = all_passes.order_by('start_date')
+#     borders = (ordered.first(), ordered.last())
+#     groups = get_groups_list(user)
+#     date_group_list = {}
+#
+#     all_groups = groups['self'] + (groups['other'] if 'other' in groups.iterkeys() else [])
+#
+#     if borders[0] and borders[1]:
+#         for group in all_groups:
+#             days = group['days'].split(' ')
+#             count = get_count_of_weekdays_per_interval(days, borders[0].start_date, borders[1].end_date)
+#             calendar = filter(lambda d1: d1.date() >= group['orm'].start_date, group['orm'].get_calendar(count, borders[0].start_date))
+#
+#             for p in all_passes:
+#                 for d in filter(lambda x: p.start_date <= x.date() <= p.end_date and x <= now, calendar):
+#                     if d not in date_group_list.iterkeys():
+#                         date_group_list[d] = []
+#
+#                     date_group_list[d].append('g%dp%d' % (group['id'], p.id))
+#
+#     for group in all_groups:
+#         group['students'] = ' s'.join(
+#             [
+#                 str(s.id)
+#                 for s in filter(
+#                     lambda st: st in [p.student for p in all_passes],
+#                     get_group_students_list(group['id'])
+#                 )
+#             ]
+#         )
+#
+#         group['students'] = ('s' if group['students'] else '') + group['students']
+#
+#     students = [{'id': x['id'], 'list': get_group_students_list(x['id'])} for x in all_groups]
+#
+#     context['date_list'] = map(
+#         lambda x: {'key': x, 'label': x.strftime('%d.%m.%Y'), 'val': ' '.join(date_group_list[x])},
+#         date_group_list
+#     )
+#     context['expire'] = (now - datetime.timedelta(days=14)).date()
+#     context['now'] = now.date()
+#     context['user'] = user
+#     context['date_list'].sort(key=lambda x: x['key'])
+#     context['groups'] = groups
+#     context['passes'] = all_passes
+#     context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
+#     context['students'] = students
+#
+#     return render_to_response(template, context, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 # С этого момента начинается эра нормального кода!!!
@@ -382,7 +384,7 @@ class IndexView(BaseView):
         #Если пользователь - админ сампо, отправляем его на другую вьюшку
         if user.teacher:
             return super(IndexView, self).get(self.request, *args, **kwargs)
-        
+
         elif user.sampo_admin:
             return redirect('/sampo')
 
@@ -433,8 +435,8 @@ class LoginView(TemplateView):
         else:
             return None
 
-    def get_context_data(self, status_code=200, *args, **kwargs):
-        context = super(LoginView, self).get_context_data(*args, **kwargs)
+    def get_context_data(self, status_code=200, **kwargs):
+        context = super(LoginView, self).get_context_data(**kwargs)
         context['login_failed'] = status_code != 200
 
         return context
@@ -668,8 +670,8 @@ class SampoView(BaseView):
 
             return self.render_to_response(context)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(SampoView, self).get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super(SampoView, self).get_context_data(**kwargs)
 
         date_str = self.request.GET.get('date')
 
@@ -746,7 +748,6 @@ class BonusClassView(BaseView):
         mkid = int(request.POST['mkid'])
         student = Students.objects.get(pk=int(request.POST['stid']))
         pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
-        group = Groups.objects.get(pk=gid)
 
         _add_student(gid, student, group_list_orm=GroupList)
 
@@ -1032,3 +1033,191 @@ class ClubCardsView(BaseView):
         _json = json.dumps(result_json)
 
         return HttpResponse(_json)
+
+
+class PrintView(BaseView):
+    date_format = '%d%m%Y'
+
+    def __init__(self):
+        super(PrintView, self).__init__()
+
+        self.additional_contexts = {
+            'lesson': self.lesson_context,
+            'full': self.full_view_context
+        }
+
+    def lesson_context(self, context):
+        self.template_name = 'print_lesson.html'
+        date = datetime.datetime.strptime(self.request.GET['date'], self.date_format).date()
+        group = Groups.objects.get(pk=self.request.GET['id'])
+
+        context['group_name'] = group.name
+        context['date'] = date.strftime('%d.%m.%Y')
+        context['students'] = map(
+            lambda s: dict(data=get_student_lesson_status(s, group, date), info=s),
+            get_group_students_list(group)
+        )
+
+    def full_view_context(self, context):
+        self.template_name = 'print_full.html'
+        group_id = self.request.GET['id']
+        date = self.request.GET.get('date')
+
+        date_from = datetime.datetime.strptime(self.request.GET['date'], self.date_format) if date\
+            else datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        date_to = get_last_day_of_month(date_from)
+
+        context['date_str'] = '%s %d' % (MONTH_RUS[date_from.month], date_from.year)
+        context['group_detail'] = get_group_detail(group_id, date_from, date_to, date_format='%d.%m.%y')
+
+        context['subtype'] = self.request.GET.get('subtype', None)
+
+        if not context['subtype']:
+            raise TypeError('wrong subtype')
+
+    def get_context_data(self, **kwargs):
+        context = super(PrintView, self).get_context_data(**kwargs)
+
+        html_color_classes = {
+            key: val for val, key in get_color_classes()
+        }
+        context['passes_color_classes'] = [
+            {'name': val, 'val': key} for key, val in html_color_classes.iteritems()
+        ]
+
+        self.additional_contexts[self.request['type']](context)
+
+        return context
+
+
+class GroupView(BaseView):
+    template_name = 'group_detail.html'
+
+    @cached_property
+    def html_color_classes(self):
+        return {
+            key: val for val, key in get_color_classes()
+        }
+
+    def get_detail_repr(self, obj):
+        if isinstance(obj, GroupLogic.CanceledLesson):
+            return {
+                'pass': False,
+                'color': '',
+                'sign': '',
+                'attended': False,
+                'canceled': True
+            }
+
+        elif isinstance(obj, GroupLogic.PhantomLesson):
+            return {
+                'pass': True,
+                'sign': '',
+                'sign_type': 's',
+                'attended': Lessons.STATUSES['not_processed'],
+                'pid': obj.group_pass.id,
+                'first': False,
+                'last': False,
+                'color': self.html_color_classes[obj.group_pass.color]
+            }
+
+        elif isinstance(obj, Lessons):
+            return {
+                'pass': True,
+                'sign': obj.sign,
+                'sign_type': 's' if isinstance(obj.sign, str) else 'n',
+                'attended': obj.status == Lessons.STATUSES['attended'],
+                'pid': obj.group_pass.id,
+                'first': self.group.lesson_is_last_in_pass(obj),
+                'last': self.group.lesson_is_first_in_pass(obj),
+                'color': '' if obj.status == Lessons.STATUSES['moved'] else self.html_color_classes[obj.group_pass.color] if not obj.student.org  else ORG_PASS_HTML_CLASS
+            }
+
+        else:
+            return {
+                'pass': False,
+                'color': 'text-error' if isinstance(obj, Debts) else '',
+                'sign': 'долг' if isinstance(obj, Debts) else '',
+                'sign_type': 's' if isinstance(obj, Debts) else '',
+                'attended': False,
+                'canceled': False,
+                'first': False,
+                'last': False
+            }
+
+    def get_context_data(self, **kwargs):
+        def to_iso(elem):
+            elem['date'] = elem['date'].strftime('%d.%m.%Y')
+
+            return elem
+
+        now = datetime.datetime.now()
+        date_format = '%d%m%Y'
+
+        try:
+            request_date = datetime.datetime.strptime(self.request.GET['date'], date_format)
+        except KeyError:
+            request_date = None
+
+        self.group = group = GroupLogic(self.request.GET['id'], request_date)
+
+        forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
+        if group.last_lesson_ever:
+            forward_month = max(forward_month, group.last_lesson_ever.date)
+
+        border = datetime.datetime.combine(group.orm.start_date, datetime.datetime.min.time()).replace(day=1)
+
+        context = super(GroupView, self).get_context_data(**kwargs)
+        context['passes_color_classes'] = [
+            dict(name=n, val=v) for n, v in get_color_classes()
+        ]
+        context['control_data'] = {
+            'constant': {
+                'current_date_str': '%s %d' % (MONTH_RUS[group.date_1.month], group.date_1.year),
+                'current_date_numval': group.date_1.strftime(date_format)
+            },
+            'date_control': map(
+                lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+                filter(
+                    lambda x1: x1 >= border,
+                    map(lambda x: get_month_offset(forward_month, x), xrange(0, 8))
+                )
+            )
+        }
+
+        day_balance, totals = group.calc_money()
+        students = [
+            {
+                'person': s['student'],
+                'is_newbie': s['student'].pk in group.newbies,
+                'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+                #'debt': get_student_total_debt(s, group),
+                'pass_remaining': s['pass_remaining'],
+                'last_comment': s['last_comment']
+            } for s in group.get_students_net()
+        ]
+
+        context['group_detail'] = {
+            'id': group.id,
+            'name': group.name,
+            'days': group.days,
+            'start_date': group.start_date,
+            'students': students,
+            'last_lesson': group.last_lesson,
+            'calendar': map(to_iso, group.calendar),
+            'moneys': day_balance,
+            'money_total': totals,
+            'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
+        }
+
+        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
+        context['other_groups'] = Groups.opened.exclude(id=group.id)
+
+        for elem in context['pass_detail']:
+            elem['skips'] = '' if elem['skips'] is None else elem['skips']
+
+        for det in context['pass_detail']:
+            det['html_color_class'] = self.html_color_classes[det['color']]
+
+        return context
+

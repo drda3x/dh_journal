@@ -25,3 +25,7 @@ body {
 .loading2 * {
     display: none !important;
 }
+
+.strong {
+	font-weight: bold;
+}

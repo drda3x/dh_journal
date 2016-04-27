@@ -57,40 +57,13 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
         return value.split(',') if value and hasattr(value, 'split') else value
 
 
-# При выполненнии syncdb код падал ибо не находил таблицу PassTypes
-# заменим класс в случае если не найдем таблицу
-try:
-    class GroupsForm(forms.ModelForm):
+class GroupsForm(forms.ModelForm):
 
-        _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-        _available_passes = CommaSeparatedSelectIntegerWithUpdate(
-            qs=PassTypes.objects.filter(one_group_pass=True).order_by('sequence'),
-            label=u'Абонементы',
-            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple(),
-            required=False
-        )
-        _external_passes = CommaSeparatedSelectIntegerWithUpdate(
-            qs=PassTypes.objects.filter(one_group_pass=True).order_by('sequence'),
-            label=u'Абонементы для показа на внешних сайтах',
-            choices=((i.id, str(i)) for i in PassTypes.objects.filter(one_group_pass=True).order_by('sequence')), widget=forms.CheckboxSelectMultiple(),
-            required=False
-        )
+    _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
 
-        class Meta:
-            model = Groups
-            fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_settable']
-
-except Exception:
-        class GroupsForm(forms.ModelForm):
-
-            _days = CommaSeparatedSelectInteger(label='Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-            _available_passes = None
-            _external_passes = None
-
-            class Meta:
-                model = Groups
-                fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teacher_leader', 'teacher_follower', 'dance_hall', 'is_settable']
-
+    class Meta:
+        model = Groups
+        fields = ['name', 'dance', 'level', 'start_date', 'end_date', 'time', 'end_time', 'teachers', 'dance_hall', 'available_passes', 'external_passes', 'is_settable']
 
 # try:
 class BonusClassesForm(forms.ModelForm):

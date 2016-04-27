@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from django.contrib import admin
+from django.db.models import Q
 from models import *
 from forms import GroupsForm, BonusClassesForm
 from django.contrib.auth.admin import UserAdmin
@@ -10,9 +12,62 @@ from django.contrib.auth.forms import UserChangeForm
 from application.models import User as CustomUser
 
 
+class GroupsAdminStatusFilter(admin.SimpleListFilter):
+    title = u'Статусы'
+    parameter_name = 'status'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('opened', 'Только открытые'),
+            ('closed', 'Только закрытые')
+        )
+
+    def queryset(self, request, queryset):
+        sets = dict(
+            opened=queryset.filter(Q(end_date__isnull=True) | Q(end_date__gte=datetime.datetime.now().date())),
+            closed=queryset.filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
+        )
+        # import ipdb; ipdb.set_trace()
+        return sets.get(self.value(), queryset)
+
+
+class GroupsAdminHallFilter(admin.SimpleListFilter):
+    title = u'Залы'
+    parameter_name = 'hall'
+
+    def lookups(self, *args, **kwargs):
+        return (
+            ('hall%d' % i.pk, i)
+            for i in set(g.dance_hall for g in Groups.objects.all())
+        )
+
+    def queryset(self, request, queryset):
+        sets = dict(
+            (
+                (key, queryset.filter(dance_hall=val)) for key, val in self.lookups()
+            )
+        )
+        return sets.get(self.value(), queryset)
+
+
 class GroupAdmin(admin.ModelAdmin):
     form = GroupsForm
+    list_display = (u'name', 'status', u'start_date', '_end_date', u'dance_hall', 'teachers_to_string')
+    filter_horizontal = ('teachers', 'available_passes', 'external_passes')
+    list_filter = (GroupsAdminStatusFilter, GroupsAdminHallFilter)
 
+    def status(self, obj):
+        return u'Открыта' if obj.is_opened else u'Закрыта'
+
+    def teachers_to_string(self, obj):
+        return ', '.join(map(str, obj.teachers.all()))
+
+    def _end_date(self, obj):
+        return obj.end_date or u'-'
+
+    status.short_description = u'Статус'
+    teachers_to_string.short_description = u'Преподаватели'
+    _end_date.short_description = u'Дата окончания группы'
 
 class BonusClassAdmin(admin.ModelAdmin):
     form = BonusClassesForm
@@ -49,10 +104,9 @@ class CustomUserAdmin(UserAdmin):
         # (u'Groups', {'fields': ('groups',)}),
     )
 
+
 admin.site.unregister(User)
 admin.site.register(CustomUser, CustomUserAdmin)
-
-
 admin.site.register(Groups, GroupAdmin)
 admin.site.register(PassTypes)
 admin.site.register(DanceHalls)

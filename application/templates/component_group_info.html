@@ -21,9 +21,9 @@
                 <tr data-id="{{ student.person.id }}" data-active="{{ student.person.active }}">
                     <td class="info-fio shotcard-disabled"><input class="shotcard-disabled" type="checkbox" value="{{ student.person.id }}" /></td>
                     <td>{{ forloop.counter }}</td>
-                    <td style="min-width: 100px;">{{ student.person.last_name }}</td>
-                    <td style="min-width: 100px;">{{ student.person.first_name }}</td>
-                    <td style="min-width: 133px;">{{ student.person.str_phone }}</td>
+                    <td style="min-width: 100px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.last_name }}</td>
+                    <td style="min-width: 100px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.first_name }}</td>
+                    <td style="min-width: 133px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.str_phone }}</td>
                     <td style="min-width: 150px;">{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}

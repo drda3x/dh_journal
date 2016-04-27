@@ -82,6 +82,8 @@ class DanceHalls(models.Model):
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
     address = models.CharField(max_length=200, verbose_name=u'Адрес', null=True, blank=True)
     time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
+    lon = models.FloatField(verbose_name=u'Широта', null=True, blank=True)
+    lat = models.FloatField(verbose_name=u'Долгота', null=True, blank=True)
 
     def __unicode__(self):
         return self.name if self.name else u''
@@ -89,7 +91,11 @@ class DanceHalls(models.Model):
     def __json__(self):
         return dict(
             station=self.name,
-            prise=self.prise
+            prise=self.prise,
+            address=self.address,
+            time_to_come=self.time_to_come,
+            lon=self.lon,
+            lat=self.lat
         )
 
     class Meta:
@@ -135,11 +141,14 @@ class Groups(models.Model):
     end_time = models.TimeField(verbose_name=u'Время окончания занятия', null=True, blank=True, default=None)
     teacher_leader = models.ForeignKey(User, verbose_name=u'Препод 1', null=True, blank=True, related_name=u'leader')
     teacher_follower = models.ForeignKey(User, verbose_name=u'Препод 2', null=True, blank=True, related_name=u'follower')
+    teachers = models.ManyToManyField(User, verbose_name=u'Преподаватели', null=True, blank=True, related_name=u'allteachers')
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
     _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
-    _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
-    _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
+    available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для преподавателей', related_name=u'avp', null=True, blank=True)
+    external_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для показа на внешних сайтах', related_name=u'exp', null=True, blank=True)
+    # _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
+    # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
 
     @staticmethod
@@ -150,14 +159,14 @@ class Groups(models.Model):
     def is_opened(self):
         now_date = datetime.datetime.now().date()
         return self.end_date is None or self.end_date >= now_date
-    
-    @property
-    def available_passes(self):
-        return self._available_passes.split(',') if self._available_passes else []
 
-    @property
-    def available_passes_external(self):
-        return (self._external_passes).split(',') if self._external_passes else []
+    # @property
+    # def available_passes(self):
+    #     return self._available_passes.split(',') if self._available_passes else []
+
+    # @property
+    # def available_passes_external(self):
+    #     return (self._external_passes).split(',') if self._external_passes else []
 
     @property
     def days(self):
@@ -279,21 +288,22 @@ class Groups(models.Model):
     def __unicode__(self):
         today = datetime.datetime.now().date()
 
-        leader = self.teacher_leader.last_name if self.teacher_leader else ''
-        follower = self.teacher_follower.last_name if self.teacher_follower else ''
+        # leader = self.teacher_leader.last_name if self.teacher_leader else ''
+        # follower = self.teacher_follower.last_name if self.teacher_follower else ''
+        teachers = ', '.join(map(lambda t: t.last_name, self.teachers.all()))
         days = '-'.join(self.days)
 
         if self.start_date > today:
-            return u'%s c %s %s, %s %s %s' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+            return u'%s c %s %s %s %s' % (self.name, self.start_date_str, teachers, days, self.time_repr)
 
         elif not self.is_opened:
             if self.start_date == self.end_date:
-                return u'%s %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, leader, follower, days, self.time_repr)
+                return u'%s %s %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, teachers, days, self.time_repr)
             else:
-                return u'%s c %s по %s %s, %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, leader, follower, days, self.time_repr)
+                return u'%s c %s по %s %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, teachers, days, self.time_repr)
 
         else:
-            return u'%s - %s, %s - %s %s' % (self.name, leader, follower, days, self.time_repr)
+            return u'%s - %s - %s %s' % (self.name, teachers, days, self.time_repr)
 
     class Meta:
         app_label = u'application'
@@ -505,6 +515,7 @@ class GroupList(models.Model):
     group = models.ForeignKey(Groups, verbose_name=u'Группа')
     student = models.ForeignKey(Students, verbose_name=u'Ученик')
     active = models.BooleanField(verbose_name=u'Ссылка активна', default=True)
+    last_update = models.DateField(verbose_name=u'Последнее обновление записи', auto_now=True)
 
     class Meta:
         app_label = u'application'
@@ -570,6 +581,18 @@ class Passes(models.Model):
     @property
     def one_lesson_prise(self):
         return round(float(self.pass_type.prise) / self.pass_type.lessons, 2)
+
+    @cached_property
+    def _lessons(self):
+        return list(Lessons.objects.filter(group_pass=self).order_by('date'))
+
+    @property
+    def first_lesson_date(self):
+        return self._lessons[0]
+
+    @property
+    def last_lesson_date(self):
+        return self._lessons[-1]
 
     def __json__(self):
         return dict(
@@ -654,7 +677,7 @@ class Lessons(models.Model):
 
     @cached_property
     def is_first_in_pass(self):
-        first_lesson = Lessons.objects.filter(group_pass=self.group_pass).earliest('date')
+        #first_lesson = Lessons.objects.filter(group_pass=self.group_pass).earliest('date')
         return self.group_pass.start_date == self.date
 
     @cached_property

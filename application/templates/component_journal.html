@@ -22,7 +22,7 @@
                     <div class="dropdown sub-menu">
                         <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
                         <!--b class="caret"></b-->
-                        <span>{{ student.person.last_name }} {{ student.person.first_name }}</span>
+                        <span {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.last_name }} {{ student.person.first_name }}</span>
                         </a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                             <li class="sub_menu_del">
@@ -130,7 +130,7 @@
             {% if group_detail.full_teachers %}
             <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
             {% endif %}
-            {% if group_detail.money_total.next_month_balance %}
+            {% if group_detail.money_total.next_month_balance >= 0 %}
                 <div>На следующий месяц: <strong>{{ group_detail.money_total.next_month_balance }}</strong></div>
             {% endif %}
         </div>
