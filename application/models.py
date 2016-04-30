@@ -242,6 +242,10 @@ class Groups(models.Model):
         return res
 
     @property
+    def start_datetime(self):
+        return datetime.datetime.combine(self.start_date, datetime.datetime.min.time())
+
+    @property
     def end_datetime(self):
         return datetime.datetime.combine(self.end_date, datetime.datetime.min.time()) if self.end_date else None
 

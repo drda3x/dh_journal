@@ -19,19 +19,14 @@ class GroupLogic(object):
         now = datetime.now()
 
         self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
-        group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
+        # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
+        # group_end_date = self.orm_end_date
+
+        self.date_1 = max(date or datetime(now.year, now.month, 1), self.orm.start_datetime)
 
         if self.orm.end_datetime:
-            self.date_2 = self.orm.end_datetime
-            self.date_1 = max(deepcopy(self.date_2).replace(day=1, hour=0, minute=0, second=0, microsecond=0), group_start_date)
-
+            self.date_2 = min(get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0), self.orm.end_datetime)
         else:
-            try:
-                self.date_1 = max(date, group_start_date)
-
-            except TypeError:
-                self.date_1 = max(datetime(now.year, now.month, 1), group_start_date)
-
             self.date_2 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
 
         self.days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
