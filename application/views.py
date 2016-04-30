@@ -21,7 +21,7 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -50,45 +50,6 @@ def prev_cur(arr):
     for elem in itr:
         yield prev, elem
         prev = elem
-
-
-# def index_view(request):
-
-#     user = check_auth(request)
-#     main_template = 'main_view.html'
-#     login_template = 'login.html'
-
-#     if user:
-
-#         context = dict()
-#         context['user'] = user
-
-#         if user.teacher:
-
-#             context['groups'] = get_groups_list(user)
-#             context['now'] = datetime.datetime.now().date()
-
-#             other_groups = context['groups'].get('other')
-
-#             if other_groups:
-#                 other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
-
-#                 try:
-#                     for prev, cur in prev_cur(other_groups):
-#                         if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-#                             other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-#                 except TypeError:
-#                     pass
-
-#         elif user.sampo_admin:
-#             return sampo_view(request)
-
-#         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
-
-#     else:
-#         args = {}
-#         args.update(csrf(request))
-#         return render_to_response(login_template, args, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 @auth_decorator
@@ -394,21 +355,69 @@ class IndexView(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-
-        context['groups'] = get_groups_list(self.request.user)
         context['now'] = datetime.datetime.now().date()
 
-        other_groups = context['groups'].get('other')
+        depth = 1
+        menu = []
+        user = self.request.user
 
-        if other_groups:
-            other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+        # Меню для руководства
+        if user.is_superuser:
+            groups = Groups.opened
 
-            try:
-                for prev, cur in prev_cur(other_groups):
-                    if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-                        other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-            except TypeError:
-                pass
+            # Мои группы
+            menu.append({
+                'label':u'Мои группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': groups.filter(teachers=user)
+            })
+
+            # Группы других преподавателей
+            depth += 1
+            menu.append({
+                'label': u'Остальные группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [
+                    {
+                        'label': level.name,
+                        'hideable': True,
+                        'depth': '%d_%d' % (depth, level_depth),
+                        'urls': groups.filter(level=level).exclude(teachers=user)
+                    } for level_depth, level in enumerate(GroupLevels.objects.all())
+                ]
+            })
+
+            #Мастер-классы
+            depth += 1
+            menu.append({
+                'label': u'Мастер-классы',
+                'depth': str(depth),
+                'hideable': True,
+                'url_pattern': 'mk',
+                'urls': BonusClasses.objects.select_related().all().order_by('-date')
+            })
+
+        # Меню для других преподов
+        else:
+            # Мои группы
+            menu.append({
+                'label': u'Группы',
+                'depth': str(depth),
+                'urls': Groups.opened.filter(teachers=user)
+            })
+            
+            #Мастер-классы
+            depth += 1
+            menu.append({
+                'label': u'Мастер-классы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')
+            })
+
+        context['menu'] = menu
 
         return context
 

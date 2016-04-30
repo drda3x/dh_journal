@@ -1,0 +1,29 @@
+{% load is_type %}
+{% load list_filters %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+	{% if level.label %}
+		<li style="cursor: pointer;" class="nav-header" onclick="toggleMenu('{{level.depth}}')">
+			<h5 style="margin: 0">
+				{% if level.hideable %}
+					<div style="display: inline-block">
+						<div class="arrow-right {{level.depth}}" style="border: 4px solid transparent; border-left: 6px solid #999999; width: 0; position: relative; top: -2px;"></div>
+						<div class="arrow-top {{level.depth}}" style="border: 4px solid transparent; border-top: 6px solid #999999; width: 0; display: none; position: relative; top: 2px; margin-right: 2px;"></div>
+					</div>
+				{% endif %}
+				{{ level.label }}
+			</h5>
+		</li>{% endif %}
+	{% for level_url in level.urls %}
+		{% if level_url|is_type:'dict' %}
+			{% with level=level_url template_name="menu_tree_template.html" %}	
+				{% include template_name %}
+			{% endwith %}
+		{% else %}
+			<li style="display: none;" class="{{level.depth}}"><a class="group" data-id="{{ level_url.id }}" data-type="group" href="/group?id={{ level_url.id }}">{{ level_url.name }}{% if level_url.orm.start_date > now %} c {{ level_url.orm.start_date_str }} {% endif %} - {{ level_url.days|joinby:','}} {{ level_url.time }}</a></li> 
+		{% endif %}
+	{% endfor %}
+{% endblock %}
