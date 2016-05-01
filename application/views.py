@@ -339,6 +339,14 @@ class BaseView(TemplateView):
 class IndexView(BaseView):
     template_name = 'main_view.html'
 
+    class Url(object):
+        """
+        Класс для создания обыкновенных ссылок на странице
+        """
+        def __init__(self, label, url):
+            self.label = label
+            self.url = url
+
     def get(self, *args, **kwargs):
         user = self.request.user
 
@@ -369,7 +377,7 @@ class IndexView(BaseView):
             menu.append({
                 'label':u'Мои группы',
                 'depth': str(depth),
-                'hideable': True,
+                'hideable': False,
                 'urls': groups.filter(teachers=user)
             })
 
@@ -396,7 +404,16 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'url_pattern': 'mk',
-                'urls': BonusClasses.objects.select_related().all().order_by('-date')
+                'urls': BonusClasses.objects.select_related().all().order_by('-date')[:5]
+            })
+
+            #Закрытые группы
+            depth += 1
+            menu.append({
+                'label': u'Закрытые группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [g for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
         # Меню для других преподов
@@ -415,6 +432,15 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'urls': BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')
+            })
+ 
+            #Закрытые группы
+            depth += 1
+            menu.append({
+                'label': u'Закрытые группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [g for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
         context['menu'] = menu
