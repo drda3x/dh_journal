@@ -404,7 +404,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'url_pattern': 'mk',
-                'urls': BonusClasses.objects.select_related().all().order_by('-date')[:5]
+                'urls': BonusClasses.objects.select_related().all().order_by('-date')#[:5]
             })
 
             #Закрытые группы
@@ -422,6 +422,7 @@ class IndexView(BaseView):
             menu.append({
                 'label': u'Группы',
                 'depth': str(depth),
+                'hideable': False,
                 'urls': Groups.opened.filter(teachers=user)
             })
             
@@ -442,6 +443,15 @@ class IndexView(BaseView):
                 'hideable': True,
                 'urls': [g for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
+
+        #Общеклубное меню
+        depth += 1
+        menu.append({
+            'label': u'Клуб',
+            'depth': str(depth),
+            'hideable': False,
+            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
+        })
 
         context['menu'] = menu
 
