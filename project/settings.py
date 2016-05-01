@@ -179,6 +179,15 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
+    #     '': {
+    #         # this sets root level logger to log debug and higher level
+    #         # logs to console. All other loggers inherit settings from
+    #         # root level logger.
+    #         'handlers': ['console'],
+    #         'level': 'DEBUG',
+    #         'propagate': False, # this tells logger to send logging message
+    #                             # to its parent (will send if set to True)
+    #     },
     }
 }
 

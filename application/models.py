@@ -119,7 +119,6 @@ class OpenedGroupManager(BaseGroupManager):
 
 class ClosedGroupsManager(BaseGroupManager):
     def get_queryset(self):
-        print datetime.datetime.now().date()
         return super(ClosedGroupsManager, self).get_queryset().filter(end_date__lt=datetime.datetime.now().date())
 
 
