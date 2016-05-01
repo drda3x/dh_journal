@@ -119,7 +119,8 @@ class OpenedGroupManager(BaseGroupManager):
 
 class ClosedGroupsManager(BaseGroupManager):
     def get_queryset(self):
-        return super(ClosedGroupsManager, self).get_queryset().filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
+        print datetime.datetime.now().date()
+        return super(ClosedGroupsManager, self).get_queryset().filter(end_date__lt=datetime.datetime.now().date())
 
 
 class Groups(models.Model):

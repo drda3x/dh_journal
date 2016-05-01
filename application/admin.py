@@ -25,7 +25,7 @@ class GroupsAdminStatusFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         sets = dict(
             opened=queryset.filter(Q(end_date__isnull=True) | Q(end_date__gte=datetime.datetime.now().date())),
-            closed=queryset.filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
+            closed=queryset.filter(end_date__lt=datetime.datetime.now().date())
         )
         # import ipdb; ipdb.set_trace()
         return sets.get(self.value(), queryset)
