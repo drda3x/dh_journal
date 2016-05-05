@@ -61,7 +61,7 @@ class GroupLogic(object):
 
     @cached_property
     def debts(self):
-        return list(Debts.objects.select_related('student').filter(group=self.orm, date__range=[self.date_1, self.date_2]))
+        return list(Debts.objects.select_related('student').filter(group=self.orm))#, date__range=[self.date_1, self.date_2]))
 
     @cached_property
     def passes(self):
@@ -145,6 +145,7 @@ class GroupLogic(object):
             net.append(
                 dict(
                     student=student,
+                    debts=[debt for debt in self.debts if debt.student==student],
                     lessons=_net,
                     pass_remaining=self.all_available_lessons.get(student.pk, 0) + sum([p.lessons for p in phantom_passes], 0),
                     last_comment=comments[-1] if comments else None

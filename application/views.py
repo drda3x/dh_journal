@@ -1236,7 +1236,7 @@ class GroupView(BaseView):
                 'person': s['student'],
                 'is_newbie': s['student'].pk in group.newbies,
                 'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
-                #'debt': get_student_total_debt(s, group),
+                'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
                 'last_comment': s['last_comment']
             } for s in group.get_students_net()
