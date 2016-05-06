@@ -21,7 +21,7 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -50,45 +50,6 @@ def prev_cur(arr):
     for elem in itr:
         yield prev, elem
         prev = elem
-
-
-# def index_view(request):
-
-#     user = check_auth(request)
-#     main_template = 'main_view.html'
-#     login_template = 'login.html'
-
-#     if user:
-
-#         context = dict()
-#         context['user'] = user
-
-#         if user.teacher:
-
-#             context['groups'] = get_groups_list(user)
-#             context['now'] = datetime.datetime.now().date()
-
-#             other_groups = context['groups'].get('other')
-
-#             if other_groups:
-#                 other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
-
-#                 try:
-#                     for prev, cur in prev_cur(other_groups):
-#                         if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-#                             other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-#                 except TypeError:
-#                     pass
-
-#         elif user.sampo_admin:
-#             return sampo_view(request)
-
-#         return render_to_response(main_template, context, context_instance=RequestContext(request, processors=[custom_proc]))
-
-#     else:
-#         args = {}
-#         args.update(csrf(request))
-#         return render_to_response(login_template, args, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 @auth_decorator
@@ -289,6 +250,14 @@ class BaseView(TemplateView):
 class IndexView(BaseView):
     template_name = 'main_view.html'
 
+    class Url(object):
+        """
+        Класс для создания обыкновенных ссылок на странице
+        """
+        def __init__(self, label, url):
+            self.label = label
+            self.url = url
+
     def get(self, *args, **kwargs):
         user = self.request.user
 
@@ -305,21 +274,97 @@ class IndexView(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-
-        context['groups'] = get_groups_list(self.request.user)
         context['now'] = datetime.datetime.now().date()
 
-        other_groups = context['groups'].get('other')
+        depth = 1
+        menu = []
+        user = self.request.user
 
-        if other_groups:
-            other_groups.sort(key=lambda e: e['name'].replace('[\s-]', '').lower())
+        # Меню для руководства
+        if user.is_superuser:
+            groups = Groups.opened
 
-            try:
-                for prev, cur in prev_cur(other_groups):
-                    if re.sub(r'[\s-]', '', prev['name']).lower() != re.sub(r'[\s-]', '', cur['name']).lower():
-                        other_groups.insert(other_groups.index(cur), {'name': 'divider'})
-            except TypeError:
-                pass
+            # Мои группы
+            menu.append({
+                'label':u'Мои группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': groups.filter(teachers=user)
+            })
+
+            # Группы других преподавателей
+            depth += 1
+            menu.append({
+                'label': u'Остальные группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [
+                    {
+                        'label': level.name,
+                        'hideable': True,
+                        'depth': '%d_%d' % (depth, level_depth),
+                        'urls': groups.filter(level=level).exclude(teachers=user)
+                    } for level_depth, level in enumerate(GroupLevels.objects.all())
+                ]
+            })
+
+            #Мастер-классы
+            depth += 1
+            menu.append({
+                'label': u'Мастер-классы',
+                'depth': str(depth),
+                'hideable': True,
+                'url_pattern': 'mk',
+                'urls': BonusClasses.objects.select_related().all().order_by('-date')#[:5]
+            })
+
+            #Закрытые группы
+            depth += 1
+            menu.append({
+                'label': u'Закрытые группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [g for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
+            })
+
+        # Меню для других преподов
+        else:
+            # Мои группы
+            menu.append({
+                'label': u'Группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': Groups.opened.filter(teachers=user)
+            })
+            
+            #Мастер-классы
+            depth += 1
+            menu.append({
+                'label': u'Мастер-классы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')
+            })
+ 
+            #Закрытые группы
+            depth += 1
+            menu.append({
+                'label': u'Закрытые группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [g for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
+            })
+
+        #Общеклубное меню
+        depth += 1
+        menu.append({
+            'label': u'Клуб',
+            'depth': str(depth),
+            'hideable': False,
+            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
+        })
+
+        context['menu'] = menu
 
         return context
 
@@ -755,9 +800,9 @@ class BonusClassView(BaseView):
         ]
         context['groups'] = [
             dict(id=i.id, repr='%s c %s (%s)' % (i.dance_hall.station, i.start_date.strftime('%d.%m'), i.time_repr))
-            for i in Groups.objects.filter(pk__in=mk.available_groups)
+            for i in mk.available_groups.all()
         ]
-        context['pass_types'] = PassTypes.objects.filter(pk__in=mk.available_passes)
+        context['pass_types'] = mk.available_passes.all()
 
         return context
 
@@ -1102,7 +1147,7 @@ class GroupView(BaseView):
                 'person': s['student'],
                 'is_newbie': s['student'].pk in group.newbies,
                 'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
-                #'debt': get_student_total_debt(s, group),
+                'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
                 'last_comment': s['last_comment']
             } for s in group.get_students_net()

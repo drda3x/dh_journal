@@ -25,7 +25,7 @@ class GroupsAdminStatusFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         sets = dict(
             opened=queryset.filter(Q(end_date__isnull=True) | Q(end_date__gte=datetime.datetime.now().date())),
-            closed=queryset.filter(models.Q(end_date__isnull=False) | models.Q(end_date__lt=datetime.datetime.now().date()))
+            closed=queryset.filter(end_date__lt=datetime.datetime.now().date())
         )
         # import ipdb; ipdb.set_trace()
         return sets.get(self.value(), queryset)
@@ -69,8 +69,37 @@ class GroupAdmin(admin.ModelAdmin):
     teachers_to_string.short_description = u'Преподаватели'
     _end_date.short_description = u'Дата окончания группы'
 
+
+class FutureBonusClasses(admin.SimpleListFilter):
+    title = u'Состояние'
+    parameter_name = 'available'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('future', u'Будущие'),
+            ('past', u'Прошедшие')
+        )
+
+    def queryset(self, request, queryset):
+        now = datetime.datetime.now().date()
+        sets = dict(
+            future=queryset.filter(date__gte=now),
+            past=queryset.filter(date__lt=now)
+        )
+
+        return sets.get(self.value(), queryset)
+
+
 class BonusClassAdmin(admin.ModelAdmin):
     form = BonusClassesForm
+    list_display = ('date', 'hall', 'time', 'teachers_to_string')
+    filter_horizontal = ('teachers', 'available_groups', 'available_passes')
+    list_filter = (FutureBonusClasses, )
+
+    def teachers_to_string(self, obj):
+        return ', '.join(map(str, obj.teachers.all()))
+
+    teachers_to_string.short_description = u'Преподаватели'
 
 
 class CustomUserChangeForm(UserChangeForm):
