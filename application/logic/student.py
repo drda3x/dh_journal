@@ -173,3 +173,15 @@ def edit_student(stid, phone, first_name, last_name, e_mail=u'', is_org=False):
     except Exception:
         from traceback import format_exc; print format_exc()
         return False
+
+
+class Student(object):
+    u"""
+    Класс для работы с учениками клуба
+    Поддерживает:
+        1. Добавление/удаление/изменение ученика из системы
+        2. Добавление/удаление/изменение групп, долгов и коментариев для конкретного ученика
+    """
+
+    def __init__(self, _id=None, first_name=None, last_name=None, phone=None, ):
+        pass
