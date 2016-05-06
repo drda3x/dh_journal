@@ -150,6 +150,7 @@ class Groups(models.Model):
     # _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
     # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
+    updates = models.CommaSeparatedIntegerField(max_length=200, verbose_name=u'Донаборы в группу')
 
     @staticmethod
     def __date_repr(dt):
@@ -313,6 +314,9 @@ class Groups(models.Model):
         app_label = u'application'
         verbose_name = u'Группу'
         verbose_name_plural = u'Группы'
+
+
+
 
 
 class BonusClasses(models.Model):

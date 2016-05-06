@@ -1,0 +1,53 @@
+<input type="hidden" {{ attrs }} />
+<button id="group-upd">Добавить донабор</button>
+<div id="add-block" style="display: none">
+    <input id="add-block-inp" type="date" /><button id="add-block-btn">Добавить</button>
+</div>
+<ul id="upd-list">
+    {% for val in values %}
+        <li class="dateListElement">{{ val }}</li>
+    {% endfor %}
+</ul>
+<script type="text/javascript">
+    (function() {
+        var btn = document.querySelector('#group-upd'),
+            btn2 = document.querySelector('#add-block-btn'),
+            addBlock = document.querySelector('#add-block'),
+            inp = document.querySelector('#add-block-inp'),
+            ul = document.querySelector('#upd-list'),
+            hiddenInp = document.querySelector('#id_updates');
+
+        var toggleAddBlock = (function() {
+            var shown = false;
+
+            return function() {
+                addBlock.style.display = shown ? 'none' : 'block';
+                shown = !shown;
+            }
+        })();
+
+        function updateHidden() {
+            var lis = ul.children, res = '';
+            for(var i= 0, j= lis.length; i<j; i++) {
+                res += (lis[i].innerText + ';');
+            }
+            hiddenInp.value = res;
+        }
+
+        btn.addEventListener('click', function(event) {
+            event.preventDefault();
+            toggleAddBlock();
+        });
+
+        btn2.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            var newLi = document.createElement('li');
+            newLi.innerHTML = inp.value;
+
+            ul.appendChild(newLi);
+            updateHidden();
+            toggleAddBlock();
+        });
+    })();
+</script>
