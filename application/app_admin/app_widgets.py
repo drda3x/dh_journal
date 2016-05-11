@@ -10,7 +10,7 @@ from django.shortcuts import render_to_response
 from django.template import loader
 
 
-DATE_FORMAT = '%Y-%m-%d'
+DATE_FORMAT = '%d.%m.%Y'
 
 
 class ListWidget(Widget):
@@ -19,7 +19,7 @@ class ListWidget(Widget):
         context = dict()
         attrs['name'] = name
         context['attrs'] = flatatt(attrs)
-        context['values'] = map(lambda val: datetime.fromtimestamp(int(val)).strftime(DATE_FORMAT), value.split(','))
+        context['values'] = map(lambda val: datetime.fromtimestamp(int(val)).strftime(DATE_FORMAT), value.split(',')) if value else []
 
         return loader.render_to_string('listWidget.html', context)
 

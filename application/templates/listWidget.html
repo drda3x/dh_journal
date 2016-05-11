@@ -1,19 +1,25 @@
 <input type="hidden" {{ attrs }} />
-<button id="group-upd">Добавить донабор</button>
-<div id="add-block" style="display: none; border: 1px solid #CCCCCC; width: 250px; text-align: center; margin: 7px;">
+<div style="display: inline-block; vertical-align: top; border: 1px solid #CCCCCC; min-height: 130px">
+    <h2>Внесенные донаборы</h2>
+    <ul id="upd-list" style="list-style: none; margin: 0;">
+        {% for val in values %}
+            <li class="dateListElement"><input type="checkbox">{{ val }}</li>
+        {% endfor %}
+        <span>удалить</span>
+        <a href="" class="del-date">выбранные</a> | 
+        <a href="" class="del-date">все</a>
+    </ul>
+</div>
+
+<div id="add-block" style="display: inline-block; border: 1px solid #CCCCCC; width: 250px; text-align: center;">
     <h2>Добавление донаборов</h2>
     <input id="add-block-inp" class="vDateField" type="text" style="margin: 5px 0;" />
     <p style="margin: 0 0 10px 0; padding: 0" class="help">Введите дату в формате "ДД.ММ.ГГГГ"</p>
     <div style="text-align: center">
         <button id="add-block-btn">Добавить</button>
-        <button id="add-block-btn" style="margin-bottom: 5px">Отмена</button>
     </div>
 </div>
-<ul id="upd-list">
-    {% for val in values %}
-        <li class="dateListElement">{{ val }}</li>
-    {% endfor %}
-</ul>
+
 <script type="text/javascript">
     (function() {
         function updateFormField() {
@@ -86,18 +92,20 @@
             }
         })();
 
-
-        btn.addEventListener('click', function(event) {
-            event.preventDefault();
-            toggleAddBlock();
-        });
-
         btn2.addEventListener('click', function(event) {
             event.preventDefault();
-            createElement('li', ul, inp.value);
+
+            var option = createElement('input');
+            option.type = 'checkbox';
+            option.classList.add('dateSelect');
+
+            createElement('li', option.outerHTML + inp.value, ul);
             updateFormField();
-            toggleAddBlock();
         });
+
+        ul.addEventListener('click', function(event) {
+            console.log(event.target.checked);
+        })
 
     })();
 </script>
