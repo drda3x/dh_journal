@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+from datetime import datetime
+from time import mktime
 from django.forms.widgets import Widget, DateInput
 from django.forms.fields import Field
 from django.forms.utils import flatatt
@@ -8,20 +10,31 @@ from django.shortcuts import render_to_response
 from django.template import loader
 
 
+DATE_FORMAT = '%Y-%m-%d'
+
+
 class ListWidget(Widget):
 
     def render(self, name, value, attrs=None):
         context = dict()
+        attrs['name'] = name
         context['attrs'] = flatatt(attrs)
+        context['values'] = map(lambda val: datetime.fromtimestamp(int(val)).strftime(DATE_FORMAT), value.split(','))
 
         return loader.render_to_string('listWidget.html', context)
-        #return format_html('<input {} />', flatatt(attrs)) + format_html_join('\n', '<li {}>{}</li>', ((flatatt(list_attrs), i) for i in xrange(10))) + '<script type="text/javascript">window.listWidget(\''+list_attrs['class']+'\')</script>'
-        # html = super(ListWidget, self).render(name, value, attrs)
-        # return html + format_html_join('\n', '<li>{}</li>', ([i] for i in xrange(10)))
 
     class Media:
         js = ('js/listWidget.js', )
 
 
 class MyField(Field):
-    pass
+
+    def str_to_dates(self, _str):
+        for dt in _str.split(';'):
+            if not dt:
+                continue
+
+            yield int(mktime(datetime.strptime(dt, DATE_FORMAT).timetuple()))
+
+    def to_python(self, value):
+        return ','.join(map(str, self.str_to_dates(value)))

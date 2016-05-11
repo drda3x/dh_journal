@@ -8,6 +8,7 @@ from application.models import Groups, WEEK, PassTypes, BonusClasses
 from application.app_admin.app_widgets import ListWidget, MyField
 from django.forms.widgets import TextInput
 
+
 class CommaSeparatedSelectInteger(forms.MultipleChoiceField):
 
     def to_python(self, value):

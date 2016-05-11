@@ -1,7 +1,13 @@
 <input type="hidden" {{ attrs }} />
 <button id="group-upd">Добавить донабор</button>
-<div id="add-block" style="display: none">
-    <input id="add-block-inp" type="date" /><button id="add-block-btn">Добавить</button>
+<div id="add-block" style="display: none; border: 1px solid #CCCCCC; width: 250px; text-align: center; margin: 7px;">
+    <h2>Добавление донаборов</h2>
+    <input id="add-block-inp" class="vDateField" type="text" style="margin: 5px 0;" />
+    <p style="margin: 0 0 10px 0; padding: 0" class="help">Введите дату в формате "ДД.ММ.ГГГГ"</p>
+    <div style="text-align: center">
+        <button id="add-block-btn">Добавить</button>
+        <button id="add-block-btn" style="margin-bottom: 5px">Отмена</button>
+    </div>
 </div>
 <ul id="upd-list">
     {% for val in values %}
@@ -10,6 +16,60 @@
 </ul>
 <script type="text/javascript">
     (function() {
+        function updateFormField() {
+            var lis = ul.children, res = '';
+            for(var i= 0, j= lis.length; i<j; i++) {
+                res += (lis[i].innerText + ';');
+            }
+            hiddenInp.value = res;
+        }
+
+        function parseToHtml(s) {
+            var sharp = s.indexOf('#') >= 0 ? s.indexOf('#') : NaN,
+                    dot = s.indexOf('.') >= 0 ? s.indexOf('.') : NaN;
+
+            if (!isNaN(sharp) && !isNaN(dot)) {
+                tagIndex = Math.min(sharp, dot)
+            } else {
+                tagIndex = Math.min(sharp || s.length, dot || s.length)
+            }
+
+            var tag = s.slice(0, tagIndex),
+                    id = !isNaN(sharp) ? s.slice(sharp + 1, s.indexOf('.', sharp) + 1 > 0 ? s.indexOf('.', sharp) + 1 : s.length) : '',
+                    classes = s.replace(new RegExp('^' + tag), '').replace(new RegExp('#[A-Za-z0-9]*'), '').slice(1).split('.');
+
+            var buf = [];
+            for(var i= classes.length-1; i>=0; i--) {
+                if(classes[i] != '') {
+                    buf.push(classes[i]);
+                }
+            }
+
+            return {
+                tag: tag,
+                id: id,
+                classes: buf
+            }
+        }
+
+        function createElement(elemStr, innerValue, parrent) {
+            var html = parseToHtml(elemStr);
+
+            var elem = document.createElement(html.tag);
+            elem.innerHTML = innerValue;
+            elem.id = html.id;
+
+            for(var i= 0, j= html.classes.length; i<j; i++) {
+                elem.classList.add(html.classes[i]);
+            }
+
+            if(parrent) {
+                parrent.appendChild(elem);
+            }
+
+            return elem;
+        }
+
         var btn = document.querySelector('#group-upd'),
             btn2 = document.querySelector('#add-block-btn'),
             addBlock = document.querySelector('#add-block'),
@@ -26,13 +86,6 @@
             }
         })();
 
-        function updateHidden() {
-            var lis = ul.children, res = '';
-            for(var i= 0, j= lis.length; i<j; i++) {
-                res += (lis[i].innerText + ';');
-            }
-            hiddenInp.value = res;
-        }
 
         btn.addEventListener('click', function(event) {
             event.preventDefault();
@@ -41,13 +94,10 @@
 
         btn2.addEventListener('click', function(event) {
             event.preventDefault();
-
-            var newLi = document.createElement('li');
-            newLi.innerHTML = inp.value;
-
-            ul.appendChild(newLi);
-            updateHidden();
+            createElement('li', ul, inp.value);
+            updateFormField();
             toggleAddBlock();
         });
+
     })();
 </script>
