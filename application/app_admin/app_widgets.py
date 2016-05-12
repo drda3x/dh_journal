@@ -27,7 +27,7 @@ class ListWidget(Widget):
         js = ('js/listWidget.js', )
 
 
-class MyField(Field):
+class DateListField(Field):
 
     def str_to_dates(self, _str):
         for dt in _str.split(';'):

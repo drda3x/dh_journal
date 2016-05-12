@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from django import forms
 from django.core.exceptions import ValidationError
 from application.models import Groups, WEEK, PassTypes, BonusClasses
-from application.app_admin.app_widgets import ListWidget, MyField
+from application.app_admin.app_widgets import ListWidget, DateListField
 from django.forms.widgets import TextInput
 
 
@@ -62,7 +62,7 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
 class GroupsForm(forms.ModelForm):
 
     _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-    updates = MyField(widget=ListWidget(), required=False, label=u'Донаборы')
+    updates = DateListField(widget=ListWidget(), required=False, label=u'Донаборы')
 
     class Meta:
         model = Groups

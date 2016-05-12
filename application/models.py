@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import time
 import datetime, math, calendar as calendar_origin
 from django.db import models
 from django.utils.functional import cached_property
@@ -153,13 +154,29 @@ class Groups(models.Model):
     updates = models.CommaSeparatedIntegerField(max_length=200, verbose_name=u'Донаборы в группу', null=True, blank=True)
 
     @staticmethod
-    def __date_repr(dt):
+    def date_repr(dt):
         return u'%d %s %d' % (dt.day, MONTH_PARENT_FORM[dt.month].lower(), dt.year)
 
     @property
     def is_opened(self):
         now_date = datetime.datetime.now().date()
         return self.end_date is None or self.end_date >= now_date
+
+    def nearest_update(self):
+        if not self.updates:
+            return None
+
+        now = time.mktime(datetime.datetime.now().date().timetuple())
+        updates = [
+            datetime.datetime.fromtimestamp(i).date()
+            for i in map(int, self.updates.split(','))
+            if i >= now
+        ]
+
+        if len(updates) > 0:
+            return sorted(updates)[0]
+        else:
+            return None
 
     # @property
     # def available_passes(self):
@@ -179,11 +196,11 @@ class Groups(models.Model):
 
     @property
     def start_date_str(self):
-        return self.__date_repr(self.start_date)
+        return self.date_repr(self.start_date)
 
     @property
     def end_date_str(self):
-        return self.__date_repr(self.end_date)    
+        return self.date_repr(self.end_date)
 
     @property
     def last_lesson(self):
