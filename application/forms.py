@@ -62,7 +62,7 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
 class GroupsForm(forms.ModelForm):
 
     _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-    updates = MyField(widget=ListWidget())
+    updates = MyField(widget=ListWidget(), required=False, label=u'Донаборы')
 
     class Meta:
         model = Groups

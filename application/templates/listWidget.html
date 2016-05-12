@@ -1,14 +1,18 @@
 <input type="hidden" {{ attrs }} />
 <div style="display: inline-block; vertical-align: top; border: 1px solid #CCCCCC; min-height: 130px">
     <h2>Внесенные донаборы</h2>
-    <ul id="upd-list" style="list-style: none; margin: 0;">
+    <p id="dates-default" style="margin: 10px; padding: 0; text-align: center;" class="help hidden">Для этой группы еще не<br>создано ни одного донабора</p>
+    <ul id="upd-list" style="list-style: none; margin: 10px;">
         {% for val in values %}
             <li class="dateListElement"><input type="checkbox">{{ val }}</li>
         {% endfor %}
-        <span>удалить</span>
-        <a href="" class="del-date">выбранные</a> | 
-        <a href="" class="del-date">все</a>
     </ul>
+    <div style="margin-top: 10px; padding: 5px; text-align: center; display: inline-block; border-right: 1px solid #CCCCCC">
+        <a href="" class="del-date">удалить<br>выбранные</a>
+    </div>
+    <div style="margin-top: 10px; padding: 5px; text-align: center; display: inline-block;">
+        <a href="" class="del-date del-all">удалить<br>все</a>
+    </div>
 </div>
 
 <div id="add-block" style="display: inline-block; border: 1px solid #CCCCCC; width: 250px; text-align: center;">
@@ -22,6 +26,15 @@
 
 <script type="text/javascript">
     (function() {
+        var defaultMsg = document.querySelector('#dates-default');
+        function checkUlAndShowDefaultMsg() {
+            if(ul.children.length > 0) {
+                defaultMsg.classList.add('hidden');
+            } else {
+                defaultMsg.classList.remove('hidden');
+            }
+        }
+
         function updateFormField() {
             var lis = ul.children, res = '';
             for(var i= 0, j= lis.length; i<j; i++) {
@@ -75,23 +88,19 @@
 
             return elem;
         }
-
+        
+        // init
         var btn = document.querySelector('#group-upd'),
             btn2 = document.querySelector('#add-block-btn'),
             addBlock = document.querySelector('#add-block'),
             inp = document.querySelector('#add-block-inp'),
             ul = document.querySelector('#upd-list'),
-            hiddenInp = document.querySelector('#id_updates');
+            hiddenInp = document.querySelector('#id_updates'),
+            delHrefs = document.querySelectorAll('.del-date');
 
-        var toggleAddBlock = (function() {
-            var shown = false;
+        checkUlAndShowDefaultMsg();
 
-            return function() {
-                addBlock.style.display = shown ? 'none' : 'block';
-                shown = !shown;
-            }
-        })();
-
+        // evets
         btn2.addEventListener('click', function(event) {
             event.preventDefault();
 
@@ -100,12 +109,42 @@
             option.classList.add('dateSelect');
 
             createElement('li', option.outerHTML + inp.value, ul);
+            checkUlAndShowDefaultMsg();
             updateFormField();
         });
 
         ul.addEventListener('click', function(event) {
             console.log(event.target.checked);
-        })
+        });
+
+        for(var i= delHrefs.length-1; i>=0; i--) {
+            delHrefs[i].addEventListener('click', function(event) {
+                event.preventDefault();
+
+                if(confirm('ВНИМАНИЕ!\n После сохранения страницы восстановить удаленные донаборы не получится.\nУдалить?')) {
+                    if(event.target.classList.contains('del-all')) {
+                        ul.innerHTML = '';
+                    } else {
+                        var lis = ul.children,
+                            newUlHtml = '',
+                            li, input;
+
+                        for(var i= 0, j= lis.length; i<j; i++) {
+                            li = lis[i];
+                            input = li.children[0];
+                            if(input && !input.checked) {
+                                newUlHtml += li.outerHTML;
+                            }
+                        }
+
+                        ul.innerHTML = newUlHtml;
+                    }
+
+                    updateFormField();
+                    checkUlAndShowDefaultMsg();
+                }
+            })
+        }
 
     })();
 </script>
