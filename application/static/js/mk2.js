@@ -510,9 +510,9 @@ function sendRequest(_data, subAction, callback) {
 // Логика модального окна
 (function(W) {
 
-    function StudentCard(selector) {
-        var inputsSelector = 'input.data';
-        this.$element = $(selector);
+    function ModalVidget(params) {
+        var inputsSelector = '.data';
+        this.$element = $(params.selector);
 
         // Удобный способ доступа к полям формы
         this.$data = (function(context) {
@@ -538,6 +538,16 @@ function sendRequest(_data, subAction, callback) {
             return res;
         })(this);
 
+        // Добавляем реакцию на внешние эвенты
+        if(params.hasOwnProperty('handleEvents')) {
+            $.map(params.handleEvents, $.proxy(function(event) {
+                var e = event[0],
+                    h = event[1];
+
+                this.$element.on(e, $.proxy(h, this));
+            }, this))
+        }
+
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
 
@@ -548,12 +558,17 @@ function sendRequest(_data, subAction, callback) {
 
             this.$data.gid = window.pageParams.group_id;
 
-            sendRequest(this.$data, 'add', $.proxy(function(err, data) {
+            sendRequest(this.$data, this.$element.data('action'), $.proxy(function(err, data) {
                 if(err) {
                     console.log(err);
                 } else {
                     data.edit = this.$element.hasClass('edit');
-                    $(window).trigger('add-student-submit', data);
+
+                    if(params.hasOwnProperty('triggerEvents')) {
+                        $.map(params.triggerEvents, function(event) {
+                            $(window).trigger(event, data)
+                        });
+                    }
 
                     alert1.hide();
                     alert2.css('display', 'inline-block');
@@ -570,12 +585,12 @@ function sendRequest(_data, subAction, callback) {
         }, this));
     }
 
-    StudentCard.prototype.clear = function() {
+    ModalVidget.prototype.clear = function() {
         for(var i in this.$data) {
             this.$data[i] = '';
         }
     };
     
-    W.StudentCard = StudentCard;
+    W.ModalVidget = ModalVidget;
 
 })(window);

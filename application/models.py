@@ -354,6 +354,11 @@ class BonusClasses(models.Model):
     def repr_short(self):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.name)
 
+    @property
+    def repr(self):
+        return self.repr_short()
+    
+
     def __unicode__(self):
         return u'%s %s %s %s' % (
             self.date.strftime('%d.%m.%Y'),

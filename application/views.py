@@ -765,14 +765,47 @@ class BonusClassView(BaseView):
             from traceback import format_exc; print format_exc()
             return HttpResponseServerError('failed')
 
+    def move(self, request):
+        u"""
+        Перевести ученика в другой мастер-класс
+        """
+        
+        ids = map(int, request.POST.get('ids', '').split(','))
+        if not ids:
+            return HttpResponse(200)
+
+        students   = Students.objects.filter(pk__in=ids)
+        new_class  = int(request.POST['newgroup'])
+        old_class  = int(request.POST['gid'])
+        errors = []
+        moved = []
+
+        for s in students:
+            if not _add_student(new_class, s, group_list_orm=BonusClassList):
+                errors.append(s.id)
+            else:
+                moved.append(s.id)
+
+        _remove_student(old_class, set(ids) - set(errors), BonusClassList)
+
+        return HttpResponse(json.dumps(
+            {
+                'moved': moved,
+                'errors': errors
+            }
+        ))
+
     def delete_comment(self, request):
         Comments.objects.get(pk=request.POST['cid']).delete()
         return HttpResponse(200)
 
     def get_context_data(self, *args, **kwargs):
+
+        now     = make_aware(datetime.datetime.now(), timezone(TIME_ZONE))
         context = super(BonusClassView, self).get_context_data(*args, **kwargs)
-        mkid = self.request.GET.get('id')
-        mk = BonusClasses.objects.select_related().get(pk=mkid)
+        mkid    = self.request.GET.get('id')
+        mk      = BonusClasses.objects.select_related().get(pk=mkid)
+
         passes = {
             i.student.id: {
                 'self': i.group,
@@ -803,6 +836,7 @@ class BonusClassView(BaseView):
             for i in mk.available_groups.all()
         ]
         context['pass_types'] = mk.available_passes.all()
+        context['future_classes'] = BonusClasses.objects.select_related().filter(date__gte=now).order_by('date', 'time')
 
         return context
 
