@@ -551,6 +551,11 @@ function sendRequest(_data, subAction, callback) {
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
 
+            // Валидация
+            if(!this.validate()) {
+                return;
+            }
+
             var alert1 = this.$element.find('.alert1'),
                 alert2 = this.$element.find('.alert2');
 
@@ -589,6 +594,10 @@ function sendRequest(_data, subAction, callback) {
         for(var i in this.$data) {
             this.$data[i] = '';
         }
+    };
+
+    ModalVidget.prototype.validate = function() {
+        return true;
     };
     
     W.ModalVidget = ModalVidget;

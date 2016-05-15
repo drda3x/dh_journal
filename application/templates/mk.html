@@ -90,7 +90,7 @@
 
             var windowAlert = window.createWindowAlert();
 
-            var moveStudentVidget = window.ModalVidget({
+            var moveStudentVidget = new window.ModalVidget({
                 selector: '#moveStudent', 
                 triggerEvents: ['student-moved'],
                 handleEvents: [
@@ -105,6 +105,17 @@
                     ]
                 ]
             });
+
+            moveStudentVidget.$element.on('show', function() {
+                if(table.getSelectedRows().length < 1) {
+                    alert('Не выбрано ни одного ученика');
+                    return false;
+                }
+            })
+
+            moveStudentVidget.validate = function() {
+                return confirm('Выполнить перевод?');
+            }
 
             // Обработка события "student-moved"
             $(window).on('student-moved', $.proxy(function(event, data) {
