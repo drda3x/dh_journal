@@ -96,22 +96,29 @@
                 handleEvents: [
                     [
                         'show', 
-                        function(event) {
+                        function(event, data) {
                             // У фукции есть доступ к контексту moveStudentVidget
-                            this.$data.ids = $.map(table.getSelectedRows(), function(row) {
+
+                            var tableRows = this.config.rows || table.getSelectedRows();
+
+                            if(tableRows.length < 1) {
+                                alert('Не выбрано ни одного ученика');
+                                return false;
+                            }
+
+                            this.$data.ids = $.map(tableRows, function(row) {
                                 return row.id;
                             }).join(',');
+
+                            this.config.rows = undefined;
                         }
                     ]
                 ]
             });
 
-            moveStudentVidget.$element.on('show', function() {
-                if(table.getSelectedRows().length < 1) {
-                    alert('Не выбрано ни одного ученика');
-                    return false;
-                }
-            })
+            moveStudentVidget.clear = function() {
+                this.$data.newgroup = -1;
+            }
 
             moveStudentVidget.validate = function() {
                 return confirm('Выполнить перевод?');
@@ -192,6 +199,11 @@
                     group: window.pageParams.group_id,
                     model: table.currentRow
                 });
+            });
+
+            contextMenu.addElement('Перевести в другой мастер-класс', function() {
+                moveStudentVidget.config.rows = [table.currentRow];
+                moveStudentVidget.$element.modal('show');
             });
 
 	        $('#editStudentBtn').click(function() {

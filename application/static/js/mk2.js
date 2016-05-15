@@ -513,6 +513,8 @@ function sendRequest(_data, subAction, callback) {
     function ModalVidget(params) {
         var inputsSelector = '.data';
         this.$element = $(params.selector);
+        this.config = {};
+
 
         // Удобный способ доступа к полям формы
         this.$data = (function(context) {
@@ -548,6 +550,9 @@ function sendRequest(_data, subAction, callback) {
             }, this))
         }
 
+        var alert1 = this.$element.find('.alert1'),
+            alert2 = this.$element.find('.alert2');
+
         // Событие отправки формы
         this.$element.find('input[type=submit]').click($.proxy(function() {
 
@@ -555,9 +560,6 @@ function sendRequest(_data, subAction, callback) {
             if(!this.validate()) {
                 return;
             }
-
-            var alert1 = this.$element.find('.alert1'),
-                alert2 = this.$element.find('.alert2');
 
             alert1.css('display', 'inline-block');
 
@@ -588,6 +590,11 @@ function sendRequest(_data, subAction, callback) {
                 }
             }, this))
         }, this));
+
+        this.$element.on('hidden', function() {
+            alert1.hide();
+            alert2.hide()
+        })
     }
 
     ModalVidget.prototype.clear = function() {
@@ -599,7 +606,7 @@ function sendRequest(_data, subAction, callback) {
     ModalVidget.prototype.validate = function() {
         return true;
     };
-    
+
     W.ModalVidget = ModalVidget;
 
 })(window);
