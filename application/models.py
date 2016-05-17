@@ -99,6 +99,25 @@ class DanceHalls(models.Model):
     photo2 = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
     photo3 = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
 
+    def get_filename(self, field):
+        return field.name.split('/')[-1] if field else None
+
+    @property
+    def map_filename(self):
+        return self.get_filename(self.map)
+
+    @property
+    def p1_filename(self):
+        return self.get_filename(self.photo1)
+
+    @property
+    def p2_filename(self):
+        return self.get_filename(self.photo2)
+
+    @property
+    def p3_filename(self):
+        return self.get_filename(self.photo3)
+
     def __unicode__(self):
         return self.name if self.name else u''
 
