@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
+from project.settings import FILE_STORAGE
 
 
 from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names, MONTH_PARENT_FORM, WEEK
@@ -22,6 +23,13 @@ class User(UserOrigin):
     objects = UserManager
     teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
     sampo_admin = models.BooleanField(verbose_name=u'Администратор САМПО', default=False)
+    about = models.TextField(verbose_name=u'Описание преподавателя', null=True, blank=True)
+    photo = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True, verbose_name=u'Фото')
+    video = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'Видео')
+
+    @property
+    def photo_file(self):
+        return self.photo.name.split('/')[-1] if self.photo else None
 
     def __short_json__(self):
         return dict(
@@ -152,6 +160,7 @@ class Groups(models.Model):
     # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
     updates = models.CommaSeparatedIntegerField(max_length=200, verbose_name=u'Донаборы в группу', null=True, blank=True)
+    lending_message = models.CharField(max_length=100, verbose_name=u'Сообщение в шапке лендинга')
 
     @staticmethod
     def date_repr(dt):
@@ -325,7 +334,7 @@ class Groups(models.Model):
                 return u'%s c %s по %s %s %s %s - ЗАКРЫТА' % (self.name, self.start_date_str, self.end_date_str, teachers, days, self.time_repr)
 
         else:
-            return u'%s - %s - %s %s' % (self.name, teachers, days, self.time_repr)
+                return u'%s - %s - %s %s' % (self.name, teachers, days, self.time_repr)
 
     class Meta:
         app_label = u'application'

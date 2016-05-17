@@ -191,6 +191,8 @@ LOGGING = {
     }
 }
 
+FILE_STORAGE = ''
+
 try:
     from settings_local import *
 
