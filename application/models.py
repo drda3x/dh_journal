@@ -93,6 +93,11 @@ class DanceHalls(models.Model):
     time_to_come = models.PositiveIntegerField(verbose_name=u'Минуты от метро', null=True, blank=True)
     lon = models.FloatField(verbose_name=u'Широта', null=True, blank=True)
     lat = models.FloatField(verbose_name=u'Долгота', null=True, blank=True)
+    about = models.TextField(verbose_name=u'Описание преподавателя', null=True, blank=True)
+    map = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
+    photo1 = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
+    photo2 = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
+    photo3 = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True)
 
     def __unicode__(self):
         return self.name if self.name else u''
@@ -160,7 +165,9 @@ class Groups(models.Model):
     # _external_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для показа на внешних сайтах', null=True, blank=True)
     dance_hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал')
     updates = models.CommaSeparatedIntegerField(max_length=200, verbose_name=u'Донаборы в группу', null=True, blank=True)
-    lending_message = models.CharField(max_length=100, verbose_name=u'Сообщение в шапке лендинга')
+    lending_message = models.CharField(max_length=100, verbose_name=u'Сообщение в шапке лендинга', null=True, blank=True)
+    free_placees = models.IntegerField(verbose_name=u'Общее кол-во мест в группе', null=True, blank=True)
+    duration = models.IntegerField(verbose_name=u'Продолжительность курса', null=True, blank=True)
 
     @staticmethod
     def date_repr(dt):
