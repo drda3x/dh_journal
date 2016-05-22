@@ -315,7 +315,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'url_pattern': 'mk',
-                'urls': BonusClasses.objects.select_related().all().order_by('-date')[:5]
+                'urls': [b for b in BonusClasses.objects.select_related().all().order_by('-date')[:5]] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
             })
 
             #Закрытые группы
@@ -336,7 +336,7 @@ class IndexView(BaseView):
                 'hideable': False,
                 'urls': Groups.opened.filter(teachers=user)
             })
-            
+
             #Мастер-классы
             depth += 1
             menu.append({
@@ -345,7 +345,7 @@ class IndexView(BaseView):
                 'hideable': True,
                 'urls': BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')
             })
- 
+
             #Закрытые группы
             depth += 1
             menu.append({
@@ -769,7 +769,7 @@ class BonusClassView(BaseView):
         u"""
         Перевести ученика в другой мастер-класс
         """
-        
+
         ids = map(int, request.POST.get('ids', '').split(','))
         if not ids:
             return HttpResponse(200)
@@ -877,6 +877,19 @@ class HistoryView(BaseView):
             context['other_groups'] = self.__expire_check(Groups.closed.exclude_owner(self.request.user))
 
         context['user'] = self.request.user
+
+        return context
+
+
+class BonusClassHistoryView(BaseView):
+    template_name = 'bkhistory.html'
+
+    def get_context_data(self, **kwargs):
+        now = datetime.datetime.now()
+        context = super(BonusClassHistoryView, self).get_context_data(**kwargs)
+        context['groups'] = BonusClasses.objects.filter(date__lte=now.date()).order_by('-date')
+        print len(context['groups'])
+        context['other_groups'] = []
 
         return context
 

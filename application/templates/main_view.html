@@ -34,15 +34,27 @@
                 };
 
             if(window.location.hash != '') {
-                var re = new RegExp('#['+links.getRe()+']?'),
-                    param = window.location.hash.slice(2),
-                    linkTo = links.getValOrKey(window.location.hash.replace(/[#\d]/g,''));
+              
+                if(window.location.hash.search(/^#g\d*$/) >= 0) {
+                    $frame.attr('src', '/group?id=' + window.location.hash.slice(2));
 
-                if(!isNaN(parseInt(param))) {
-                    $frame.attr('src', '/'+ linkTo +'?id='+param);
+                } else if(window.location.hash.search(/^#m\d*$/) >= 0) {
+                    $frame.attr('src', '/mk?id=' + window.location.hash.slice(2));
+
                 } else {
-                    $frame.attr('src', '/'+param);
+                    $frame.attr('src', '/' + window.location.hash.slice(1));
                 }
+
+                // var re = new RegExp('#['+links.getRe()+']?'),
+                //     param = window.location.hash.slice(2),
+                //     linkTo = links.getValOrKey(window.location.hash.replace(/[#\d]/g,''));
+
+                // if(!isNaN(parseInt(param))) {
+                //     $frame.attr('src', '/'+ linkTo +'?id='+param);
+                // } else {
+                //   $frame.attr('src', '/'+param);
+                //   console.log('src', '/'+param)
+                // }
 
             }
 

@@ -392,7 +392,10 @@ class BonusClasses(models.Model):
     @property
     def repr(self):
         return self.repr_short()
-    
+
+    @property
+    def teachers_str(self):
+        return ', '.join(map(str, self.teachers.all()))
 
     def __unicode__(self):
         return u'%s %s %s %s' % (
