@@ -71,6 +71,8 @@ class GroupLevels(models.Model):
     """
     name = models.CharField(max_length=50, verbose_name=u'Наименование')
     string_code = models.CharField(max_length=50, verbose_name=u'Код')
+    course_details = models.TextField(null=True, blank=True, verbose_name=u'Подробности о курсе')
+    course_results = models.TextField(null=True, blank=True, verbose_name=u'Результаты прохождения курса')
 
     def __unicode__(self):
         return self.name
@@ -187,6 +189,8 @@ class Groups(models.Model):
     lending_message = models.CharField(max_length=100, verbose_name=u'Сообщение в шапке лендинга', null=True, blank=True)
     free_placees = models.IntegerField(verbose_name=u'Общее кол-во мест в группе', null=True, blank=True)
     duration = models.IntegerField(verbose_name=u'Продолжительность курса', null=True, blank=True)
+    course_details = models.TextField(verbose_name=u'Подробности о группе', null=True, blank=True)
+    course_results = models.TextField(verbose_name=u'Навык после прохождения', null=True, blank=True)
 
     @staticmethod
     def date_repr(dt):
