@@ -1,23 +1,80 @@
 {% block head %}
-    <link rel="stylesheet" href="../static/css/sampo.css" />
+    <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
+    <script type="text/javascript" src="../static/js/jsplugins.js"></script>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
         window.onload = function() {
-            window.sampoLogic();
+
+            function stopClickEvent(event) {
+                return false;
+            }
+
+            var $date = $('input#date');
+
+            $date.datepicker({
+                format: 'dd.mm.yyyy'
+            }).on('changeDate', function () {
+                $(this).datepicker('hide');
+                $('#date-submit').focus();
+            });
+
+            var journalTab = window.Factories.createTab($('#tab-journal'), 'changeDate'),
+                reportTab = window.Factories.createTab($('#tab-report'), 'change');
+
+            var paymentReport = window.Factories.createReport($('#payments'), 'payments'),
+                dayReport = window.Factories.createReport($('#short_report_table', 'day_report')),
+                monthReport = window.Factories.createReport($('#month-report'), 'month-report');
+
+            journalTab.addListener(paymentReport);
+            journalTab.addListener(dayReport);
+            reportTab.addListener(monthReport);
+
+            $('#report-control').mouseup(function(event) {
+                event.stopPropagation();
+                return false;
+            });
+
+            $('#inputTime').timepicker({
+                update: true
+            });
+
+            $('#inputTime2').timepicker({
+                update: true
+            });
+
+            $('.amount').positivenumber();
         }
     </script>
 {% endblock %}
 {% block body %}
     <div class="row-fluid">
-      <div class="span12">
+        {% if user.is_superuser %}
         <div class="row-fluid">
-            <div {% if user.is_superuser %} class="span7" {% else %} class="span6" {% endif %}>
+            <div class="span12">
+                <ul class="nav nav-tabs" id="nav-top">
+                    <li class="active"><a id="tab-journal" href="#day-journal" data-toggle="tab">Ведомости за <input id="date" name="date" class="control input-small nav-input" type="text" value="{{ date }}"></a></li>
+                    <li>
+                        <span id="tab-report" href="#month-report" data-toggle="tab">Отчет за
+                            <select id="report-control" class="input-medium nav-input control" name="mth">
+                                <option value="122015">Декабрь 2015</option>
+                                <option value="012016">Январь 2016</option>
+                                <option value="022016">Февраль 2016</option>
+                            </select>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        <div {% if user.is_superuser %}id="container"{% endif %} class="row-fluid tab-content">
+            <div id="day-journal" class="tab-pane active">
+                <div class="span6 offset1">
                     <ul class="nav nav-tabs {% if user.is_superuser %}su-nav-tabs{% endif %}" id="navTab">
                         <li class="active"><a id="journalNav" href="#cash-add" data-toggle="tab">Внесение</a></li>
                         <li><a id="infoNav" href="#cash-del" data-toggle="tab">Списание</a></li>
                         <li><a id="infoNav" href="#pass" data-toggle="tab">Абонементы</a></li>
                         {% if user.is_superuser %}
-                        <li>
+                        <!--li>
                             <form class="form-inline">
                                 <label>
                                     Дата:
@@ -25,7 +82,7 @@
                                 </label>
                                <input type="submit" id="date-submit" class="btn" value="OK">
                             </form>
-                        </li>
+                        </li-->
                         {% endif %}
                     </ul>
                     <div class="tab-content">
@@ -34,13 +91,13 @@
                                 <div class="control-group">
                                     <label class="control-label" for="inputTime">Время</label>
                                     <div class="controls">
-                                        <input class="input-small time" id="inputTime" name="time" type="time" />
+                                        <input class="input-small time" id="inputTime" name="time" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
                                     <label class="control-label" for="inputMoney">Сумма</label>
                                     <div class="controls">
-                                        <input class="input-small" id="inputMoney" name="count" type="number" />
+                                        <input class="input-small amount" id="inputMoney" name="count" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -53,21 +110,21 @@
                         <div id="cash-del" class="tab-pane">
                             <form id="cash-wrt-payment" class="form-horizontal money-action">
                                 <div class="control-group">
-                                    <label class="control-label" for="inputTime">Время</label>
+                                    <label class="control-label" for="inputTime2">Время</label>
                                     <div class="controls">
-                                        <input class="input-small time" id="inputTime" name="time" type="time" />
+                                        <input class="input-small time" id="inputTime2" name="time" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
-                                    <label class="control-label" for="inputMoney">Сумма</label>
+                                    <label class="control-label" for="inputMoney2">Сумма</label>
                                     <div class="controls">
-                                        <input class="input-small" id="inputMoney" name="count" type="number" />
+                                        <input class="input-small amount" id="inputMoney2" name="count" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
-                                    <label class="control-label" for="inputMoney">Причина</label>
+                                    <label class="control-label" for="reason">Причина</label>
                                     <div class="controls">
-                                        <input class="input-large" id="inputMoney" name="reason" type="text" />
+                                        <input class="input-large" id="reason" name="reason" type="text" />
                                     </div>
                                 </div>
                                 <div class="control-group">
@@ -96,10 +153,10 @@
                                 <div id="addSampoPass" style="display: none">
                                     <form class="form-horizontal money-action">
                                         <div class="control-group">
-                                            <label class="control-label" for="inputTime">Время</label>
+                                            <label class="control-label" for="inputTime3">Время</label>
 
                                             <div class="controls">
-                                                <input class="input-small time" id="inputTime" name="time" type="time"/>
+                                                <input class="input-small time" id="inputTime3" name="time" type="text"/>
                                             </div>
                                         </div>
                                         <div class="control-group">
@@ -117,9 +174,9 @@
                                             </div>
                                         </div>
                                         <div class="control-group">
-                                            <label class="control-label" for="inputMoney">Сумма</label>
+                                            <label class="control-label" for="inputMoney3">Сумма</label>
                                             <div class="controls">
-                                                <input class="input-small" id="inputMoney" name="count" type="number" />
+                                                <input class="input-small amount" id="inputMoney3" name="count" type="text" />
                                             </div>
                                         </div>
                                         <div class="control-group">
@@ -134,7 +191,7 @@
                         </div>
                     </div>
                 </div>
-            <div class="span4 offset1">
+                <div class="span4">
                 <ul class="nav nav-tabs" id="navTab2">
                     <li class="active"><a href="#full_report" data-toggle="tab">Журнал</a></li>
                     <li><a href="#short_report" data-toggle="tab">Отчет</a></li>
@@ -205,7 +262,214 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+            <div id="month-report" class="tab-pane">
+                <table id="month-report" class="table table-bordered table-stripped">
+                    <tr>
+                        <th>Дата</th>
+                        <th>01</th>
+                        <th>02</th>
+                        <th>03</th>
+                        <th>04</th>
+                        <th>05</th>
+                        <th>06</th>
+                        <th>07</th>
+                        <th>08</th>
+                        <th>09</th>
+                        <th>10</th>
+                        <th>11</th>
+                        <th>12</th>
+                        <th>13</th>
+                        <th>14</th>
+                        <th>15</th>
+                        <th>16</th>
+                        <th>17</th>
+                        <th>18</th>
+                        <th>19</th>
+                        <th>20</th>
+                        <th>21</th>
+                        <th>22</th>
+                        <th>23</th>
+                        <th>24</th>
+                        <th>25</th>
+                        <th>26</th>
+                        <th>27</th>
+                        <th>28</th>
+                        <th>29</th>
+                        <th>30</th>
+                        <th>31</th>
+                    </tr>
+                    <tr>
+                        <td>Сампо</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                    </tr>
+                    <tr>
+                        <td>Абонементы</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                    </tr>
+                    <tr>
+                        <td>Списано</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                        <td>2100</td>
+                    </tr>
+                        <td>Нестеров Василий</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Кудрявцев Михаил</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                        <td class="text-success">✓</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
       </div>
     </div>
 {% endblock %}
