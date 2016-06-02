@@ -41,7 +41,7 @@ def get_models(fk_class):
 # Удалить заданное кол-во уроков у заданной группы и заданного студента
 def delete_lessons(group, student, date, count):
 
-    passes = []
+    passes = set()
     to_delete = []
 
     for lesson in Lessons.objects.filter(
@@ -49,9 +49,7 @@ def delete_lessons(group, student, date, count):
             student_id=student,
             date__gte=date).order_by('date')[:count]:
 
-        if lesson.group_pass not in passes:
-            passes.append(lesson.group_pass)
-
+        passes.add(lesson.group_pass)
         to_delete.append(lesson)
 
     i_passes = iter(passes)
