@@ -107,7 +107,28 @@ window.Factories = (function ($) {
    * 2. Проверка формы
    * 3. Очистка формы
    */
-  function Form() {
+  function Form(selector) {
+      this.html = $(selector);
+      this.data = {};
+
+      // Наполняем объект data
+      $.map(this.html.find('input'), $.proxy(function(input) {
+          Object.defineProperty(
+              this.data, 
+              $(input).prop('name'), 
+              (function($input) {
+                return {
+                    get: function() {
+                      return $input.val()
+                    },
+                    set: function(val) {
+                      $input.val(val); 
+                    }
+                }
+ 
+              })($(input))
+          )  
+      }, this));
   }
 
   // Отправить данные на сервер
@@ -119,7 +140,11 @@ window.Factories = (function ($) {
   };
 
   // Очистить форму
-  Form.prototype.clear = function() {};
+  Form.prototype.clear = function() {
+    for(key in this.data) {
+      this.data[key] = "";
+    }
+  };
 
 
   return {
@@ -129,8 +154,8 @@ window.Factories = (function ($) {
     createReport: function (table, name) {
       return new Report(table, name)
     },
-    createForm: function () {
-      return new Form()
+    createForm: function (form) {
+      return new Form(form);
     }
   }
 })(window.jQuery);

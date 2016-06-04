@@ -102,7 +102,7 @@
                 })(data, this), 500);
 
                 if(!doNotAddEvents) {
-                    doNotAddEvents = true;
+                    //doNotAddEvents = true;
 
                     // Запрещаем обновление времени при фокусе
                     this.focus((function(data) {
