@@ -3,6 +3,9 @@
     <script type="text/javascript" src="../static/js/jsplugins.js"></script>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
+
+        
+
         window.onload = function() {
 
             function stopClickEvent(event) {
@@ -41,8 +44,30 @@
             $('#inputTime2').timepicker({
                 update: true
             });
-
+            
             $('.amount').positivenumber();
+
+            
+            // ------------------- Поведение вкладки "Абонементы" ------------------
+            // Изменить значение св-ва display у набора виджетов на противоположное
+            function toggleWidgets(widgets) {
+                $.map(widgets, function(widget) {
+                    $(widget).toggle(); 
+                });
+            }
+            
+            $('#inputTime3').timepicker({
+                update: true
+            })
+
+            $('#addButton').click(function() {
+                toggleWidgets(['#sampo-passes-list', '#addSampoPass']);
+            })
+
+            $('#cancelButton').click(function() {
+                toggleWidgets(['#sampo-passes-list', '#addSampoPass']);
+                return false;
+            })
         }
     </script>
 {% endblock %}
@@ -136,20 +161,22 @@
                         </div>
                         <div id="pass" class="tab-pane">
                             <div>
-                                <form class="form-search to_fd center">
-                                    <div class="input-prepend">
-                                        <span style="font-size: 12pt;" class="add-on">Поиск</span>
-                                        <input class="input-large" id="prependedInput" size="16" type="text">
-                                    </div>
-                                    <button id="addButton" style="color: #2e8b57" type="button" class="btn extra_big_font">+</button>
-                                </form>
-                                <ul id="sampo_passes" class="form-horizontal to_fd offset3">
-                                    {% for pass in passes %}
-                                        <li><label class="inline checkbox">
-                                          <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
-                                        </label></li>
-                                    {% endfor %}
-                                </ul>
+                                <div id="sampo-passes-list">
+                                    <form class="form-search to_fd center">
+                                        <div class="input-prepend">
+                                            <span style="font-size: 12pt;" class="add-on">Поиск</span>
+                                            <input class="input-large" id="prependedInput" size="16" type="text">
+                                        </div>
+                                        <button id="addButton" type="button" class="btn">Добавить</button>
+                                    </form>
+                                    <ul id="sampo_passes" class="form-horizontal to_fd offset3">
+                                        {% for pass in passes %}
+                                            <li><label class="inline checkbox">
+                                              <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
+                                            </label></li>
+                                        {% endfor %}
+                                    </ul>
+                                  </div>
                                 <div id="addSampoPass" style="display: none">
                                     <form class="form-horizontal money-action">
                                         <div class="control-group">

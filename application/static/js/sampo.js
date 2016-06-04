@@ -22,7 +22,11 @@
 
  */
 window.Factories = (function ($) {
-
+  /**
+   *  Класс для работы с закладкладкой на странице
+   *  Служит для реализации логики контрола и раздает отчетам комманду на об-
+   *  новление.
+   */
   function Tab(html, releaseEvent) {
     this.$html = $(html);
     this.event = releaseEvent;
@@ -40,7 +44,9 @@ window.Factories = (function ($) {
       this.release();
     }, this))
   }
-
+  
+  // Обработчик события-продолжения, которое наступает после изменения зна-
+  // чения контрола.
   Tab.prototype.release = function () {
     var newValue = this.$input.val();
 
@@ -52,16 +58,25 @@ window.Factories = (function ($) {
     this.$html.trigger('click');
   };
 
+  // Обойти все отчеты, в закладке и передать комманду на обновление
   Tab.prototype.notifyAboutChange = function (val) {
     for (var i = 0, j = this.reports.length; i < j; i++) {
       this.reports[i].refresh(val);
     }
   };
 
+  // Подписать новый отчет
   Tab.prototype.addListener = function (report) {
     this.reports.push(report);
   };
 
+  /**
+   * Класс для работы с отчетами на странице
+   * Реализует:
+   * 1. Обновление отчета
+   * 2. Добавление/удаление строк
+   * 3. Блокировку/разблокировку отчета
+   */
   function Report(table, name) {
     this.table = $(table);
     this.rows = this.table.find('tr');
@@ -86,6 +101,12 @@ window.Factories = (function ($) {
   Report.prototype.unlock = function () {
   };
 
+  /**
+   * Класс для работы с формами страницы
+   * 1. Отправка формы
+   * 2. Проверка формы
+   * 3. Очистка формы
+   */
   function Form() {
   }
 
