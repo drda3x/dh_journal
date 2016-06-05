@@ -54,8 +54,13 @@
               cashWrt = window.Factories.createForm($('#cash-wrt-payment')),
             
             // ------------------- Форма добавления новых абонементов для сампо ----
-              sampoPadd = window.Factories.createForm($('#add-sampo-pass'));
-            
+              sampoPass = window.Factories.createForm($('#add-sampo-pass'));
+
+
+            journalTab.addListener(cashAdd);
+            journalTab.addListener(cashWrt);
+            journalTab.addListener(sampoPass);
+
             // ------------------- Поведение вкладки "Абонементы" ------------------
             // Изменить значение св-ва display у набора виджетов на противоположное
             function toggleWidgets(widgets) {

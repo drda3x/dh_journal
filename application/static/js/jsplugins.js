@@ -77,6 +77,8 @@
             var data = this.data('timepicker');
             data.update = false;
             clearInterval(data.updateInterval);
+            
+            this.off('focus focusout');
 
             return this;
         },
@@ -105,11 +107,12 @@
                     //doNotAddEvents = true;
 
                     // Запрещаем обновление времени при фокусе
-                    this.focus((function(data) {
+                    this.focus((function(data, context) {
                         return function(event) {
+                            context.val("");
                             data.update = false;
                         }
-                    })(data));
+                    })(data, this));
 
                     // Как только фокус уходит, через 30 секунд разрешаем обновление времени
                     this.focusout((function(data) {
