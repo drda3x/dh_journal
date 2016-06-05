@@ -267,13 +267,13 @@
                             <tbody>
                                 <tr>
                                     <td class="center">
-                                        Внесено: <strong class="text-success">{{ totals.add }}</strong>
+                                      Внесено:<br> <strong class="text-success">{{ totals.add }}</strong>
                                     </td>
                                     <td class="center">
-                                        Списано: <strong class="text-error">{{ totals.write_off }}</strong>
+                                      Списано:<br> <strong class="text-error">{{ totals.write_off }}</strong>
                                     </td>
                                     <td class="center">
-                                        ИТОГО:
+                                      ИТОГО: <br>
                                         {% if totals.delta > 0 %}
                                             <strong class="text-success">{{ totals.delta }}</strong>
                                         {% elif totals.delta < 0 %}
