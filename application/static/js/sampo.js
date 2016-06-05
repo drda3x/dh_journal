@@ -110,6 +110,7 @@ window.Factories = (function ($) {
   function Form(selector) {
       this.html = $(selector);
       this.data = {};
+      this.formParams = this.html.data();
 
       // Наполняем объект data
       $.map(this.html.find('input'), $.proxy(function(input) {
@@ -133,6 +134,9 @@ window.Factories = (function ($) {
 
   // Отправить данные на сервер
   Form.prototype.submit = function () {
+      $.ajax(
+          
+      );
   };
 
   // Проверить форму
