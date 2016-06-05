@@ -26,7 +26,7 @@ def get_sampo_details(date):
 
     sampo_passes = SampoPasses.objects.select_related('payment')\
         .filter(payment__date__range=[begin_time, end_time])\
-        .exclude(payment__date__gt=date)
+        .exclude(payment__date__gt=datetime.datetime.combine(date.date(), datetime.datetime.max.time()))
 
     today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end)).order_by('pk')
 
