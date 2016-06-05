@@ -48,7 +48,13 @@
             $('.amount').positivenumber();
             
             // ------------------- Форма внесения наличных за занятие --------------
-            var cashAdd = window.Factories.createForm($('#cash-add-payment'));
+            var cashAdd = window.Factories.createForm($('#cash-add-payment')),
+              
+            // ------------------- Форма внесения списаний из кассы ----------------
+              cashWrt = window.Factories.createForm($('#cash-wrt-payment')),
+            
+            // ------------------- Форма добавления новых абонементов для сампо ----
+              sampoPadd = window.Factories.createForm($('#add-sampo-pass'));
             
             // ------------------- Поведение вкладки "Абонементы" ------------------
             // Изменить значение св-ва display у набора виджетов на противоположное
@@ -135,7 +141,7 @@
                             </form>
                         </div>
                         <div id="cash-del" class="tab-pane">
-                            <form id="cash-wrt-payment" class="form-horizontal money-action">
+                          <form id="cash-wrt-payment" data-action="add" data-type="cash-wrt" data-date="{{date}}" class="form-horizontal money-action">
                                 <div class="control-group">
                                     <label class="control-label" for="inputTime2">Время</label>
                                     <div class="controls">
@@ -180,7 +186,7 @@
                                     </ul>
                                   </div>
                                 <div id="addSampoPass" style="display: none">
-                                    <form class="form-horizontal money-action">
+                                  <form class="form-horizontal money-action" id="add-sampo-pass" data-action="add" data-type="add-sampo-pass" data-date="{{date}}">
                                         <div class="control-group">
                                             <label class="control-label" for="inputTime3">Время</label>
 

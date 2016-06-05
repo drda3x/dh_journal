@@ -130,13 +130,45 @@ window.Factories = (function ($) {
               })($(input))
           )  
       }, this));
+
+      // Событие отправки
+      this.html.find('.submitBtn').click($.proxy(this.submit, this));
   }
 
   // Отправить данные на сервер
   Form.prototype.submit = function () {
-      $.ajax(
-          
-      );
+    try {
+        var requestData = {
+            action: this.formParams.action,
+            type: this.formParams.type,
+            data: (function(context) {
+
+                var json = {
+                  info: {}
+                }
+                
+                for(var arr= Object.getOwnPropertyNames(context.data), i= arr.length-1; i >= 0; i--) {
+                    json.info[arr[i]] = context.data[arr[i]];
+                }             
+
+                json.info.date = context.formParams.date;
+
+                return JSON.stringify(json);
+            })(this)
+        };
+
+        $.ajax({
+            data: requestData 
+        }).success($.proxy(function() {
+        
+            this.clear();
+        
+        }, this));
+      } catch(e) {
+        console.error(e);
+      } finally {
+        return false;
+      }
   };
 
   // Проверить форму
