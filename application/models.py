@@ -212,8 +212,16 @@ class Groups(models.Model):
             if i >= now
         ]
 
+        past_updates = [
+            datetime.datetime.fromtimestamp(i).date()
+            for i in map(int, self.updates.split(','))
+            if i < now
+        ]
+
         if len(updates) > 0:
             return sorted(updates)[0]
+        elif len(past_updates) > 0:
+            return sorted(past_updates)[-1]
         else:
             return None
 
