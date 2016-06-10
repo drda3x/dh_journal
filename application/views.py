@@ -459,12 +459,7 @@ class SampoView(BaseView):
 
             new_payment.save()
 
-            passes, payments, _ = get_sampo_details(now)
-
-            return HttpResponse(
-                json.dumps({
-                    'payments': payments
-                }))
+            return self.get_json(now)
 
         elif data and data['name'] and data['surname']:
 
@@ -483,13 +478,7 @@ class SampoView(BaseView):
             )
             new_pass.save()
 
-            passes, payments, _ = get_sampo_details(now)
-
-            return HttpResponse(
-                json.dumps({
-                    'pid': new_pass.id,
-                    'payments': payments
-                }))
+            return self.get_json(now, {'pid': new_pass.id})
 
         else:
             return HttpResponseServerError('Not all variables')
@@ -522,13 +511,7 @@ class SampoView(BaseView):
 
             new_usage.save()
 
-            passes, payments, _ = get_sampo_details(now)
-
-            _json = json.dumps({
-                'payments': payments
-            })
-
-            return HttpResponse(_json)
+            return self.get_json(now)
 
         elif action == 'uncheck':
             # todo Если админ системы удалит запись отсюда за любой день кроме сегоднешнего, удалится не та запись!
@@ -544,13 +527,7 @@ class SampoView(BaseView):
             if last_usage:
                 last_usage.delete()
 
-            passes, payments, _ = get_sampo_details(now)
-
-            _json = json.dumps({
-                'payments': payments
-            })
-
-            return HttpResponse(_json)
+            return self.get_json(now)
 
         else:
             return HttpResponseServerError('failed')
@@ -583,9 +560,13 @@ class SampoView(BaseView):
             except SampoPassUsage.DoesNotExist:
                 pass
 
+        return self.get_json()
+
+    def get_json(self, dt=None, **kwargs):
+
         date_str = self.request.GET.get('date')
 
-        date = make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
+        date = dt or make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
         date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
         date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
 
@@ -602,6 +583,8 @@ class SampoView(BaseView):
 
         response['passes'] = map(to_json, passes)
         response['payments'] = payments
+        response.update(kwargs)
+        response['date'] = date.strftime('%d.%m.%Y')
 
         return HttpResponse(json.dumps(response))
 
@@ -610,7 +593,8 @@ class SampoView(BaseView):
             'add': self.add_sampo_payment,
             'check': self.check_uncheck_sampo,
             'uncheck': self.check_uncheck_sampo,
-            'del': self.write_off_sampo_record
+            'del': self.write_off_sampo_record,
+            'get_json': self.get_json
         }
 
         action = request.GET.get('action')

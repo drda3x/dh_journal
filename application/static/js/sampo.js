@@ -49,16 +49,28 @@ window.Factories = (function ($) {
   // чения контрола.
   Tab.prototype.release = function () {
     var newValue = this.$input.val();
-
+    this.$html.trigger('click');
+ 
     if (newValue != this.value) {
-      this.notifyAboutChange(newValue);
-    }
+      this.getData(newValue);
+    }  
 
     this.value = newValue;
-    this.$html.trigger('click');
-   
-
   };
+
+
+  // Запросить данные с сервера
+  Tab.prototype.getData = function(newVal) {
+      $.ajax({
+    	data: {
+	  action: 'get_json',
+	  date: newVal
+	}  	
+      }).success($.proxy(function(data) {
+      	  this.notifyAboutChange(JSON.parse(data));
+      }, this)); 
+  }
+
 
   // Обойти все отчеты, в закладке и передать комманду на обновление
   Tab.prototype.notifyAboutChange = function (val) {
@@ -81,6 +93,9 @@ window.Factories = (function ($) {
   // Подписать новый отчет
   Tab.prototype.addListener = function (report) {
     this.reports.push(report);
+
+    // Сохраним в подписчике ссылку на себя. Для обратной связи.
+    report.parent = this;
   };
 
   /**
@@ -173,8 +188,8 @@ window.Factories = (function ($) {
 
         $.ajax({
             data: requestData 
-        }).success($.proxy(function() {
-        
+        }).success($.proxy(function(data) {
+	    this.parent.notifyAboutChange(JSON.parse(data));
             this.clear();
         
         }, this));
@@ -200,7 +215,12 @@ window.Factories = (function ($) {
   // А еше, нужно проверить, что дата в табе = сегоднешней и если это не так - 
   // остановить автообновление часиков
   Form.prototype.refresh = function(val) {
-    this.formParams.date = val;
+    
+    if(!val.hasOwnProperty('date')) {
+    	return;
+    }
+
+    this.formParams.date = val.date;
     this.clear();
 
     if(this.defaultDate != this.formParams.date) {
