@@ -478,7 +478,7 @@ class SampoView(BaseView):
             )
             new_pass.save()
 
-            return self.get_json(now, {'pid': new_pass.id})
+            return self.get_json(now, pid=new_pass.id)
 
         else:
             return HttpResponseServerError('Not all variables')
@@ -566,7 +566,7 @@ class SampoView(BaseView):
 
         date_str = self.request.GET.get('date')
 
-        date = dt or make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
+        date = dt or (make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE)))
         date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
         date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
 

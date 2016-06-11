@@ -30,7 +30,7 @@ h4 {
 }
 
 table td .minus {
-    float: right;
+    float: right !important;
     width: 14px !important;
     display: inline-block;
     font-size: 40pt;

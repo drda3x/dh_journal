@@ -107,14 +107,18 @@ window.Factories = (function ($) {
    */
   function Report(table, name) {
     this.table = $(table);
-    this.rows = this.table.find('tr');
-    this.needRefresh = false;
-    this.controlValue = null;
+    //this.rows = this.table.find('tr');
+    //this.needRefresh = false;
+    //this.controlValue = null;
+  }
+  
+  Report.prototype.rows = function() {
+    return this.table.find('tr');
   }
 
   // Обновить отчет
-  Report.prototype.refresh = function (controlData) {
-    console.log('refresh');
+  Report.prototype.refresh = function (data) {
+    throw('This is an abstracr method. You need to redifine it in your report-class instance');
   };
 
   // Добавить одну строку в отчет
@@ -189,9 +193,8 @@ window.Factories = (function ($) {
         $.ajax({
             data: requestData 
         }).success($.proxy(function(data) {
-	    this.parent.notifyAboutChange(JSON.parse(data));
+	        this.parent.notifyAboutChange(JSON.parse(data));
             this.clear();
-        
         }, this));
       } catch(e) {
         console.error(e);

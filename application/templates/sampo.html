@@ -25,8 +25,86 @@
                 reportTab = window.Factories.createTab($('#tab-report'), 'change');
 
             var paymentReport = window.Factories.createReport($('#payments'), 'payments'),
-                dayReport = window.Factories.createReport($('#short_report_table', 'day_report')),
+                dayReport = window.Factories.createReport($('#short_report_table'), 'day_report'),
                 monthReport = window.Factories.createReport($('#month-report'), 'month-report');
+            
+            // Механизм обновления журнала оплат
+            paymentReport.refresh = function(_data) {
+              var data = _data.payments;
+              var tbody = this.table.find('tbody').empty();
+
+              for(var i= 0, j= data.length; i<j; i++) {
+                var payment = data[i];
+
+                var row = $('<tr></tr>'), 
+                  td = $('<td class="'+ payment.info.type +'"></td>');
+
+                $('<td>'+ payment.date +'</td>').appendTo(row);
+
+                td.append(
+                  '<div class="row-fluid">' + 
+                    '<div class="span10">'+ 
+                      payment.info.payment +
+                      ((payment.info.comment != undefined) ? '<div class="muted">'+ payment.info.comment +'</div>' : '') + 
+                    '</div>' +
+                    '<div class="span1 minus" data-id="'+ payment.info.id +'"><span class="text-error">-</span></div>' +
+                  '</div>'
+                );
+
+                row.append(td);
+                
+                this.table.append(row);
+              }
+            }
+            
+            paymentReport.table.click($.proxy(function(event) {
+              var $target = $(event.target);
+
+              if($target.hasClass('minus') || $($target.parent()).hasClass('minus')) {
+                $target = $target.hasClass('minus') ? $target : $($target.parent());
+
+                $.ajax({
+                  data: {
+                    action: 'del',
+                    pid: $target.data('id'),
+                    date: this.parent.value
+                  }
+                }).success($.proxy(function(data) {
+                  this.parent.notifyAboutChange(JSON.parse(data));
+                }, this))
+              }
+            }, paymentReport));
+
+            // Механизм обновления отчетика с суммами
+            dayReport.refresh = function(data) {
+              var totals = $.map(data.payments, function(elem) {
+                return parseInt(elem.info.payment); 
+              });
+
+              var pTotal = $.grep(totals, function(elem) {
+                return elem > 0;
+              }).reduce(function(accum, elem) {
+                return accum + elem; 
+              }, 0); 
+
+              var nTotal = $.grep(totals, function(elem) {
+                return elem < 0;
+              }).reduce(function(accum, elem) {
+                return accum + elem; 
+              }, 0);
+
+             var total = pTotal + nTotal;
+              
+              this.table.empty();
+              this.table.append(
+                '<tr>' +
+                  '<td class="center">Внесено:<br> <strong class="text-success">'+ pTotal +'</strong></td>' + 
+                  '<td class="center">Списано:<br> <strong class="text-error">'+ Math.abs(nTotal) +'</strong></td>' + 
+                  '<td class="center">Внесено:<br> <strong class="'+ ((total > 0) ? "text-success" : ((total < 0) ? "text-error" : '')) +'">'+ total +'</strong></td>' + 
+                '</tr>'
+              );
+
+            };
 
             journalTab.addListener(paymentReport);
             journalTab.addListener(dayReport);
