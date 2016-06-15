@@ -142,26 +142,31 @@ window.Factories = (function ($) {
   function Form(selector) {
       this.html = $(selector);
       this.data = {};
-      this.formParams = this.html.data();
+      this.formParams = this.html.data() || {};
       this.defaultDate = this.formParams.date;
 
       // Наполняем объект data
       $.map(this.html.find('input'), $.proxy(function(input) {
+        var $input = $(input),
+            propName = $input.prop('name'); 
+          
+        if(propName) { 
           Object.defineProperty(
-              this.data, 
-              $(input).prop('name'), 
-              (function($input) {
-                return {
-                    get: function() {
-                      return $input.val()
-                    },
-                    set: function(val) {
-                      $input.val(val); 
-                    }
-                }
- 
-              })($(input))
+            this.data, 
+            $(input).prop('name'), 
+            (function($input) {
+              return {
+                  get: function() {
+                    return $input.val()
+                  },
+                  set: function(val) {
+                    $input.val(val); 
+                  }
+              }
+
+            })($input)
           )  
+        }
       }, this));
 
       // Событие отправки
@@ -225,11 +230,14 @@ window.Factories = (function ($) {
 
     this.formParams.date = val.date;
     this.clear();
-
-    if(this.defaultDate != this.formParams.date) {
-      $(this.html.find('.time')).timepicker('stopUpdate');
-    } else {
-      $(this.html.find('.time')).timepicker('startUpdate');
+    
+    try {
+      if(this.defaultDate != this.formParams.date) {
+        $(this.html.find('.time')).timepicker('stopUpdate');
+      } else {
+        $(this.html.find('.time')).timepicker('startUpdate');
+      }
+    } catch(e) {
     }
   };
 

@@ -115,13 +115,17 @@
                     })(data, this));
 
                     // Как только фокус уходит, через 30 секунд разрешаем обновление времени
-                    this.focusout((function(data) {
+                    this.focusout((function(data, context) {
                         return function() {
-                            setTimeout(function() {
-                                data.update = true;
-                            }, 30000)
+                          if(context.val() != '') {
+                                setTimeout(function() {
+                                    data.update = true;
+                                }, 30000)
+                          } else {
+                            data.update = true;
+                          }
                         }
-                    })(data));
+                    })(data, this));
                 }
 
                 return this;

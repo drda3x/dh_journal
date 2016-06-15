@@ -485,14 +485,13 @@ class SampoView(BaseView):
 
     def check_uncheck_sampo(self):
         action = self.request.GET.get('action')
-        time = self.request.GET.get('time')
+        request_body = json.loads(self.request.GET['data'])['info']
 
-        if time:
-            hhmm = map(lambda x: int(x), self.request.GET['time'].split(':'))
-        else:
-            hhmm = [0, 0]
+        time = request_body.get('time')
 
-        date_str = self.request.GET.get('date')
+        hhmm = map(lambda x: int(x), time.split(':')) if time else [0] * 2
+
+        date_str = request_body.get('date')
 
         if date_str:
             date = map(lambda x: int(x), date_str.split('.'))
@@ -505,7 +504,7 @@ class SampoView(BaseView):
 
         if action == 'check':
             new_usage = SampoPassUsage(
-                sampo_pass_id=int(self.request.GET['pid']),
+                sampo_pass_id=int(request_body['pid']),
                 date=now
             )
 
@@ -517,7 +516,7 @@ class SampoView(BaseView):
             # todo Если админ системы удалит запись отсюда за любой день кроме сегоднешнего, удалится не та запись!
             # todo решать эту проблему лучше через передачу в функцию праильной даты...
             last_usage = SampoPassUsage.objects.filter(
-                sampo_pass_id=int(self.request.GET['pid']),
+                sampo_pass_id=int(request_body['pid']),
                 date__range=(
                     now.replace(hour=0, minute=0, second=0, microsecond=0),
                     now.replace(hour=23, minute=59, second=59, microsecond=999999)

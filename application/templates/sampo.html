@@ -147,6 +147,29 @@
                 });
             }
             
+            // ------------------ Поведение отмечалки сампо -----------------------
+            var passStateReport = window.Factories.createForm($('#sampo_passes'));
+
+            journalTab.addListener(passStateReport);
+
+            passStateReport.html.click($.proxy(function(event) {
+              var $target = $(event.target);
+
+              if(!$target.is('input')) {
+                return;
+              }
+
+              this.data = {
+                date: this.parent.value,
+                pid: $target.val()
+              };
+              
+              this.formParams.action = $target.prop('checked') ? 'check' : 'uncheck';
+
+              this.submit();
+            }, passStateReport));
+
+
             $('#inputTime3').timepicker({
                 update: true
             })
@@ -260,10 +283,10 @@
                                         </div>
                                         <button id="addButton" type="button" class="btn">Добавить</button>
                                     </form>
-                                    <ul id="sampo_passes" class="form-horizontal to_fd offset3">
+                                    <ul id="sampo_passes" class="form-horizontal to_fd offset3" data-date={{date}}>
                                         {% for pass in passes %}
                                             <li><label class="inline checkbox">
-                                              <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
+                                                <input type="checkbox" value="{{ pass.id }}" {% if pass.used_today %}checked{% endif %}> {{ pass.surname }} {{ pass.name }}
                                             </label></li>
                                         {% endfor %}
                                     </ul>
