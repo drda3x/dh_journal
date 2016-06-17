@@ -147,8 +147,11 @@
                 });
             }
             
+
             // ------------------ Поведение отмечалки сампо -----------------------
             var passStateReport = window.Factories.createForm($('#sampo_passes'));
+
+            var passListTimePicker = $('#pass-list-time').timepicker({update: true});
 
             journalTab.addListener(passStateReport);
 
@@ -161,27 +164,48 @@
 
               this.data = {
                 date: this.parent.value,
-                pid: $target.val()
+                pid: $target.val(),
+                time: passListTimePicker.val()
               };
               
               this.formParams.action = $target.prop('checked') ? 'check' : 'uncheck';
 
               this.submit();
             }, passStateReport));
+                                                                  
+            passStateReport.refresh = function(val) {
+                
+                if(!val.hasOwnProperty('date')) {
+                  return;
+                }
 
+                this.formParams.date = val.date;
+                this.clear();
+                
+                try {
+                  if(this.defaultDate != this.formParams.date) {
+                    passListTimePicker.timepicker('stopUpdate');
+                    passListTimePicker.val("");
+                  } else {
+                    passListTimePicker.timepicker('startUpdate');
+                  }
+                } catch(e) {
+                }
+              }
 
             $('#inputTime3').timepicker({
                 update: true
-            })
+            });
 
             $('#addButton').click(function() {
                 toggleWidgets(['#sampo-passes-list', '#addSampoPass']);
-            })
+            });
 
             $('#cancelButton').click(function() {
                 toggleWidgets(['#sampo-passes-list', '#addSampoPass']);
                 return false;
-            })
+            });
+
         }
     </script>
 {% endblock %}
@@ -280,6 +304,8 @@
                                         <div class="input-prepend">
                                             <span style="font-size: 12pt;" class="add-on">Поиск</span>
                                             <input class="input-large" id="prependedInput" size="16" type="text">
+                                            <span id="pass-list-time-label" style="font-size: 12pt;" class="add-on">Время</span>
+                                            <input class="input-small time" id="pass-list-time" name="time" type="text"/>
                                         </div>
                                         <button id="addButton" type="button" class="btn">Добавить</button>
                                     </form>

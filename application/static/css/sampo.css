@@ -149,3 +149,10 @@ table tr:hover span {
     vertical-align: middle;
     text-align: center;
 }*/
+#prependedInput {
+    border-radius: 0;
+}
+
+#pass-list-time-label {
+    margin-left: -1px !important;
+}
