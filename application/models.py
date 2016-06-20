@@ -402,6 +402,15 @@ class BonusClasses(models.Model):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.name)
 
     @property
+    def begin_datetime(self):
+        return datetime.datetime.combine(self.date, self.time)
+
+    @property
+    def end_datetime(self):
+        return datetime.datetime.combine(self.date, self.end_time)
+
+
+    @property
     def repr(self):
         return self.repr_short()
 
