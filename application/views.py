@@ -14,6 +14,7 @@ from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
 from django.utils.functional import cached_property
+from django.db.models import Sum
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
 from application.logic.group import GroupLogic
@@ -609,6 +610,64 @@ class SampoView(BaseView):
 
             return self.render_to_response(context)
 
+    def get_total_report_data(self):
+        date = self.request.GET.get('date') or datetime.datetime.now()
+        date = datetime.datetime(2016, 5, 10)
+        days = range(1, get_last_day_of_month(date).day + 1)
+        dates_range = [datetime.datetime(date.year, date.month, days[0]), datetime.datetime(date.year, date.month, days[-1])]
+        payments = SampoPayments.objects.filter(date__range=dates_range)
+        passes = SampoPasses.objects.select_related().filter(payment__in=payments)
+        pass_usages = [(i.date.day, '%s %s' % (i.sampo_pass.surname, i.sampo_pass.name)) for i in SampoPassUsage.objects.filter(date__range=dates_range)]
+
+        day_payments = [
+            {
+                'day': d,
+                'val': reduce(lambda a, x: a + x.money, filter(lambda p: p.date.day == d and p.money > 0, payments.exclude(pk__in=[pm.payment.pk for pm in passes])), 0)
+            } for d in days
+        ]
+
+        pass_payments = [
+            {
+                'day': d,
+                'val': reduce(lambda a, x: a + x.payment.money, filter(lambda p: p.payment.date.day == d and p.payment.money > 0, passes), 0)
+            } for d in days
+        ]
+
+        cash_costs = [
+            {
+                'day': d,
+                'val': reduce(lambda a, x: a + abs(x.money), filter(lambda p: p.date.day == d and p.money < 0, payments), 0)
+            } for d in days
+        ]
+
+        t = zip(day_payments, pass_payments, cash_costs)
+
+        totals = [
+           {
+               'day': d,
+               'val': (lambda a, b, c: a['val'] + b['val'] - c['val'])(*)
+           }
+        ]
+
+        usages = [
+            {
+                'student': st,
+                'days': [
+                    {'day': d, 'attendance': (d, st) in pass_usages}
+                    for d in days
+                ]
+            }
+            for st in sorted(set((i[-1] for i in pass_usages)))
+        ]
+
+        return {
+            'days': days,
+            'day_payments': day_payments,
+            'pass_payments': pass_payments,
+            'cash_costs': cash_costs,
+            'usages': usages,
+        }
+
     def get_context_data(self, **kwargs):
         context = super(SampoView, self).get_context_data(**kwargs)
 
@@ -624,6 +683,8 @@ class SampoView(BaseView):
         context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
         context['pass_signs_l'] = len(context['pass_signs'])
         context['date'] = date.strftime('%d.%m.%Y')
+
+        context['total_report'] = self.get_total_report_data()
 
         return context
 

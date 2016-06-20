@@ -431,211 +431,56 @@
             </div>
             </div>
             <div id="month-report" class="tab-pane">
-                <table id="month-report" class="table table-bordered table-stripped">
+                <div><strong>Отчет по кассе</strong></div>
+                <table class="table table-bordered table-striped table-hover">
                     <tr>
-                        <th>Дата</th>
-                        <th>01</th>
-                        <th>02</th>
-                        <th>03</th>
-                        <th>04</th>
-                        <th>05</th>
-                        <th>06</th>
-                        <th>07</th>
-                        <th>08</th>
-                        <th>09</th>
-                        <th>10</th>
-                        <th>11</th>
-                        <th>12</th>
-                        <th>13</th>
-                        <th>14</th>
-                        <th>15</th>
-                        <th>16</th>
-                        <th>17</th>
-                        <th>18</th>
-                        <th>19</th>
-                        <th>20</th>
-                        <th>21</th>
-                        <th>22</th>
-                        <th>23</th>
-                        <th>24</th>
-                        <th>25</th>
-                        <th>26</th>
-                        <th>27</th>
-                        <th>28</th>
-                        <th>29</th>
-                        <th>30</th>
-                        <th>31</th>
+                        <th>дата</th>
+                        {% for dt in total_report.days %}
+                            <th>{{ dt }}</th>
+                        {% endfor %}
                     </tr>
                     <tr>
-                        <td>Сампо</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
+                        <td><strong>Оплата наличными</strong></td>
+                        {% for payment in total_report.day_payments %}
+                            <td>{{ payment.val }}</td>
+                        {% endfor %}
                     </tr>
                     <tr>
-                        <td>Абонементы</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
+                        <td><strong>Оплата абонементов</strong></td>
+                        {% for payment in total_report.pass_payments %}
+                            <td>{{ payment.val }}</td>
+                        {% endfor %}
                     </tr>
                     <tr>
-                        <td>Списано</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                        <td>2100</td>
-                    </tr>
-                        <td>Нестеров Василий</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Кудрявцев Михаил</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
-                        <td class="text-success">✓</td>
-                        <td></td>
+                        <td><strong>Списания</strong></td>
+                        {% for payment in total_report.cash_costs %}
+                            <td>{{ payment.val }}</td>
+                        {% endfor %}
                     </tr>
                 </table>
+
+                <div><strong>Отчет по посещениям</strong></div>
+                <table class="table table-bordered table-striped table-hover">
+                    <tr>
+                        <th>дата</th>
+                        {% for dt in total_report.days %}
+                            <th>{{ dt }}</th>
+                        {% endfor %}
+                    </tr>
+                    {% for usage in total_report.usages %}
+                        <tr>
+                            <td>{{ usage.student }}</td>
+                            {% for attendance in usage.days %}
+                                {% if attendance.attendance %}
+                                    <td class="text-success">✓</td>
+                                {% else %}
+                                    <td></td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+
             </div>
       </div>
     </div>
