@@ -1,3 +1,4 @@
+{% load list_filters %}
 {% block head %}
     <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
     <script type="text/javascript" src="../static/js/jsplugins.js"></script>
@@ -438,24 +439,35 @@
                         {% for dt in total_report.days %}
                             <th>{{ dt }}</th>
                         {% endfor %}
+                        <th>Итого</th>
                     </tr>
                     <tr>
                         <td><strong>Оплата наличными</strong></td>
                         {% for payment in total_report.day_payments %}
                             <td>{{ payment.val }}</td>
                         {% endfor %}
+                        <td>{{ total_report.day_payments|sum:"val"}}</td>
                     </tr>
                     <tr>
                         <td><strong>Оплата абонементов</strong></td>
                         {% for payment in total_report.pass_payments %}
                             <td>{{ payment.val }}</td>
                         {% endfor %}
+                        <td>{{ total_report.pass_payments|sum:"val"}}</td>
                     </tr>
                     <tr>
                         <td><strong>Списания</strong></td>
                         {% for payment in total_report.cash_costs %}
                             <td>{{ payment.val }}</td>
                         {% endfor %}
+                        <td>{{ total_report.cash_costs|sum:"val"}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Итого</strong></td>
+                        {% for payment in total_report.totals %}
+                            <td class="{% if payment.val > 0 %}text-success{% else %}text-error{% endif %}">{% if payment.val < 0 %}<strong>{{ payment.val }}</strong>{% else %}{{ payment.val }}{% endif %}</td>
+                        {% endfor %}
+                        <td class="{% if total_report.totals|sum:"val" > 0 %}text-success{% else %}text-error{% endif %}">{{ total_report.totals|sum:"val" }}</td>
                     </tr>
                 </table>
 

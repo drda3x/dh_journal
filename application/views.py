@@ -645,8 +645,9 @@ class SampoView(BaseView):
         totals = [
            {
                'day': d,
-               'val': (lambda a, b, c: a['val'] + b['val'] - c['val'])(*)
+               'val': (lambda a, b, c: a['val'] + b['val'] - c['val'])(*n)
            }
+           for n in t
         ]
 
         usages = [
@@ -665,6 +666,7 @@ class SampoView(BaseView):
             'day_payments': day_payments,
             'pass_payments': pass_payments,
             'cash_costs': cash_costs,
+            'totals': totals,
             'usages': usages,
         }
 
