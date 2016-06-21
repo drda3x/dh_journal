@@ -31,7 +31,7 @@ def get_models(fk_class):
                 fields.append(getattr(model, field_name))
             except AttributeError:
                 pass
-            
+
         #fields = map(lambda name: (name, getattr(model, name)), dir(model))
         for field in fields:
             try:
