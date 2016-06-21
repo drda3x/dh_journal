@@ -1,11 +1,12 @@
 {% load list_filters %}
 {% block head %}
     <link rel="stylesheet" href="../static/css/sampo.css" xmlns="http://www.w3.org/1999/html"/>
+    <link rel="stylesheet" href="../static/css/table.css" />
     <script type="text/javascript" src="../static/js/jsplugins.js"></script>
     <script type="text/javascript" src="../static/js/sampo.js"></script>
     <script type="text/javascript">
 
-        
+
 
         window.onload = function() {
 
@@ -28,7 +29,7 @@
             var paymentReport = window.Factories.createReport($('#payments'), 'payments'),
                 dayReport = window.Factories.createReport($('#short_report_table'), 'day_report'),
                 monthReport = window.Factories.createReport($('#month-report'), 'month-report');
-            
+
             // Механизм обновления журнала оплат
             paymentReport.refresh = function(_data) {
               var data = _data.payments;
@@ -37,27 +38,27 @@
               for(var i= 0, j= data.length; i<j; i++) {
                 var payment = data[i];
 
-                var row = $('<tr></tr>'), 
+                var row = $('<tr></tr>'),
                   td = $('<td class="'+ payment.info.type +'"></td>');
 
                 $('<td>'+ payment.date +'</td>').appendTo(row);
 
                 td.append(
-                  '<div class="row-fluid">' + 
-                    '<div class="span10">'+ 
+                  '<div class="row-fluid">' +
+                    '<div class="span10">'+
                       payment.info.payment +
-                      ((payment.info.comment != undefined) ? '<div class="muted">'+ payment.info.comment +'</div>' : '') + 
+                      ((payment.info.comment != undefined) ? '<div class="muted">'+ payment.info.comment +'</div>' : '') +
                     '</div>' +
                     '<div class="span1 minus" data-id="'+ payment.info.id +'"><span class="text-error">-</span></div>' +
                   '</div>'
                 );
 
                 row.append(td);
-                
+
                 this.table.append(row);
               }
             }
-            
+
             paymentReport.table.click($.proxy(function(event) {
               var $target = $(event.target);
 
@@ -79,29 +80,29 @@
             // Механизм обновления отчетика с суммами
             dayReport.refresh = function(data) {
               var totals = $.map(data.payments, function(elem) {
-                return parseInt(elem.info.payment); 
+                return parseInt(elem.info.payment);
               });
 
               var pTotal = $.grep(totals, function(elem) {
                 return elem > 0;
               }).reduce(function(accum, elem) {
-                return accum + elem; 
-              }, 0); 
+                return accum + elem;
+              }, 0);
 
               var nTotal = $.grep(totals, function(elem) {
                 return elem < 0;
               }).reduce(function(accum, elem) {
-                return accum + elem; 
+                return accum + elem;
               }, 0);
 
              var total = pTotal + nTotal;
-              
+
               this.table.empty();
               this.table.append(
                 '<tr>' +
-                  '<td class="center">Внесено:<br> <strong class="text-success">'+ pTotal +'</strong></td>' + 
-                  '<td class="center">Списано:<br> <strong class="text-error">'+ Math.abs(nTotal) +'</strong></td>' + 
-                  '<td class="center">Внесено:<br> <strong class="'+ ((total > 0) ? "text-success" : ((total < 0) ? "text-error" : '')) +'">'+ total +'</strong></td>' + 
+                  '<td class="center">Внесено:<br> <strong class="text-success">'+ pTotal +'</strong></td>' +
+                  '<td class="center">Списано:<br> <strong class="text-error">'+ Math.abs(nTotal) +'</strong></td>' +
+                  '<td class="center">Внесено:<br> <strong class="'+ ((total > 0) ? "text-success" : ((total < 0) ? "text-error" : '')) +'">'+ total +'</strong></td>' +
                 '</tr>'
               );
 
@@ -123,15 +124,15 @@
             $('#inputTime2').timepicker({
                 update: true
             });
-            
+
             $('.amount').positivenumber();
-            
+
             // ------------------- Форма внесения наличных за занятие --------------
             var cashAdd = window.Factories.createForm($('#cash-add-payment')),
-              
+
             // ------------------- Форма внесения списаний из кассы ----------------
               cashWrt = window.Factories.createForm($('#cash-wrt-payment')),
-            
+
             // ------------------- Форма добавления новых абонементов для сампо ----
               sampoPass = window.Factories.createForm($('#add-sampo-pass'));
 
@@ -144,10 +145,10 @@
             // Изменить значение св-ва display у набора виджетов на противоположное
             function toggleWidgets(widgets) {
                 $.map(widgets, function(widget) {
-                    $(widget).toggle(); 
+                    $(widget).toggle();
                 });
             }
-            
+
 
             // ------------------ Поведение отмечалки сампо -----------------------
             var passStateReport = window.Factories.createForm($('#sampo_passes'));
@@ -168,21 +169,21 @@
                 pid: $target.val(),
                 time: passListTimePicker.val()
               };
-              
+
               this.formParams.action = $target.prop('checked') ? 'check' : 'uncheck';
 
               this.submit();
             }, passStateReport));
-                                                                  
+
             passStateReport.refresh = function(val) {
-                
+
                 if(!val.hasOwnProperty('date')) {
                   return;
                 }
 
                 this.formParams.date = val.date;
                 this.clear();
-                
+
                 try {
                   if(this.defaultDate != this.formParams.date) {
                     passListTimePicker.timepicker('stopUpdate');
@@ -432,6 +433,14 @@
             </div>
             </div>
             <div id="month-report" class="tab-pane">
+                <div>Отчет по кассе</div>
+                <div class="custom_table">
+                    <div class="tr">
+                        {% for dt in total_report.days %}
+                        <div class="td">1000</div>
+                        {% endfor %}
+                    </div>
+                </div>
                 <div><strong>Отчет по кассе</strong></div>
                 <table class="table table-bordered table-striped table-hover">
                     <tr>
