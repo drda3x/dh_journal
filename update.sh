@@ -2,18 +2,18 @@
 
 # Удаляем пики
 echo Чистка пиков
-find /home/da3x/freelance/teacher_book/ -name *.pyc -delete
+find $1 -name *.pyc -delete
 
 #Создаем архив
 echo Создание архива
 catalog=pwd
-cd ~/freelance/teacher_book
-tar -czf ~/freelance/teacher_book/app.tar.gz application
+cd $1
+tar -czf $1/app.tar.gz application
 cd $catalog
 
 # Копируем исходники на сервак
 echo Копирование файлов на сервер
-scp ~/freelance/teacher_book/app.tar.gz u48649@u48649.netangels.ru:~/buffer/
+scp $1/app.tar.gz u48649@u48649.netangels.ru:~/buffer/
 
 # Перезапись исходников
 echo Распаковка файлов и перезапуск сервера
