@@ -24,7 +24,15 @@ def get_models(fk_class):
     )
 
     for model in models:
-        fields = map(lambda name: (name, getattr(model, name)), dir(model))
+        fields = []
+
+        for field_name in dir(model):
+            try:
+                fields.append( (field_name, getattr(model, field_name)) )
+            except AttributeError:
+                continue
+
+        #fields = map(lambda name: (name, getattr(model, name)), dir(model))
         for field in fields:
             try:
                 name = field[0]
