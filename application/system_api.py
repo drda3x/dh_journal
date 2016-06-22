@@ -28,9 +28,15 @@ def get_models(fk_class):
 
         for field_name in dir(model):
             try:
+<<<<<<< HEAD
                 fields.append( (field_name, getattr(model, field_name)) )
             except AttributeError:
                 continue
+=======
+                fields.append(getattr(model, field_name))
+            except AttributeError:
+                pass
+>>>>>>> 3f883b01fe2c706e27d494956661e429c6eae4cc
 
         #fields = map(lambda name: (name, getattr(model, name)), dir(model))
         for field in fields:
