@@ -2,8 +2,29 @@
 }
 
 .tr{
+    width: 100%;
+}
+
+.tr:nth-of-type(odd) .td{
+    background-color: #f9f9f9;
 }
 
 .td{
     float: left;
+    border-top: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+    border-left: 1px solid #eeeeee;
+    padding: 5px;
+}
+
+.th{
+    font-weight: bold;
+}
+
+.tr .td:nth-last-child(2) {
+    border-right: 1px solid #eeeeee;
+}
+
+.tr:nth-of-type(n+2) .td {
+    border-top: 0;
 }

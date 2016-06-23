@@ -56,6 +56,8 @@ window.Factories = (function ($) {
     }  
 
     this.value = newValue;
+
+    this.$html.trigger('tab_release');
   };
 
 

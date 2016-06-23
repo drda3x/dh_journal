@@ -207,7 +207,34 @@
                 toggleWidgets(['#sampo-passes-list', '#addSampoPass']);
                 return false;
             });
+            
+            //todo нужно точно понимать, что таблички отображены!!!
+            var createScrolledHeaders = function() {
+                // Скролинг заголовков...
+                $('table.lock-headers').each(function() {
+                    var $table = $(this);
+                    console.log($table.position());
+                    $table.find('th').each(function() {
+                        var $this = $(this),
+                            div = $('<div class="scrolled-header">'),
+                            pos = $this.position();
+                           
+                        div.css('position', 'absolute');
+                        //div.css('top', pos.top + parseInt($this.css('padding') || 0));
+                        div.css('top', pos.top);
+                        div.css('left', pos.left + parseInt($this.css('padding') || 0));
+                        div.text($this.text());
 
+                        $('#month-report').append(div);
+                    });
+
+                });
+
+                createScrollHeaders = function() {};
+            }
+
+            $('#tab-report').click(createScrolledHeaders);
+           // reportTab.$html.on(reportTab.event, createScrollHeaders);
         }
     </script>
 {% endblock %}
@@ -433,16 +460,8 @@
             </div>
             </div>
             <div id="month-report" class="tab-pane">
-                <div>Отчет по кассе</div>
-                <div class="custom_table">
-                    <div class="tr">
-                        {% for dt in total_report.days %}
-                        <div class="td">1000</div>
-                        {% endfor %}
-                    </div>
-                </div>
                 <div><strong>Отчет по кассе</strong></div>
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover lock-headers">
                     <tr>
                         <th>дата</th>
                         {% for dt in total_report.days %}
@@ -481,7 +500,7 @@
                 </table>
 
                 <div><strong>Отчет по посещениям</strong></div>
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover lock-headers">
                     <tr>
                         <th>дата</th>
                         {% for dt in total_report.days %}
