@@ -284,7 +284,7 @@ class BasePass(object):
                     1
                 )
 
-        for _date in group.get_calendar(date_from=date, count=_count):
+        for _date in kwargs.get('dates', group.get_calendar(date_from=date, count=_count)):
             lesson = Lessons(
                 date=_date,
                 group=group,

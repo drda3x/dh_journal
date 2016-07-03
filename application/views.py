@@ -1149,7 +1149,7 @@ class GroupView(BaseView):
             }
 
     def get_context_data(self, **kwargs):
-        def to_iso(elem):
+        def to_iso(elem): # deprecated
             elem['date'] = elem['date'].strftime('%d.%m.%Y')
 
             return elem
@@ -1200,6 +1200,7 @@ class GroupView(BaseView):
             } for s in group.get_students_net()
         ]
 
+        real_group_calendar = [k['date'].date() for k in group.calcked_calendar]
         context['group_detail'] = {
             'id': group.id,
             'name': group.name,
@@ -1207,7 +1208,11 @@ class GroupView(BaseView):
             'start_date': group.start_date,
             'students': students,
             'last_lesson': group.last_lesson,
-            'calendar': map(to_iso, group.calendar),
+            'calendar': [{
+                'date': i.strftime('%d.%m.%Y'),
+                'canceled': i in group.canceled_lessons,
+                'real_date': i in real_group_calendar
+            } for i in group.calendar],
             'moneys': day_balance,
             'money_total': totals,
             'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower

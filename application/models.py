@@ -179,7 +179,7 @@ class Groups(models.Model):
     teachers = models.ManyToManyField(User, verbose_name=u'Преподаватели', null=True, blank=True, related_name=u'allteachers')
     #is_opened = models.BooleanField(verbose_name=u'Группа открыта', default=True)
     is_settable = models.BooleanField(verbose_name=u'Набор открыт', default=True)
-    _days = models.CommaSeparatedIntegerField(max_length=7, verbose_name=u'Дни')
+    _days = models.CommaSeparatedIntegerField(max_length=13, verbose_name=u'Дни')
     available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для преподавателей', related_name=u'avp', null=True, blank=True)
     external_passes = models.ManyToManyField('PassTypes', verbose_name=u'Абонементы для показа на внешних сайтах', related_name=u'exp', null=True, blank=True)
     # _available_passes = models.CommaSeparatedIntegerField(max_length=1000, verbose_name=u'Абонементы для преподавателей', null=True, blank=True)
@@ -768,6 +768,9 @@ class Lessons(models.Model):
     def is_last_in_pass(self):
         last_lesson = Lessons.objects.filter(group_pass=self.group_pass).latest('date')
         return last_lesson.date == self.date
+
+    def __unicode__(self):
+        return self.date.strftime('%d.%m.%Y')
 
     class Meta:
         app_label = u'application'

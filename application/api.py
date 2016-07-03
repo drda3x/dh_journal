@@ -191,7 +191,7 @@ def edit_student(request):
             # меняем записи для собранного change_list'a
             if change_list:
                 models = get_models(Students)
-                
+
                 for human in change_list:
                     human_backup = deepcopy(human)
                     back_up = []  # список для сохранения предыдущих состояний базы.
@@ -550,7 +550,7 @@ def process_lesson(request):
                             i = 0
                             for debt in Debts.objects.filter(group=group, student=st, date__lt=date):
                                 if lessons_count > 0 or lessons_count is None:
-                                    wrapped.create_lessons(debt.date, 1)
+                                    wrapped.create_lessons(debt.date, 1, dates=[debt.date])
 
                                     comment = Comments(
                                         student=st,

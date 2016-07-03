@@ -12,7 +12,7 @@
                     Фамилия Имя
                 </th>
                 {% for date in group_detail.calendar %}
-                <th class="hover-able {% if date.canceled %}canceled{% endif %}">{{ date.date }}{% if date.canceled %} <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
+                  <th class="hover-able {% if date.canceled %}canceled{% endif %} {% if not date.real_date %} text-error {% endif%}">{{ date.date }}{% if date.canceled %} <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
                 {% endfor %}
             </tr>
             {% for student in group_detail.students %}

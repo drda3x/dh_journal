@@ -88,7 +88,19 @@ class GroupLogic(object):
 
     @copy_cache
     def calendar(self):
+        return sorted(
+            set(
+                [i['date'].date() for i in self.calcked_calendar] + [i.date for i in self.lessons] + [i.date for i in self.debts if self.date_1.date() <= i.date <= self.date_2.date()]
+            )
+        )
+
+    @copy_cache
+    def calcked_calendar(self):
         return self.orm.get_calendar(date_from=self.date_1, count=self.days, clean=False)
+
+    @cached_property
+    def canceled_lessons(self):
+        return [i['date'].date() for i in self.orm.get_calendar(date_from=self.date_1, count=self.days, clean=False) if i['canceled']]
 
     @cached_property
     def comments(self):
@@ -131,9 +143,9 @@ class GroupLogic(object):
             try:
                 obj = iterator.next()
                 for date in i_calendar:
-                    if date['canceled']:
+                    if date in self.canceled_lessons:
                         _net.append(self.CanceledLesson())
-                    elif obj.date == date['date'].date():
+                    elif obj.date == date:
                         _net.append(obj)
                         obj = iterator.next()
                     else:
@@ -161,7 +173,7 @@ class GroupLogic(object):
         statuses = [Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
         for day in self.calendar:
             buf = {}
-            lessons = filter(lambda _l: _l.date == day['date'].date() and _l.status in statuses, self.lessons)
+            lessons = filter(lambda _l: _l.date == day and _l.status in statuses, self.lessons)
 
             if lessons:
                 day_saldo = sum(
@@ -174,8 +186,9 @@ class GroupLogic(object):
                 buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
                 buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0)
                 buf['half_balance'] = round(buf['balance'] / 2, 1)
-                buf['date'] = day['date']
-                buf['canceled'] = day['canceled']
+                buf['date'] = day
+                buf['canceled'] = self.canceled_lessons
+
 
                 total += buf['day_total']
                 total_rent += buf['dance_hall']
@@ -187,7 +200,7 @@ class GroupLogic(object):
                 buf['balance'] = ''
                 buf['half_balance'] = ''
                 buf['date'] = ''
-                buf['canceled'] = day['canceled']
+                buf['canceled'] = self.canceled_lessons
 
             saldo.append(buf)
 
@@ -198,9 +211,9 @@ class GroupLogic(object):
         totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'], 0)
         totals['half_balance'] = round(totals['balance'] / 2, 1)
         totals['next_month_balance'] = -1000
-        
+
         try:
-            if filter(lambda dt: not dt['canceled'], self.calendar)[-1]['date'].date() <= self.orm.last_lesson:
+            if self.canceled_lessons and self.canceled_lessons[-1] <= self.orm.last_lesson:
                 totals['next_month_balance'] = sum(map(
                     lambda l: l.prise(),
                     list(Lessons.objects.filter(
