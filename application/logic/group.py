@@ -219,7 +219,7 @@ class GroupLogic(object):
                     list(Lessons.objects.filter(
                         Q(Q(group_pass__creation_date__lte=self.calendar[-1]) | Q(group_pass__in=self.passes)),
                         group=self.orm,
-                        date__gt=self.calendar[-1]['date']
+                        date__gt=self.calendar[-1]
                     ))
                 ))
         except IndexError:
