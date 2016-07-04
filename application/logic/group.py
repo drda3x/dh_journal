@@ -217,7 +217,7 @@ class GroupLogic(object):
                 totals['next_month_balance'] = sum(map(
                     lambda l: l.prise(),
                     list(Lessons.objects.filter(
-                        Q(Q(group_pass__creation_date__lte=self.calendar[-1]['date']) | Q(group_pass__in=self.passes)),
+                        Q(Q(group_pass__creation_date__lte=self.calendar[-1]) | Q(group_pass__in=self.passes)),
                         group=self.orm,
                         date__gt=self.calendar[-1]['date']
                     ))
