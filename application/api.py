@@ -567,7 +567,6 @@ def process_lesson(request):
                                 pass_orm_object.start_date = debts.first().date
 
                             lc = (lessons_count or 0) - i
-                            import pudb; pudb.set_trace()  # XXX BREAKPOINT
 
                             if not lessons_count and i == 0:
                                 wrapped.create_lessons(date, lessons_count)

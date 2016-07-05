@@ -195,7 +195,7 @@ def edit_student(request):
             # меняем записи для собранного change_list'a
             if change_list:
                 models = get_models(Students)
-                
+
                 for human in change_list:
                     human_backup = deepcopy(human)
                     back_up = []  # список для сохранения предыдущих состояний базы.
@@ -435,7 +435,6 @@ def process_lesson(request):
     :param request:
     :return:
     """
-
     try:
         json_data = json.loads(request.GET['data'])
 
