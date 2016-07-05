@@ -72,10 +72,13 @@ class BasePass(object):
             return None
 
     def process_lesson(self, date, status):
-        lesson = Lessons.objects.get(
-            date=date.date(),
-            group_pass=self.orm_object
-        )
+        try:
+            lesson = Lessons.objects.get(
+                date=date.date(),
+                group_pass=self.orm_object
+            )
+        except Lessons.DoesNotExist:
+            return
 
         checker = lambda _x: _x in (Lessons.STATUSES['moved'], Lessons.STATUSES['not_attended'])
         prev_status = lesson.status

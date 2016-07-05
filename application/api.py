@@ -548,7 +548,8 @@ def process_lesson(request):
                             wrapped = PassLogic.wrap(pass_orm_object)
 
                             i = 0
-                            for debt in Debts.objects.filter(group=group, student=st, date__lt=date):
+                            debts = Debts.objects.filter(group=group, student=st, date__lt=date)
+                            for debt in debts:
                                 if lessons_count > 0 or lessons_count is None:
                                     wrapped.create_lessons(debt.date, 1, dates=[debt.date])
 
@@ -562,7 +563,11 @@ def process_lesson(request):
 
                                     i += 1
 
+                            if len(debts) > 0:
+                                pass_orm_object.start_date = debts.first().date
+
                             lc = (lessons_count or 0) - i
+                            import pudb; pudb.set_trace()  # XXX BREAKPOINT
 
                             if not lessons_count and i == 0:
                                 wrapped.create_lessons(date, lessons_count)
