@@ -115,7 +115,7 @@ class BasePass(object):
             self.check_pass_crossing(new_date, response_processor)
 
             self.create_lessons(new_date, 1)
-            self.orm_object.skips -= 1
+            self.orm_object.skips = max(0, self.orm_object.skips - 1)
             self.orm_object.save()
 
         # elif not all([checker(x) for x in [prev_status, status]]):

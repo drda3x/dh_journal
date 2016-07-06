@@ -119,7 +119,7 @@ class GroupLogic(object):
         for student in self.students:
             lessons = filter(lambda l: l.student == student, self.lessons)
             lessons_dates = [l.date for l in lessons]
-            debts = filter(lambda d: d.student == student and d.date not in lessons_dates, self.debts)
+            debts = filter(lambda d: d.student == student and d.date not in lessons_dates and d.date >= self.date_1.date(), self.debts)
             phantom_passes = filter(lambda p: p.student == student, self.phantom_passes)
             comments = filter(lambda c: c.student == student, self.comments)
 
@@ -157,7 +157,8 @@ class GroupLogic(object):
             net.append(
                 dict(
                     student=student,
-                    debts=[debt for debt in self.debts if debt.student==student],
+                    #debts=[debt for debt in self.debts if debt.student==student],
+                    debts = debts,
                     lessons=_net,
                     pass_remaining=self.all_available_lessons.get(student.pk, 0) + sum([p.lessons for p in phantom_passes], 0),
                     last_comment=comments[-1] if comments else None
@@ -189,7 +190,6 @@ class GroupLogic(object):
                 buf['date'] = day
                 buf['canceled'] = self.canceled_lessons
 
-
                 total += buf['day_total']
                 total_rent += buf['dance_hall']
 
@@ -213,7 +213,7 @@ class GroupLogic(object):
         totals['next_month_balance'] = -1000
 
         try:
-            if self.canceled_lessons and self.canceled_lessons[-1] <= self.orm.last_lesson:
+            if sorted(set(self.calendar) - set(self.canceled_lessons))[-1] <= self.orm.last_lesson:
                 totals['next_month_balance'] = sum(map(
                     lambda l: l.prise(),
                     list(Lessons.objects.filter(
