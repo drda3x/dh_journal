@@ -126,7 +126,8 @@ class DanceHalls(models.Model):
     def __json__(self):
         return dict(
             id=self.pk,
-            station=self.name,
+            name=self.name,
+            station=self.station,
             prise=self.prise,
             address=self.address,
             time_to_come=self.time_to_come,
