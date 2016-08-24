@@ -184,9 +184,9 @@ class GroupLogic(object):
 
                 buf['day_total'] = day_saldo
                 buf['dance_hall'] = int(self.orm.dance_hall.prise)
-                buf['club'] = round((buf['day_total'] - buf['dance_hall']) * 0.3, 0)
+                buf['club'] = round(max(buf['day_total'] - buf['dance_hall'], 0) * 0.3, 0)
                 buf['balance'] = round(buf['day_total'] - buf['dance_hall'] - abs(buf['club']), 0)
-                buf['half_balance'] = round(buf['balance'] / 2, 1)
+                buf['half_balance'] = round(max(buf['balance'] / 2, 0), 1)
                 buf['date'] = day
                 buf['canceled'] = self.canceled_lessons
 
@@ -205,11 +205,11 @@ class GroupLogic(object):
             saldo.append(buf)
 
         totals = dict()
-        totals['day_total'] = sum(map(lambda x: x['day_total']or 0, saldo))
+        totals['day_total'] = sum(map(lambda x: x['day_total'] or 0, saldo))
         totals['dance_hall'] = total_rent #todo если отмена занятий, то возможно денег списывать не надо!
-        totals['club'] = round((totals['day_total'] - totals['dance_hall']) * 0.3, 0)
+        totals['club'] = round(max(totals['day_total'] - totals['dance_hall'], 0) * 0.3, 0)
         totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'], 0)
-        totals['half_balance'] = round(totals['balance'] / 2, 1)
+        totals['half_balance'] = round(max(totals['balance'] / 2, 0), 1)
         totals['next_month_balance'] = -1000
 
         try:
