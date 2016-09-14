@@ -292,6 +292,20 @@
             // Работу с коментариями нельзя сделать только внутри таблицы =(
             //$(document).on('comment-widget-hide', updateComments);
             updateComments();
+
+
+            function calc_money() {
+              $('#money').text(
+                  99 * $.grep($attendance, function(elem) {
+                      return $(elem).prop('checked');
+                  }).length
+              )
+            }
+
+            var $attendance = $('.attendance');
+            $attendance.click(calc_money);
+            calc_money();
+            
 	    }
     </script>
 {% endblock %}
@@ -357,6 +371,7 @@
 	</tr>
 	{% endfor %} #} -->
 	</table>
+  <div>Собрано за мастер-класс <span id="money"></span>р.</div>
 
 	<!-- Форма "Карточка ученика" -->
     <div id="editStudent" class="modal hide fade" data-action='add'>
