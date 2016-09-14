@@ -327,20 +327,25 @@ class RegularPass(BasePass):
     # Урок не посещен
     def set_lesson_not_attended(self, date):
 
+        status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
+        self.process_lesson(date, status)
+        self.check_lessons_count()
+
         # Если абонемент был куплен на мастер-классе и отмечен по ошибке,
         # то он должен иметь возможность снова стать призрачным абонементом
         if self.orm_object.bonus_class is not None:
             lessons = self.lessons
-            if len(filter(lambda l: l.status == Lessons.STATUSES['attended'], lessons)) == 1:
+            filt_lessons = filter(
+                lambda l: l.status not in (Lessons.STATUSES['not_processed'], Lessons.STATUSES['not_attended']),
+                lessons
+            )
+            if len(filt_lessons) == 0:
                 self.orm_object.lessons = self.orm_object.lessons_origin
                 self.orm_object.start_date = None
                 self.orm_object.save()
                 map(lambda l: l.delete(), lessons)
                 return
 
-        status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
-        self.process_lesson(date, status)
-        self.check_lessons_count()
 
 
 class OrgPass(BasePass):
