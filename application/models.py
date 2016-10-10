@@ -40,7 +40,10 @@ class User(UserOrigin):
     def __json__(self):
         return dict(
             first_name=self.first_name,
-            last_name=self.last_name
+            last_name=self.last_name,
+            about=self.about,
+            photo=self.photo.url,
+            video=self.video
         )
 
     class Meta:
