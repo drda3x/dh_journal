@@ -10,12 +10,12 @@ from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from application.models import SampoPayments, SampoPasses
 from django.db.models import Sum
-from pytz import timezone
+from pytz import UTC
 
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        tz = timezone("Europe/Moscow")
+        tz = UTC
 
         print "Enter the date (format: 'mm.yyyy')..."
         inp = str(input()).split('.')
@@ -32,12 +32,14 @@ class Command(BaseCommand):
 
             passes = SampoPasses.objects.select_related('payment').filter(payment__in=payments)
 
-            total = payments.aggregate(total=Sum("money"))
+            positive = payments.filter(money__gte=0).aggregate(total=Sum("money"))
             passes_total = passes.aggregate(total=Sum("payment__money"))
             neg_total = payments.filter(money__lte=0).aggregate(total=Sum("money"))
+            total = payments.aggregate(total=Sum("money"))
 
-            print "%s\t%d\t%d\t%d\t" % (
+            print "%s\t%d\t%d\t%d\t%d\t" % (
                 date.strftime('%d.%m.%Y'),
+                positive["total"] or 0,
                 total["total"] or 0,
                 passes_total['total'] or 0,
                 neg_total['total'] or 0
