@@ -13,6 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
+from django.db.models import Sum
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -27,6 +28,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
+from collections import namedtuple
 
 
 def custom_proc(request):
@@ -632,7 +634,12 @@ class SampoView(BaseView):
         date_str = self.request.GET.get('date')
 
         try:
-            date = datetime.datetime.strptime('%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S') if date_str else datetime.datetime.now()
+            if date_str:
+                date = datetime.datetime.strptime(
+                    '%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S'
+                )
+            else:
+                date = datetime.datetime.now()
 
         except Exception:
             return HttpResponseServerError('Не правильно указана дата')
@@ -641,8 +648,59 @@ class SampoView(BaseView):
         context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
         context['pass_signs_l'] = len(context['pass_signs'])
         context['date'] = date.strftime('%d.%m.%Y')
+        context['report'] = self.get_report(date)
 
         return context
+
+    def get_report(self, _date):
+
+        date = _date.replace(day=1)
+        month_num = date.month
+        day = datetime.timedelta(days=1)
+        report = []
+        Record = namedtuple(
+            "Record",
+            ['date', 'incomming', 'passes', 'classes', 'outgoing', 'total']
+        )
+
+        while date.month == month_num:
+            payments = SampoPayments.objects.filter(date__range=[
+                datetime.datetime.combine(date, datetime.datetime.min.time()).replace(tzinfo=UTC),
+                datetime.datetime.combine(date, datetime.datetime.max.time()).replace(tzinfo=UTC)
+            ])
+
+            passes = SampoPasses.objects \
+                .select_related('payment') \
+                .filter(payment__in=payments)
+
+            incoming = payments.filter(money__gte=0).aggregate(
+                total=Sum("money")
+            )
+
+            passes = passes.aggregate(
+                total=Sum("payment__money")
+            )
+
+            outgoing = payments.filter(money__lte=0).aggregate(
+                total=Sum("money")
+                )
+
+            total = payments.aggregate(total=Sum("money"))
+
+            report.append(
+                Record(
+                    date.day,
+                    incoming['total'] or '-',
+                    passes['total'] or '-',
+                    ((incoming['total'] or 0) - (passes['total'] or 0)) or '-',
+                    abs(outgoing['total'] or 0) or '-',
+                    total['total'] or '-'
+                )
+            )
+
+            date += day
+
+        return report
 
 
 class BonusClassView(BaseView):
