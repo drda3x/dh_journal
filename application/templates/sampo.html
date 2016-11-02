@@ -1,3 +1,4 @@
+{% load abs%}
 {% block head %}
     <link rel="stylesheet" href="../static/css/sampo.css" />
     <script type="text/javascript" src="../static/js/sampo.js"></script>
@@ -153,7 +154,11 @@
                                 <td>{{record.incomming}}</td>
                                 <td>{{record.passes}}</td>
                                 <td>{{record.classes}}</td>
-                                <td>{{record.outgoing}}</td>
+                                <td>
+                                    {% for out_rec in record.outgoing%}
+                                        {{out_rec.money|abs_filter}} <span class="muted" style="display: inline">({{out_rec.comment}})</span>
+                                    {% endfor %}
+                                </td>
                                 <td>{{record.total}}</td>
                             </tr>
                             {% endfor%}

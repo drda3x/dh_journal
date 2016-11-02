@@ -681,9 +681,11 @@ class SampoView(BaseView):
                 total=Sum("payment__money")
             )
 
-            outgoing = payments.filter(money__lte=0).aggregate(
-                total=Sum("money")
-                )
+            #outgoing = payments.filter(money__lte=0).aggregate(
+            #    total=Sum("money")
+            #    )
+
+            outgoing = payments.filter(money__lt=0)
 
             total = payments.aggregate(total=Sum("money"))
 
@@ -693,7 +695,8 @@ class SampoView(BaseView):
                     incoming['total'] or '-',
                     passes['total'] or '-',
                     ((incoming['total'] or 0) - (passes['total'] or 0)) or '-',
-                    abs(outgoing['total'] or 0) or '-',
+                    # abs(outgoing['total'] or 0) or '-',
+                    outgoing,
                     total['total'] or '-'
                 )
             )
