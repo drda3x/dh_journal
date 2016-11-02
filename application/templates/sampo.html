@@ -156,7 +156,7 @@
                                 <td>{{record.classes}}</td>
                                 <td>
                                     {% for out_rec in record.outgoing%}
-                                        {{out_rec.money|abs_filter}} <span class="muted" style="display: inline">({{out_rec.comment}})</span>
+                                        {{out_rec.money|abs_filter}} <span class="muted" style="display: inline">({{out_rec.comment}})</span><br>
                                     {% endfor %}
                                 </td>
                                 <td>{{record.total}}</td>
