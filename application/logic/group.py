@@ -128,14 +128,19 @@ class GroupLogic(object):
             arr.sort(key=lambda x: x.date)
 
             for p in phantom_passes:
+                day_after_mk = p.bonus_class.date + timedelta(days=1)
                 try:
-                    temp_date = arr[-1].date if arr[-1].date > self.orm.last_lesson else self.orm.last_lesson
+                    temp_date = max(arr[-1].date, self.orm.last_lesson, day_after_mk)
                 except IndexError:
-                    temp_date = self.orm.last_lesson
+                    temp_date = max(self.orm.last_lesson, day_after_mk)
 
-                dd = p.bonus_class.date if p.bonus_class.date > temp_date else temp_date
-                for phantom_lesson in filter(lambda _dd: self.date_1 <= _dd <= self.date_2, self.orm.get_calendar(p.lessons, dd)):
-                    arr.append(self.PhantomLesson(phantom_lesson.date(), p))
+                phantom_lessons = [
+                    self.PhantomLesson(pl.date(), p)
+                    for pl in self.orm.get_calendar(p.lessons, temp_date)
+                    if self.date_1 <= pl <= self.date_2
+                ]
+
+                arr += phantom_lessons
 
             iterator = iter(arr)
             i_calendar = iter(self.calendar)

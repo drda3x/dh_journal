@@ -763,6 +763,9 @@ class BonusClassView(BaseView):
     def add_pass(self, request):
         gid = int(request.POST['gid'])
         mkid = int(request.POST['mkid'])
+
+        mk = BonusClasses.objects.get(pk=mkid)
+        group = Groups.objects.get(pk=gid)
         student = Students.objects.get(pk=int(request.POST['stid']))
         pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
 
@@ -770,11 +773,26 @@ class BonusClassView(BaseView):
 
         _pass = Passes(
             student=student,
-            group_id=gid,
+            group=group,
             pass_type=pass_type,
             bonus_class_id=mkid
         )
         _pass.save()
+
+        if mk.within_group.id == gid:
+            one_time_pass = Passes(
+                student=student,
+                group=group,
+                pass_type_id=44,
+                bonus_class_id=mkid,
+                start_date=mk.date
+            )
+            one_time_pass.save()
+
+            _p = PassLogic.wrap(one_time_pass)
+            _p.create_lessons(mk.date)
+            _p.process_lesson(mk.date, Lessons.STATUSES['attended'])
+
         # Создаем фантомный абонемент, который, до того как по нему пошли отметки, будет каждый раз начинаться с последнего занятия!!!
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
@@ -786,11 +804,10 @@ class BonusClassView(BaseView):
     def delete_pass(self, request):
         mkid = int(request.POST['gid'])
         stid = int(request.POST['stid'])
-        p = Passes.objects.get(bonus_class_id=mkid, student_id=stid)
+        passes = Passes.objects.filter(bonus_class_id=mkid, student_id=stid)
 
-        if p.start_date is None:
+        for p in passes:
             if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
-
                 try:
                     GroupList.objects.get(group=p.group, student_id=stid).delete()
 
@@ -798,10 +815,11 @@ class BonusClassView(BaseView):
                     pass
 
             p.delete()
-            return HttpResponse(200)
 
-        else:
-            return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
+        return HttpResponse(200)
+
+        #else:
+        #    return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
 
     @staticmethod
     def save_comment(request):

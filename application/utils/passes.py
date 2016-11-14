@@ -72,9 +72,10 @@ class BasePass(object):
             return None
 
     def process_lesson(self, date, status):
+        lesson_date = date if isinstance(date, datetime.date) else date.date()
         try:
             lesson = Lessons.objects.get(
-                date=date.date(),
+                date=lesson_date,
                 group_pass=self.orm_object
             )
         except Lessons.DoesNotExist:
