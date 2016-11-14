@@ -779,7 +779,7 @@ class BonusClassView(BaseView):
         )
         _pass.save()
 
-        if mk.within_group.id == gid:
+        if mk.within_group and mk.within_group.id == gid:
             one_time_pass = Passes(
                 student=student,
                 group=group,
@@ -916,6 +916,7 @@ class BonusClassView(BaseView):
         ]
         context['pass_types'] = mk.available_passes.all()
         context['future_classes'] = BonusClasses.objects.select_related().filter(date__gte=now).order_by('date', 'time')
+        context['within_group'] = mk.within_group.id if mk.within_group else None
 
         return context
 
