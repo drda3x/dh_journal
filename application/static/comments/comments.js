@@ -166,12 +166,19 @@
                 this.allComments[i].show();
             } else {
                 buff = this.allComments[i];
+                console.log(buff);
                 comment = this.createComment();
                 comment.id = buff.id;
                 comment.text = buff.text;
                 comment.student = this.student;
                 comment.mk = this.group;
-                comment.date = new Date(buff.date);
+                comment.date = (function(arr) {
+                  var date = new Date();
+                  date.setFullYear.apply(date, arr.slice(0, 3));
+                  date.setHours.apply(date, arr);
+
+                  return date;
+                })(buff.date);
                 this.allComments[i] = comment;
             }
         }

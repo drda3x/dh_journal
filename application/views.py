@@ -905,7 +905,7 @@ class BonusClassView(BaseView):
                         comment.add_date.day,
                         comment.add_date.hour,
                         comment.add_date.minute
-                    ]} for comment in Comments.objects.filter(bonus_class_id=mkid, student=i.student).order_by('-add_date')
+                    ]} for comment in Comments.objects.filter(student=i.student).order_by('-add_date')
                 ]) or '[]'
             }
             for i in BonusClassList.objects.select_related().filter(group=mk, active=True)
