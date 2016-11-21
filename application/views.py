@@ -317,7 +317,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'url_pattern': 'mk',
-                'urls': [b for b in BonusClasses.objects.select_related().all().order_by('-date')[:5]] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
+                'urls': [b for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
             })
 
             #Закрытые группы

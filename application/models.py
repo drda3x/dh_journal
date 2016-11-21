@@ -168,7 +168,7 @@ class Groups(models.Model):
     Группы
     """
 
-    #objects = BaseGroupManager()
+    all = BaseGroupManager()
     opened = OpenedGroupManager()
     closed = ClosedGroupsManager()
     objects = opened

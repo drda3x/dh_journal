@@ -18,7 +18,7 @@ class GroupLogic(object):
     def __init__(self, group_id, date=None):
         now = datetime.now()
 
-        self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
+        self.orm = Groups.all.select_related('dance_hall').get(pk=group_id)
         # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
         # group_end_date = self.orm_end_date
 
