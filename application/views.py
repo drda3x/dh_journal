@@ -13,7 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -915,7 +915,7 @@ class BonusClassView(BaseView):
             for i in mk.available_groups.all()
         ]
         context['pass_types'] = mk.available_passes.all()
-        context['future_classes'] = BonusClasses.objects.select_related().filter(date__gte=now).order_by('date', 'time')
+        context['future_classes'] = BonusClasses.objects.select_related().filter(Q(date__gte=now) | Q(pk=24)).order_by('date', 'time')
         context['within_group'] = mk.within_group.id if mk.within_group else None
 
         return context
