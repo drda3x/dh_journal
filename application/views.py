@@ -13,6 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
+from django.db.models import Sum, Q
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -27,6 +28,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
+from collections import namedtuple
 
 
 def custom_proc(request):
@@ -315,7 +317,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'url_pattern': 'mk',
-                'urls': [b for b in BonusClasses.objects.select_related().all().order_by('-date')[:5]] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
+                'urls': [b for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
             })
 
             #Закрытые группы
@@ -632,7 +634,12 @@ class SampoView(BaseView):
         date_str = self.request.GET.get('date')
 
         try:
-            date = datetime.datetime.strptime('%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S') if date_str else datetime.datetime.now()
+            if date_str:
+                date = datetime.datetime.strptime(
+                    '%s 23:59:59' % date_str, '%d.%m.%Y %H:%M:%S'
+                )
+            else:
+                date = datetime.datetime.now()
 
         except Exception:
             return HttpResponseServerError('Не правильно указана дата')
@@ -641,8 +648,62 @@ class SampoView(BaseView):
         context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
         context['pass_signs_l'] = len(context['pass_signs'])
         context['date'] = date.strftime('%d.%m.%Y')
+        context['report'] = self.get_report(date)
 
         return context
+
+    def get_report(self, _date):
+
+        date = _date.replace(day=1)
+        month_num = date.month
+        day = datetime.timedelta(days=1)
+        report = []
+        Record = namedtuple(
+            "Record",
+            ['date', 'incomming', 'passes', 'classes', 'outgoing', 'total']
+        )
+
+        while date.month == month_num:
+            payments = SampoPayments.objects.filter(date__range=[
+                datetime.datetime.combine(date, datetime.datetime.min.time()).replace(tzinfo=UTC),
+                datetime.datetime.combine(date, datetime.datetime.max.time()).replace(tzinfo=UTC)
+            ])
+
+            passes = SampoPasses.objects \
+                .select_related('payment') \
+                .filter(payment__in=payments)
+
+            incoming = payments.filter(money__gte=0).aggregate(
+                total=Sum("money")
+            )
+
+            passes = passes.aggregate(
+                total=Sum("payment__money")
+            )
+
+            #outgoing = payments.filter(money__lte=0).aggregate(
+            #    total=Sum("money")
+            #    )
+
+            outgoing = payments.filter(money__lt=0)
+
+            total = payments.aggregate(total=Sum("money"))
+
+            report.append(
+                Record(
+                    date.day,
+                    incoming['total'] or '-',
+                    passes['total'] or '-',
+                    ((incoming['total'] or 0) - (passes['total'] or 0)) or '-',
+                    # abs(outgoing['total'] or 0) or '-',
+                    outgoing,
+                    total['total'] or '-'
+                )
+            )
+
+            date += day
+
+        return report
 
 
 class BonusClassView(BaseView):
@@ -702,6 +763,9 @@ class BonusClassView(BaseView):
     def add_pass(self, request):
         gid = int(request.POST['gid'])
         mkid = int(request.POST['mkid'])
+
+        mk = BonusClasses.objects.get(pk=mkid)
+        group = Groups.objects.get(pk=gid)
         student = Students.objects.get(pk=int(request.POST['stid']))
         pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
 
@@ -709,11 +773,26 @@ class BonusClassView(BaseView):
 
         _pass = Passes(
             student=student,
-            group_id=gid,
+            group=group,
             pass_type=pass_type,
             bonus_class_id=mkid
         )
         _pass.save()
+
+        if mk.within_group and mk.within_group.id == gid:
+            one_time_pass = Passes(
+                student=student,
+                group=group,
+                pass_type_id=44,
+                bonus_class_id=mkid,
+                start_date=mk.date
+            )
+            one_time_pass.save()
+
+            _p = PassLogic.wrap(one_time_pass)
+            _p.create_lessons(mk.date)
+            _p.process_lesson(mk.date, Lessons.STATUSES['attended'])
+
         # Создаем фантомный абонемент, который, до того как по нему пошли отметки, будет каждый раз начинаться с последнего занятия!!!
 
         # Если у этого студента, в эту группу есть абонемент и этот абонемент еще не закончен, то новый абонемент
@@ -725,11 +804,10 @@ class BonusClassView(BaseView):
     def delete_pass(self, request):
         mkid = int(request.POST['gid'])
         stid = int(request.POST['stid'])
-        p = Passes.objects.get(bonus_class_id=mkid, student_id=stid)
+        passes = Passes.objects.filter(bonus_class_id=mkid, student_id=stid)
 
-        if p.start_date is None:
+        for p in passes:
             if not Lessons.objects.filter(student_id=stid, group=p.group).exists():
-
                 try:
                     GroupList.objects.get(group=p.group, student_id=stid).delete()
 
@@ -737,10 +815,11 @@ class BonusClassView(BaseView):
                     pass
 
             p.delete()
-            return HttpResponse(200)
 
-        else:
-            return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
+        return HttpResponse(200)
+
+        #else:
+        #    return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
 
     @staticmethod
     def save_comment(request):
@@ -836,7 +915,8 @@ class BonusClassView(BaseView):
             for i in mk.available_groups.all()
         ]
         context['pass_types'] = mk.available_passes.all()
-        context['future_classes'] = BonusClasses.objects.select_related().filter(date__gte=now).order_by('date', 'time')
+        context['future_classes'] = BonusClasses.objects.select_related().filter(Q(date__gte=now) | Q(pk=24)).order_by('date', 'time')
+        context['within_group'] = mk.within_group.id if mk.within_group else None
 
         return context
 

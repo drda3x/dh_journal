@@ -40,7 +40,10 @@ class User(UserOrigin):
     def __json__(self):
         return dict(
             first_name=self.first_name,
-            last_name=self.last_name
+            last_name=self.last_name,
+            about=self.about,
+            photo=self.photo.url,
+            video=self.video
         )
 
     class Meta:
@@ -165,9 +168,10 @@ class Groups(models.Model):
     Группы
     """
 
-    objects = BaseGroupManager()
+    all = BaseGroupManager()
     opened = OpenedGroupManager()
     closed = ClosedGroupsManager()
+    objects = opened
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     dance = models.ForeignKey(Dances, null=True, blank=True, verbose_name=u'Направление')
@@ -399,6 +403,7 @@ class BonusClasses(models.Model):
     can_edit = models.BooleanField(verbose_name=u'Открыт для редактирования преподавателями', default=True)
     available_passes = models.ManyToManyField('PassTypes', verbose_name=u'Доступные абонементы', null=True, blank=True)
     available_groups = models.ManyToManyField('Groups', verbose_name=u'Доступные группы', null=True, blank=True)
+    within_group = models.ForeignKey(Groups, verbose_name=u'Мастер-класс в рамках группы', null=True, blank=True, related_name='whthin_group')
 
     def repr_short(self):
         return u'%s %s' % (self.date.strftime('%d.%m.%Y'), self.hall.name)
