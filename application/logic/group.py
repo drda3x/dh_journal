@@ -25,7 +25,13 @@ class GroupLogic(object):
         self.date_1 = max(date or datetime(now.year, now.month, 1), self.orm.start_datetime)
 
         if self.orm.end_datetime:
-            self.date_2 = min(get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0), datetime.combine(self.last_lesson_ever.date, datetime.max.time()))
+
+            min_date_1 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
+            min_date_2 = datetime.combine(self.last_lesson_ever.date, datetime.max.time()) \
+                if self.last_lesson_ever \
+                else self.orm.end_datetime
+
+            self.date_2 = min(min_date_1, min_date_2)
         else:
             self.date_2 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
 
