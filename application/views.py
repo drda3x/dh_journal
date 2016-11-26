@@ -657,11 +657,14 @@ class SampoView(BaseView):
         date = _date.replace(day=1)
         month_num = date.month
         day = datetime.timedelta(days=1)
+        today = datetime.date.today()
         report = []
         Record = namedtuple(
             "Record",
             ['date', 'incomming', 'passes', 'classes', 'outgoing', 'total']
         )
+
+        total_saldo = 0
 
         while date.month == month_num:
             payments = SampoPayments.objects.filter(date__range=[
@@ -688,6 +691,7 @@ class SampoView(BaseView):
             outgoing = payments.filter(money__lt=0)
 
             total = payments.aggregate(total=Sum("money"))
+            total_saldo += total['total'] or 0
 
             report.append(
                 Record(
@@ -697,7 +701,7 @@ class SampoView(BaseView):
                     ((incoming['total'] or 0) - (passes['total'] or 0)) or '-',
                     # abs(outgoing['total'] or 0) or '-',
                     outgoing,
-                    total['total'] or '-'
+                    total_saldo if today >= date.date() else '-'
                 )
             )
 
