@@ -649,9 +649,9 @@ def process_lesson(request):
             CanceledLessons(group=group, date=date).save()
 
             for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
-                    Q(start_date__lte=date) | Q(frozen_date__lte=date),
-                    lessons__gt=0,
-                    group=group,
+                    Q(group=group),
+                    Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
+                    Q(lessons__gt=0)
             )):
                 if _pass.check_date(date):
                      _pass.cancel_lesson(date)
