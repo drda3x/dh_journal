@@ -18,14 +18,20 @@ class GroupLogic(object):
     def __init__(self, group_id, date=None):
         now = datetime.now()
 
-        self.orm = Groups.objects.select_related('dance_hall').get(pk=group_id)
+        self.orm = Groups.all.select_related('dance_hall').get(pk=group_id)
         # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
         # group_end_date = self.orm_end_date
 
         self.date_1 = max(date or datetime(now.year, now.month, 1), self.orm.start_datetime)
 
         if self.orm.end_datetime:
-            self.date_2 = min(get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0), datetime.combine(self.last_lesson_ever.date, datetime.max.time()))
+
+            min_date_1 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
+            min_date_2 = datetime.combine(self.last_lesson_ever.date, datetime.max.time()) \
+                if self.last_lesson_ever \
+                else self.orm.end_datetime
+
+            self.date_2 = min(min_date_1, min_date_2)
         else:
             self.date_2 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
 
@@ -128,14 +134,19 @@ class GroupLogic(object):
             arr.sort(key=lambda x: x.date)
 
             for p in phantom_passes:
+                day_after_mk = p.bonus_class.date + timedelta(days=1)
                 try:
-                    temp_date = arr[-1].date if arr[-1].date > self.orm.last_lesson else self.orm.last_lesson
+                    temp_date = max(arr[-1].date, self.orm.last_lesson, day_after_mk)
                 except IndexError:
-                    temp_date = self.orm.last_lesson
+                    temp_date = max(self.orm.last_lesson, day_after_mk)
 
-                dd = p.bonus_class.date if p.bonus_class.date > temp_date else temp_date
-                for phantom_lesson in filter(lambda _dd: self.date_1 <= _dd <= self.date_2, self.orm.get_calendar(p.lessons, dd)):
-                    arr.append(self.PhantomLesson(phantom_lesson.date(), p))
+                phantom_lessons = [
+                    self.PhantomLesson(pl.date(), p)
+                    for pl in self.orm.get_calendar(p.lessons, temp_date)
+                    if self.date_1 <= pl <= self.date_2
+                ]
+
+                arr += phantom_lessons
 
             iterator = iter(arr)
             i_calendar = iter(self.calendar)

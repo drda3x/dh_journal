@@ -73,4 +73,4 @@ class BonusClassesForm(forms.ModelForm):
 
     class Meta:
         model = BonusClasses
-        fields = ['date', 'time', 'end_time', 'hall', 'teachers', 'available_groups', 'available_passes', 'can_edit']
+        fields = ['date', 'time', 'end_time', 'hall', 'teachers', 'available_groups', 'available_passes', 'can_edit', 'within_group']

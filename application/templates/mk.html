@@ -298,7 +298,7 @@
               $('#money').text(
                   99 * $.grep($attendance, function(elem) {
                       return $(elem).prop('checked');
-                  }).length
+                  }).length - 99 * $('.within').length
               )
             }
 
@@ -336,7 +336,11 @@
 	    <td class="center cp no-click"><input class="attendance" type="checkbox" value="{{ record.student.id }}" {% if record.attendance %}checked="checked"{% endif %} /></td>
 	    <td class="center no-click">
             {% if record.group %}
-                {{ record.group.repr }}
+                {% if record.group.self.id == within_group %}
+                    <span class="within">{{ record.group.repr }}</span>
+                {% else %}
+                    {{ record.group.repr }}
+                {% endif%}
                 {% if record.group.editable %}
                     <span>(<a class="del" href="#">удалить</a>)</span>
                 {% endif %}
@@ -372,6 +376,7 @@
 	{% endfor %} #} -->
 	</table>
   <div>Собрано за мастер-класс <span id="money"></span>р.</div>
+  <p class="muted">Данная сумма считается только из людей, которые пришли на Мастер-класс и не покупали абонемент в группу, в рамках которой был Мастер-класс</p>
 
 	<!-- Форма "Карточка ученика" -->
     <div id="editStudent" class="modal hide fade" data-action='add'>
