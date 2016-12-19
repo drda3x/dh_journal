@@ -109,7 +109,7 @@ def group_detail_view(request):
                 )
             )
         }
-        context['single_pass_id'] = PassTypes.objects.filter(name__iregex='Разовое занятие').values('id')
+        context['single_pass_id'] = PassTypes.all.filter(name__iregex='Разовое занятие').values('id')
 
         html_color_classes = {
             key: val for val, key in get_color_classes()
@@ -120,7 +120,7 @@ def group_detail_view(request):
         ]
 
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:
@@ -771,7 +771,7 @@ class BonusClassView(BaseView):
         mk = BonusClasses.objects.get(pk=mkid)
         group = Groups.objects.get(pk=gid)
         student = Students.objects.get(pk=int(request.POST['stid']))
-        pass_type = PassTypes.objects.get(pk=int(request.POST['ptid']))
+        pass_type = PassTypes.all.get(pk=int(request.POST['ptid']))
 
         _add_student(gid, student, group_list_orm=GroupList)
 
@@ -1071,7 +1071,7 @@ class ClubCardsView(BaseView):
         context['date_list'].sort(key=lambda x: x['key'])
         context['groups'] = groups
         context['passes'] = all_passes
-        context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
+        context['pass_types'] = PassTypes.all.filter(one_group_pass=0)
         context['students'] = students
 
         return context
@@ -1302,7 +1302,7 @@ class GroupView(BaseView):
             'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
         }
 
-        context['pass_detail'] = PassTypes.objects.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
+        context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:

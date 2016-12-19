@@ -52,7 +52,7 @@ class GroupsAdminHallFilter(admin.SimpleListFilter):
 
 class GroupAdmin(admin.ModelAdmin):
     form = GroupsForm
-    list_display = (u'name', 'status', u'start_date', '_end_date', u'dance_hall', 'teachers_to_string')
+    list_display = (u'name', 'status', u'start_date', '_end_date', u'dance_hall', 'teachers_to_string', u'external_available')
     filter_horizontal = ('teachers', 'available_passes', 'external_passes')
     list_filter = (GroupsAdminStatusFilter, GroupsAdminHallFilter)
 
@@ -132,6 +132,7 @@ class CustomUserAdmin(UserAdmin):
         # (u'Dates', {'fields': ('last_login', 'date_joined')}),
         # (u'Groups', {'fields': ('groups',)}),
     )
+
 
 
 admin.site.unregister(User)

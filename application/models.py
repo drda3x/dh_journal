@@ -197,6 +197,7 @@ class Groups(models.Model):
     duration = models.IntegerField(verbose_name=u'Продолжительность курса', null=True, blank=True)
     course_details = models.TextField(verbose_name=u'Подробности о группе', null=True, blank=True)
     course_results = models.TextField(verbose_name=u'Навык после прохождения', null=True, blank=True)
+    external_available = models.BooleanField(verbose_name=u"Не показывать на лендинге", default=False)
 
     @staticmethod
     def date_repr(dt):
@@ -528,11 +529,19 @@ class Comments(models.Model):
         verbose_name_plural = u'Коментарии'
 
 
+class ActualPassTypes(models.Manager):
+    def get_queryset(self, *args, **kwargs):
+        return super(ActualPassTypes, self).get_queryset().filter(is_actual=True)
+
+
 class PassTypes(models.Model):
 
     u"""
     Типы Абонементов
     """
+
+    objects = ActualPassTypes()
+    all = models.Manager()
 
     name = models.CharField(max_length=100, verbose_name=u'Наименование')
     prise = models.PositiveIntegerField(verbose_name=u'Цена')
@@ -542,6 +551,7 @@ class PassTypes(models.Model):
     one_group_pass = models.BooleanField(verbose_name=u'Одна группа', default=True)
     sequence = models.PositiveIntegerField(verbose_name=u'Порядковый номер', null=True, blank=True)
     shown_value = models.CharField(verbose_name=u'Отображаемое значение(если пустое - показывается цена за занятие)', null=True, blank=True, max_length=30)
+    is_actual = models.BooleanField(verbose_name=u'Используемый', default=True)
 
     def __unicode__(self):
         return u'%s - %s (%dр.)' % (str(self.sequence), self.name, self.prise)
@@ -559,7 +569,7 @@ class PassTypes(models.Model):
     def save(self, *args, **kwargs):
 
         try:
-            max_seq = PassTypes.objects.all().aggregate(models.Max('sequence'))['sequence__max'] or 0
+            max_seq = PassTypes.all.all().aggregate(models.Max('sequence'))['sequence__max'] or 0
 
         except PassTypes.DoesNotExist:
             max_seq = 0
@@ -570,20 +580,20 @@ class PassTypes(models.Model):
         else:
 
             try:
-                prev_seq = PassTypes.objects.get(id=self.id).sequence
+                prev_seq = PassTypes.all.get(id=self.id).sequence
 
             except PassTypes.DoesNotExist:
                 prev_seq = None
 
             if prev_seq != self.sequence:
                 if prev_seq and self.sequence > prev_seq:
-                    _type = PassTypes.objects.filter(sequence__gt=prev_seq).order_by('sequence').first()
+                    _type = PassTypes.all.filter(sequence__gt=prev_seq).order_by('sequence').first()
                     _type.sequence = prev_seq
                     super(PassTypes, _type).save()
 
                 else:
                     _seq = self.sequence + 1
-                    for _type in PassTypes.objects.filter(sequence__gte=self.sequence).exclude(id=self.id).order_by('sequence'):
+                    for _type in PassTypes.all.filter(sequence__gte=self.sequence).exclude(id=self.id).order_by('sequence'):
                         _type.sequence = _seq
                         _seq += 1
 

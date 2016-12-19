@@ -522,7 +522,7 @@ def process_lesson(request):
 
                     # Любой другой абонемент
                     else:
-                        pt = PassTypes.objects.get(pk=_pt)
+                        pt = PassTypes.all.get(pk=_pt)
                         st = Students.objects.get(pk=p['student_id'])
                         lessons_count = p.get('lcnt', None)
                         skips_count = p.get('scnt', None)
@@ -804,8 +804,8 @@ def create_multipass(request):
 
         # if not Passes.objects.filter(student=student, start_date__lte=date, end_date__gte=date).exists():
 
-        pt = PassTypes.objects.get(pk=ptid)
-        # pt = PassTypes.objects.get(pk=CLUB_CARD_ID)
+        pt = PassTypes.all.get(pk=ptid)
+        # pt = PassTypes.all.get(pk=CLUB_CARD_ID)
         _pass = Passes(
             student=student,
             pass_type=pt,
