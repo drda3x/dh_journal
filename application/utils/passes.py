@@ -17,7 +17,7 @@ def get_color_classes():
         + спец класс для орг-абонемента
     """
 
-    passes_types = PassTypes.objects.all().order_by('name').values_list('color', flat=True)
+    passes_types = PassTypes.all.all().order_by('name').values_list('color', flat=True)
 
     return map(
         lambda i, t: ('pass_type%d' % i, t),
