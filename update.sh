@@ -22,6 +22,7 @@ rm -rf ~/teacher.dancehustle.ru/www/application
 tar -xf ~/buffer/app.tar.gz -C ~/teacher.dancehustle.ru/www
 rm -rf ~/buffer/*
 # Запуск сервера
+source ~/python/bin/activate
 python ~/teacher.dancehustle.ru/www/manage.py migrate
 pkill -u u48649 -f django-wrapper.fcgi
 exit
