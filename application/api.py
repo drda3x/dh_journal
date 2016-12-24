@@ -458,7 +458,7 @@ def process_lesson(request):
     try:
         json_data = json.loads(request.GET['data'])
 
-        group = Groups.objects.get(pk=json_data['group_id'])
+        group = Groups.all.get(pk=json_data['group_id'])
         date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
         data = json_data.get('checked', [])
         data1 = json_data.get('unchecked', [])
