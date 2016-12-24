@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block head%}
+ <script id="container-template" type="text/template">
+  <div class="title">
+    <h1><%= title %></h1>
+  </div>
+  <div class="content">
+    <%= content %>
+  </div>
+ </script>
+ {% endblock%}
+ {% block body %}
+   <script type="text/javascript">
+    (function() {
+        "use strict"
+
+          var BlockView = Backbone.View.extend({
+            template: $("#container-template").html(),
+
+            className: "main-page-container",
+
+            el: $('body'),
+
+            context: {
+              title: "Тут какое-то название",
+              content: "Тут какой-то контент"
+            },
+
+            render: function() {
+              var t = _.template(this.template);
+              $(this.el).html(t(this.context));
+              return this 
+            },
+            initialize: function() {
+              this;
+              this.render();
+            }
+
+          });
+
+          new BlockView();
+    })(jQuery)
+ </script>
+{% endblock %}

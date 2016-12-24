@@ -1313,3 +1313,12 @@ class GroupView(BaseView):
 
         return context
 
+
+class MainPageView(BaseView):
+    template_name = "main_page.html"
+
+
+    def get_context_data(self, **kwargs):
+        context = super(MainPageView, self).get_context_data(**kwargs)
+
+        return context
