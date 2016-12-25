@@ -1,15 +1,55 @@
 {% extends "base.html" %}
 {% block head%}
+  <link rel="stylesheet" href="../static/css/main_page.css">
+
+  <!-- Шаблон для региона -->
  <script id="container-template" type="text/template">
-  <div class="title">
-    <h1><%= title %></h1>
+  <div class="region-title">
+    <h3><%= title %><a href="">свернуть</a></h3>
   </div>
-  <div class="content">
+  <div class="region-content">
     <%= content %>
   </div>
  </script>
+
+ <!-- Шаблон для строки таблицы -->
+ <script id="group-table-row-template" type="text/template">
+  <tr>
+    <td><%= place %></td>
+    <td><%= days %></td>
+    <td><%= time %></td>
+  </tr>
+</script>
+
  {% endblock%}
  {% block body %}
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
+
+                <div class="nav-collapse collapse">
+                    <div class="pull-right dropdown header-right" style="position: relative">
+                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{ user.last_name }} {{ user.first_name }}<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="profile?uid={{ user.id }}" id="userProfile" tabindex="-1">Профиль</a></li>
+                            <li><a href="logout" tabindex="-1">Выход</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <div id="container" class="container-fluid">
+    </div>
+
    <script type="text/javascript">
     (function() {
         "use strict"
@@ -19,26 +59,62 @@
 
             className: "main-page-container",
 
-            el: $('body'),
+            el: $('#container'),
 
-            context: {
-              title: "Тут какое-то название",
-              content: "Тут какой-то контент"
-            },
-
-            render: function() {
-              var t = _.template(this.template);
-              $(this.el).html(t(this.context));
-              return this 
-            },
-            initialize: function() {
-              this;
-              this.render();
+            render: function(views) {
+              /**
+                views - список вьюшек, которые будет отображать данный регион
+                по нему надо пройти, у каждого элемента вызвать render и усе!!!
+              */
+              return this;
             }
-
           });
+        
+        var Group = Backbone.Model.extend({});
 
-          new BlockView();
+        var Table = Backbone.Collection.extend({
+          model: Group
+        });
+
+        var TableView = Backbone.View.extend({
+          template: $("#group-table-template").html(),
+          className: "group-table",
+          tagName: "table",
+          
+          render: function(table) {
+            _.each(table.models, $.proxy(function(item) {
+              var row = new TableRow({
+                model: item
+              });
+
+              $(this.el).append(row.render().el);
+            }, this));
+          }          
+        });
+
+        var TableRow = Backbone.View.extend({
+          template: $("#group-table-row-template").html(),
+
+          render: function() {
+            var t = _.template(this.template);
+            $(this.el).html(t(this.model.toJSON()));
+
+            return this;
+          }
+        });
+
+        new BlockView().render({
+          title: "Группы",
+          content: "Ну тут какой-то список"
+        });
+        new BlockView().render({
+          title: "Мастер-классы",
+          content: "Тут тоже какой-то список"
+        });
+        new BlockView().render({
+          title: "Должники",
+          content: "Список должников"
+        });
     })(jQuery)
  </script>
 {% endblock %}
