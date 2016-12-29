@@ -64,7 +64,7 @@ class PassTypesFilter(admin.SimpleListFilter):
 
         sets = dict(
             used=queryset.filter(is_actual=True),
-            unused=queryset.filter(is_actual=False)
+            unused=PassTypes.all.filter(is_actual=False)
         )
 
         return sets.get(self.value(), PassTypes.all.all())
