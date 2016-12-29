@@ -9,7 +9,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.forms import UserChangeForm
-from application.models import User as CustomUser
+from application.models import User as CustomUser, PassTypes
 
 
 class GroupsAdminStatusFilter(admin.SimpleListFilter):
@@ -48,6 +48,33 @@ class GroupsAdminHallFilter(admin.SimpleListFilter):
             )
         )
         return sets.get(self.value(), queryset)
+
+
+class PassTypesFilter(admin.SimpleListFilter):
+    title = u"Статусы"
+    parameter_name = "pass_type_status"
+
+    def lookups(self, request, model_admin):
+        return (
+            ('used', u'Используемые'),
+            ('unused', u'Не используемые')
+        )
+
+    def queryset(self, request, queryset):
+        sets = dict(
+            used=queryset.filter(is_actual=True),
+            unused=queryset.filter(is_actual=False)
+        )
+
+
+class PassTypesAdmin(admin.ModelAdmin):
+    list_filter = (PassTypesFilter,)
+    list_display = (u'name', u'prise', u'lessons', u'actuality')
+
+    def actuality(self, obj):
+        return u'Используемый' if obj.is_actual else u'Не используемый'
+
+    actuality.short_description = u'Статус'
 
 
 class GroupAdmin(admin.ModelAdmin):
@@ -138,7 +165,7 @@ class CustomUserAdmin(UserAdmin):
 admin.site.unregister(User)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Groups, GroupAdmin)
-admin.site.register(PassTypes)
+admin.site.register(PassTypes, PassTypesAdmin)
 admin.site.register(DanceHalls)
 admin.site.register(Log)
 admin.site.register(BonusClasses, BonusClassAdmin)
