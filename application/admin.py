@@ -56,15 +56,18 @@ class PassTypesFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('used', u'Используемые'),
-            ('unused', u'Не используемые')
+            ('used', u'Только используемые'),
+            ('unused', u'Только не используемые')
         )
 
     def queryset(self, request, queryset):
+
         sets = dict(
             used=queryset.filter(is_actual=True),
             unused=queryset.filter(is_actual=False)
         )
+
+        return sets.get(self.value(), PassTypes.all.all())
 
 
 class PassTypesAdmin(admin.ModelAdmin):
