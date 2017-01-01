@@ -4,6 +4,7 @@ import re
 import time
 import datetime, math, calendar as calendar_origin
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils.functional import cached_property
 from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
@@ -531,7 +532,7 @@ class Comments(models.Model):
 
 class ActualPassTypes(models.Manager):
     def get_queryset(self, *args, **kwargs):
-        return super(ActualPassTypes, self).get_queryset().filter(is_actual=True)
+            return self.model.CustomQuerySet(self.model).filter(is_actual=True)
 
 
 class PassTypes(models.Model):
@@ -605,6 +606,26 @@ class PassTypes(models.Model):
         app_label = u'application'
         verbose_name = u'Тип абонемента'
         verbose_name_plural = u'Типы абонементов'
+
+    class CustomQuerySet(QuerySet):
+
+        def filter(self, *args, **kwargs):
+            try:
+                return super(self.__class__, self).filter(*args, **kwargs)
+
+            except PassTypes.DoesNotExist:
+                return PassTypes.all.filter(*args, **kwargs)
+
+        def get(self, *args, **kwargs):
+            u"""
+            В случае падения запроса вернуть штатный результат
+            """
+            try:
+                return super(self.__class__, self).get(*args, **kwargs)
+
+            except PassTypes.DoesNotExist:
+                return PassTypes.all.get(*args, **kwargs)
+
 
 
 class GroupList(models.Model):
