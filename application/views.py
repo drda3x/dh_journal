@@ -752,7 +752,7 @@ class BonusClassView(BaseView):
 
         except Exception:
             from traceback import format_exc
-            print format_exc()
+            print ((format_exc()))
             return HttpResponseServerError()
 
     def attendance(self, request):
@@ -845,7 +845,8 @@ class BonusClassView(BaseView):
             return HttpResponse(json.dumps({'id': comment.id}))
 
         except Exception:
-            from traceback import format_exc; print format_exc()
+            from traceback import format_exc;
+            print ((format_exc()))
             return HttpResponseServerError('failed')
 
     def move(self, request):
@@ -931,12 +932,12 @@ class BonusClassView(BaseView):
 
         except (AttributeError, KeyError):
             from traceback import format_exc
-            print format_exc()
+            print ((format_exc()))
             return HttpResponseServerError('No method')
 
         except Exception:
             from traceback import format_exc
-            print format_exc()
+            print (format_exc())
             return HttpResponseServerError('failed')
 
 
@@ -972,7 +973,6 @@ class BonusClassHistoryView(BaseView):
         now = datetime.datetime.now()
         context = super(BonusClassHistoryView, self).get_context_data(**kwargs)
         context['groups'] = BonusClasses.objects.filter(date__lte=now.date()).order_by('-date')
-        print len(context['groups'])
         context['other_groups'] = []
 
         return context
@@ -1320,5 +1320,23 @@ class MainPageView(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(MainPageView, self).get_context_data(**kwargs)
+
+        to_json = lambda x: json.dumps(map(
+            lambda x: x.__json__(),
+            x
+        ))
+
+        context['beginners'] = to_json(
+            Groups.opened.filter(level__string_code='beginners')
+        )
+        context['inter'] = to_json(
+            Groups.opened.filter(level__string_code='inter')
+        )
+        context['advanced'] = to_json(
+            Groups.opened.filter(level__string_code='advanced')
+        )
+        context['no_level'] = to_json(
+            Groups.opened.filter(level__string_code='no_level')
+        )
 
         return context

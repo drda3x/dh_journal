@@ -348,6 +348,7 @@ class Groups(models.Model):
 
     def __json__(self):
         return dict(
+            id=self.id,
             name=self.name,
             start_date=self.start_date.strftime('%d.%m.%Y') if self.start_date else u'',
             end_date=self.end_date.strftime('%d.%m.%Y') if self.end_date else u'',
@@ -357,7 +358,7 @@ class Groups(models.Model):
             is_opened=self.is_opened,
             is_settable=self.is_settable,
             days=self.days,
-            available_passes=self.available_passes,
+            available_passes=str(self.available_passes),
             dance_hall=self.dance_hall.__json__()
         )
 

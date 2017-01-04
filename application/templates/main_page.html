@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block head%}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../static/css/main_page.css">
 
   <!-- Шаблон для региона -->
@@ -12,12 +13,19 @@
   </div>
  </script>
 
- <!-- Шаблон для строки таблицы -->
- <script id="group-table-row-template" type="text/template">
-    <td><%= place %></td>
+ <!-- Общий вид таблицы -->
+ <script id="table-main" type="text/template">
+    <h4><%= title %></h4>
+    <table class="table table-striped table-hover">
+    </table>
+ </script>
+
+ <!-- Строка таблицы -->
+ <script id="table-row" type="text/template">
+    <td><%= dance_hall.station %></td>
     <td><%= days %></td>
     <td><%= time %></td>
-</script>
+ </script>
 
  {% endblock%}
  {% block body %}
@@ -45,77 +53,95 @@
         </div>
     </div>
     
-    <div id="container" class="container-fluid">
+    <div id="container" class="container">
     </div>
 
    <script type="text/javascript">
     (function() {
         "use strict"
-        
-        var test_groups = [
-            {place: "Краснопресненская", days: "Пн-Ср", time: "19:00 - 20:30"},
-            {place: "Волгоградский пр-т", days: "Вт-Чт", time: "19:00 - 20:30"},
-            {place: "Краснопресненская", days: "Пн-Ср", time: "20:30 - 22:00"}
-        ]    
 
         // Главная вьюшка на странице
         var PageRegion = Backbone.View.extend({
             template: $("#region-template").html(),
 
-            className: "main-page-container",
-
-            el: $('#container'),
+            tagName: "div",
+            className: "row-fulid",
 
             render: function(_views) {
                 var views = (_views instanceof Array) ? _views : [_views];
                 
                 _.each(views, $.proxy(function(item) {
-                    $(this.el).append(item.render().el);
+                    this.$el.append(item.render().el);
                 }, this));
 
+                $('#container').append(this.$el);
                 return this;
             }
         });
 
         var Group = Backbone.Model.extend({});
+        var Groups = Backbone.Collection.extend({model: Group});
+
+        var TableRow = Backbone.View.extend({
+            tagName: 'tr',
+            template: _.template($("#table-row").html()),
+            className: 'pointer',
+
+            events: {
+                "click": "on_click"
+            },
+
+            render: function() {
+                this.$el.html(this.template(this.model.toJSON())); 
+                return this;
+            },
+            
+            on_click: function() {
+                window.location.assign('/group?id=' + this.model.get('id'));
+            }
+        });
 
         var TableView = Backbone.View.extend({
-            el: $('<table></table>', {
-                class: 'groups-table'
-            }),
+            tagName: 'div',
+            className: 'border',
+            table_template: _.template($("#table-main").html()),
 
-            row : Backbone.View.extend({
-                template: $("#group-table-row-template").html(),
-                tagName: "tr",
-
-                render: function() {
-                    var t = _.template(this.template);
-                    $(this.el).html(t(this.model.toJSON()));
-
-                    return this;
-                }
-            }),
-
-            data: Backbone.Collection.extend({
-                model: Group
-            }),
-
-            render: function(data) {
-                var table = new this.data(data);
-
-                _.each(table.models, $.proxy(function(item) {
-                    var row = new this.row({
-                        model: item
-                    });
-
-                    $(this.el).append(row.render().el);
+            render: function(title, data) {
+                this.$el.html(
+                    this.table_template({title: this.options.title})
+                ); 
+                
+                var table = $(this.$el).find('table');
+                _.each(this.collection.models, $.proxy(function(item) {
+                    var row = new TableRow({model: item});
+                    table.append(row.render().el);
                 }, this));
-                console.log(this.el);
+
                 return this;
             }
         });
 
-        new PageRegion().render(new TableView().render(test_groups));
+        new PageRegion().render([
+            new TableView({
+                title: "Начинающие", 
+                collection: new Groups({{ beginners | safe }})
+            }).render(),
+
+            new TableView({
+                title: "Продолжающие", 
+                collection: new Groups({{ inter | safe}})
+            }).render(),
+
+            new TableView({
+                title: "Конкурсные", 
+                collection: new Groups({{ advanced | safe}})
+            }).render(),
+
+            new TableView({
+                title: "Без уровня", 
+                collection: new Groups({{ no_level | safe}})
+            }).render()
+        ]);
 
     })(jQuery)
  </script>
