@@ -67,5 +67,5 @@ urlpatterns += [
     url(r'getmcdetai', api.get_club_card_detail),
     url(r'sampo', views.SampoView.as_view()),
     url(r'mk', views.BonusClassView.as_view()),
-    url(r'', views.MainPageView.as_view()),
+    url(r'', views.IndexView.as_view()),
 ]

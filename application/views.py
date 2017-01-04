@@ -249,128 +249,6 @@ class BaseView(TemplateView):
         return context
 
 
-class IndexView(BaseView):
-    template_name = 'main_view.html'
-
-    class Url(object):
-        """
-        Класс для создания обыкновенных ссылок на странице
-        """
-        def __init__(self, label, url):
-            self.label = label
-            self.url = url
-
-    def get(self, *args, **kwargs):
-        user = self.request.user
-
-        #Если пользователь - админ сампо, отправляем его на другую вьюшку
-        if user.teacher:
-            return super(IndexView, self).get(self.request, *args, **kwargs)
-
-        elif user.sampo_admin:
-            return redirect('/sampo')
-
-        else:
-            # Всех остальных - лесом!
-            return HttpResponseServerError(403)
-
-    def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data(**kwargs)
-        context['now'] = datetime.datetime.now().date()
-
-        depth = 1
-        menu = []
-        user = self.request.user
-
-        # Меню для руководства
-        if user.is_superuser:
-            groups = Groups.opened
-
-            # Мои группы
-            menu.append({
-                'label':u'Мои группы',
-                'depth': str(depth),
-                'hideable': False,
-                'urls': groups.filter(teachers=user)
-            })
-
-            # Группы других преподавателей
-            depth += 1
-            menu.append({
-                'label': u'Остальные группы',
-                'depth': str(depth),
-                'hideable': False,
-                'urls': [
-                    {
-                        'label': level.name,
-                        'hideable': True,
-                        'depth': '%d_%d' % (depth, level_depth),
-                        'urls': groups.filter(level=level).exclude(teachers=user)
-                    } for level_depth, level in enumerate(GroupLevels.objects.all())
-                ]
-            })
-
-            #Мастер-классы
-            depth += 1
-            menu.append({
-                'label': u'Мастер-классы',
-                'depth': str(depth),
-                'hideable': True,
-                'url_pattern': 'mk',
-                'urls': [b for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
-            })
-
-            #Закрытые группы
-            depth += 1
-            menu.append({
-                'label': u'Закрытые группы',
-                'depth': str(depth),
-                'hideable': True,
-                'urls': [g for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
-            })
-
-        # Меню для других преподов
-        else:
-            # Мои группы
-            menu.append({
-                'label': u'Группы',
-                'depth': str(depth),
-                'hideable': False,
-                'urls': Groups.opened.filter(teachers=user)
-            })
-
-            #Мастер-классы
-            depth += 1
-            menu.append({
-                'label': u'Мастер-классы',
-                'depth': str(depth),
-                'hideable': True,
-                'urls': BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')
-            })
-
-            #Закрытые группы
-            depth += 1
-            menu.append({
-                'label': u'Закрытые группы',
-                'depth': str(depth),
-                'hideable': True,
-                'urls': [g for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
-            })
-
-        #Общеклубное меню
-        depth += 1
-        menu.append({
-            'label': u'Клуб',
-            'depth': str(depth),
-            'hideable': False,
-            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
-        })
-
-        context['menu'] = menu
-
-        return context
-
-
 class LoginView(TemplateView):
     u"""
     Вьюшка для работы с авторизацией
@@ -1314,12 +1192,12 @@ class GroupView(BaseView):
         return context
 
 
-class MainPageView(BaseView):
-    template_name = "main_page.html"
+class IndexView(BaseView):
+    template_name = "index.html"
 
 
     def get_context_data(self, **kwargs):
-        context = super(MainPageView, self).get_context_data(**kwargs)
+        context = super(IndexView, self).get_context_data(**kwargs)
 
         to_json = lambda x: json.dumps(map(
             lambda x: x.__json__(),
