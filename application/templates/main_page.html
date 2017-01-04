@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="../static/css/main_page.css">
 
   <!-- Шаблон для региона -->
- <script id="container-template" type="text/template">
+ <script id="region-template" type="text/template">
   <div class="region-title">
     <h3><%= title %><a href="">свернуть</a></h3>
   </div>
@@ -14,11 +14,9 @@
 
  <!-- Шаблон для строки таблицы -->
  <script id="group-table-row-template" type="text/template">
-  <tr>
     <td><%= place %></td>
     <td><%= days %></td>
     <td><%= time %></td>
-  </tr>
 </script>
 
  {% endblock%}
@@ -53,68 +51,72 @@
    <script type="text/javascript">
     (function() {
         "use strict"
+        
+        var test_groups = [
+            {place: "Краснопресненская", days: "Пн-Ср", time: "19:00 - 20:30"},
+            {place: "Волгоградский пр-т", days: "Вт-Чт", time: "19:00 - 20:30"},
+            {place: "Краснопресненская", days: "Пн-Ср", time: "20:30 - 22:00"}
+        ]    
 
-          var BlockView = Backbone.View.extend({
-            template: $("#container-template").html(),
+        // Главная вьюшка на странице
+        var PageRegion = Backbone.View.extend({
+            template: $("#region-template").html(),
 
             className: "main-page-container",
 
             el: $('#container'),
 
-            render: function(views) {
-              /**
-                views - список вьюшек, которые будет отображать данный регион
-                по нему надо пройти, у каждого элемента вызвать render и усе!!!
-              */
-              return this;
+            render: function(_views) {
+                var views = (_views instanceof Array) ? _views : [_views];
+                
+                _.each(views, $.proxy(function(item) {
+                    $(this.el).append(item.render().el);
+                }, this));
+
+                return this;
             }
-          });
-        
+        });
+
         var Group = Backbone.Model.extend({});
 
-        var Table = Backbone.Collection.extend({
-          model: Group
-        });
-
         var TableView = Backbone.View.extend({
-          template: $("#group-table-template").html(),
-          className: "group-table",
-          tagName: "table",
-          
-          render: function(table) {
-            _.each(table.models, $.proxy(function(item) {
-              var row = new TableRow({
-                model: item
-              });
+            el: $('<table></table>', {
+                class: 'groups-table'
+            }),
 
-              $(this.el).append(row.render().el);
-            }, this));
-          }          
+            row : Backbone.View.extend({
+                template: $("#group-table-row-template").html(),
+                tagName: "tr",
+
+                render: function() {
+                    var t = _.template(this.template);
+                    $(this.el).html(t(this.model.toJSON()));
+
+                    return this;
+                }
+            }),
+
+            data: Backbone.Collection.extend({
+                model: Group
+            }),
+
+            render: function(data) {
+                var table = new this.data(data);
+
+                _.each(table.models, $.proxy(function(item) {
+                    var row = new this.row({
+                        model: item
+                    });
+
+                    $(this.el).append(row.render().el);
+                }, this));
+                console.log(this.el);
+                return this;
+            }
         });
 
-        var TableRow = Backbone.View.extend({
-          template: $("#group-table-row-template").html(),
+        new PageRegion().render(new TableView().render(test_groups));
 
-          render: function() {
-            var t = _.template(this.template);
-            $(this.el).html(t(this.model.toJSON()));
-
-            return this;
-          }
-        });
-
-        new BlockView().render({
-          title: "Группы",
-          content: "Ну тут какой-то список"
-        });
-        new BlockView().render({
-          title: "Мастер-классы",
-          content: "Тут тоже какой-то список"
-        });
-        new BlockView().render({
-          title: "Должники",
-          content: "Список должников"
-        });
     })(jQuery)
  </script>
 {% endblock %}
