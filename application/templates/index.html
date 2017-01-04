@@ -79,8 +79,18 @@
             }
         });
 
-        var Group = Backbone.Model.extend({});
+        var Group = Backbone.Model.extend({
+            defaults: {
+                url: '/group?id='
+            }
+        });
+        var MK = Backbone.Model.extend({
+            defaults: {
+                url: 'mk?id='
+            }
+        });
         var Groups = Backbone.Collection.extend({model: Group});
+        var MKs = Backbone.Collection.extend({model: MK});
 
         var TableRow = Backbone.View.extend({
             tagName: 'tr',
@@ -97,7 +107,7 @@
             },
             
             on_click: function() {
-                window.location.assign('/group?id=' + this.model.get('id'));
+                window.location.assign(this.model.get('url') + this.model.get('id'));
             }
         });
 
