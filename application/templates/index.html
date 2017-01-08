@@ -132,15 +132,18 @@
             row_class: TableRow,
 
             render: function(title, data) {
-                this.$el.html(
-                    this.table_template({title: this.options.title})
-                ); 
-                
-                var table = $(this.$el).find('table');
-                _.each(this.collection.models, $.proxy(function(item) {
-                    var row = new this.row_class({model: item});
-                    table.append(row.render().el);
-                }, this));
+                if(this.collection.models.length > 0) {
+                    this.$el.html(
+                        this.table_template({title: this.options.title})
+                    ); 
+                    
+                    var table = $(this.$el).find('table');
+
+                    _.each(this.collection.models, $.proxy(function(item) {
+                        var row = new this.row_class({model: item});
+                        table.append(row.render().el);
+                    }, this));
+                }
 
                 return this;
             }
