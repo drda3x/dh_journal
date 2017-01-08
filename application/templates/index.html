@@ -13,17 +13,29 @@
   </div>
  </script>
 
- <!-- Общий вид таблицы -->
- <script id="table-main" type="text/template">
+ <!-- Общий вид таблицы --> 
+<script id="table-main" type="text/template">
     <h4><%= title %></h4>
     <table class="table table-striped table-hover">
     </table>
+    <a href="">--показать все закрытые группы--</a>
  </script>
 
- <!-- Строка таблицы -->
- <script id="table-row" type="text/template">
-    <td><%= dance_hall.station %></td>
+ <!-- Строка таблицы для группы -->
+ <script id="group-table-row" type="text/template">
+    <td><%= name %>
+        <% if (!is_opened) {%>
+            <br><strong style="margin-left: 5px;" class="text-error">ЗАКРЫТА</strong>
+        <% } %>
+    </td>
     <td><%= days %></td>
+    <td><%= time %></td>
+ </script>
+
+ <!-- Строка таблицы для открытого урока -->
+ <script id="mk-table-row" type="text/template">
+    <td><%= date %></td>
+    <td><%= dance_hall.station %></td>
     <td><%= time %></td>
  </script>
 
@@ -53,7 +65,7 @@
         </div>
     </div>
     
-    <div id="container" class="container">
+    <div id="container" class="container-fulid">
     </div>
 
    <script type="text/javascript">
@@ -86,7 +98,7 @@
         });
         var MK = Backbone.Model.extend({
             defaults: {
-                url: 'mk?id='
+                url: '/mk?id='
             }
         });
         var Groups = Backbone.Collection.extend({model: Group});
@@ -94,7 +106,9 @@
 
         var TableRow = Backbone.View.extend({
             tagName: 'tr',
-            template: _.template($("#table-row").html()),
+            template: function() {
+                throw('Realize this function');
+            },
             className: 'pointer',
 
             events: {
@@ -115,6 +129,7 @@
             tagName: 'div',
             className: 'border',
             table_template: _.template($("#table-main").html()),
+            row_class: TableRow,
 
             render: function(title, data) {
                 this.$el.html(
@@ -123,7 +138,7 @@
                 
                 var table = $(this.$el).find('table');
                 _.each(this.collection.models, $.proxy(function(item) {
-                    var row = new TableRow({model: item});
+                    var row = new this.row_class({model: item});
                     table.append(row.render().el);
                 }, this));
 
@@ -131,26 +146,47 @@
             }
         });
 
+        var GroupTableRow = TableRow.extend({
+            template: _.template($("#group-table-row").html())
+        });
+
+        var MkTableRow = TableRow.extend({
+            template: _.template($("#mk-table-row").html())
+        });
+
+        var GroupTableView = TableView.extend({
+            row_class: GroupTableRow
+        });
+
+        var MkTableView = TableView.extend({
+            row_class: MkTableRow
+        });
+
         new PageRegion().render([
-            new TableView({
+            new GroupTableView({
                 title: "Начинающие", 
                 collection: new Groups({{ beginners | safe }})
             }).render(),
 
-            new TableView({
+            new GroupTableView({
                 title: "Продолжающие", 
                 collection: new Groups({{ inter | safe}})
             }).render(),
 
-            new TableView({
+            new GroupTableView({
                 title: "Конкурсные", 
                 collection: new Groups({{ advanced | safe}})
             }).render(),
 
-            new TableView({
+            new GroupTableView({
                 title: "Без уровня", 
                 collection: new Groups({{ no_level | safe}})
-            }).render()
+            }).render(),
+
+            new MkTableView({
+                title: "Открытые уроки",
+                collection: new MKs({{ mk | safe}})
+            })
         ]);
 
     })(jQuery)

@@ -435,6 +435,13 @@ class BonusClasses(models.Model):
             self.teacher_follower.last_name if self.teacher_follower else u''
         )
 
+    def __json__(self):
+        return dict(
+            date=self.date.strftime('%d.%m.%Y'),
+            time=self.time.strftime('%H:%M'),
+            dance_hall=self.hall.__json__()
+        )
+
     class Meta:
         unique_together = ('date', 'hall')
         app_label = u'application'

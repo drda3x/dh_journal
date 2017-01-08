@@ -1,5 +1,5 @@
 #container {
-    margin-top: 40px;
+    margin: 60px 20px;
 }
 
 .region-title {
@@ -22,4 +22,8 @@
 
 .pointer {
     cursor: pointer;
+}
+
+.table {
+    margin-bottom: 0px !important;
 }

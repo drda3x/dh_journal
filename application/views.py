@@ -1204,16 +1204,31 @@ class IndexView(BaseView):
         ))
 
         context['beginners'] = to_json(
-            Groups.opened.filter(level__string_code='beginners')
+            list(Groups.opened.filter(level__string_code='beginners')) +
+            list(Groups.all.filter(level__string_code='beginners')[:3])
         )
         context['inter'] = to_json(
-            Groups.opened.filter(level__string_code='inter')
+            list(Groups.opened.filter(level__string_code='inter')) +
+            list(Groups.all.filter(level__string_code='inter')[:3])
         )
         context['advanced'] = to_json(
-            Groups.opened.filter(level__string_code='advanced')
+            list(Groups.opened.filter(level__string_code='advanced')) +
+            list(Groups.all.filter(level__string_code='advanced')[:3])
         )
         context['no_level'] = to_json(
-            Groups.opened.filter(level__string_code='no_level')
+            list(Groups.opened.filter(level__string_code='no_level')) +
+            list(Groups.all.filter(level__string_code='no_level')[:3])
+        )
+
+        today = datetime.datetime.now()
+        context['mk'] = to_json(
+            list(BonusClasses.objects.filter(
+                date__gte=today
+            )) + list(
+                BonusClasses.objects.filter(
+                    date__lt=today
+                ).order_by('-date')[:3]
+            )
         )
 
         return context
