@@ -437,6 +437,7 @@ class BonusClasses(models.Model):
 
     def __json__(self):
         return dict(
+            id=self.id,
             date=self.date.strftime('%d.%m.%Y'),
             time=self.time.strftime('%H:%M'),
             dance_hall=self.hall.__json__()

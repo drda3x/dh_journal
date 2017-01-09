@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import datetime
-import re
 import json
 from django.contrib import auth
 from django.views.generic import TemplateView
@@ -9,9 +8,7 @@ from pytz import timezone, UTC
 from project.settings import TIME_ZONE
 from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponseServerError, HttpResponse
-from auth import check_auth, log_out
 from django.template import RequestContext
-from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
 from django.db.models import Sum, Q
 from django.utils.functional import cached_property
@@ -22,12 +19,12 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
-from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
+from models import Groups, Students, PassTypes, BonusClasses, BonusClassList, Comments  # todo ненужный импорт
 from collections import namedtuple
 
 
@@ -562,7 +559,7 @@ class SampoView(BaseView):
                 total=Sum("payment__money")
             )
 
-            #outgoing = payments.filter(money__lte=0).aggregate(
+            #  outgoing = payments.filter(money__lte=0).aggregate(
             #    total=Sum("money")
             #    )
 
@@ -630,7 +627,7 @@ class BonusClassView(BaseView):
 
         except Exception:
             from traceback import format_exc
-            print ((format_exc()))
+            print((format_exc()))
             return HttpResponseServerError()
 
     def attendance(self, request):
@@ -700,9 +697,6 @@ class BonusClassView(BaseView):
 
         return HttpResponse(200)
 
-        #else:
-        #    return HttpResponseServerError('По данному абонементу были произведены отметки в группе')
-
     @staticmethod
     def save_comment(request):
         try:
@@ -723,8 +717,8 @@ class BonusClassView(BaseView):
             return HttpResponse(json.dumps({'id': comment.id}))
 
         except Exception:
-            from traceback import format_exc;
-            print ((format_exc()))
+            from traceback import format_exc
+            print((format_exc()))
             return HttpResponseServerError('failed')
 
     def move(self, request):
@@ -736,9 +730,9 @@ class BonusClassView(BaseView):
         if not ids:
             return HttpResponse(200)
 
-        students   = Students.objects.filter(pk__in=ids)
-        new_class  = int(request.POST['newgroup'])
-        old_class  = int(request.POST['gid'])
+        students = Students.objects.filter(pk__in=ids)
+        new_class = int(request.POST['newgroup'])
+        old_class = int(request.POST['gid'])
         errors = []
         moved = []
 
@@ -763,10 +757,10 @@ class BonusClassView(BaseView):
 
     def get_context_data(self, *args, **kwargs):
 
-        now     = make_aware(datetime.datetime.now(), timezone(TIME_ZONE))
+        now = make_aware(datetime.datetime.now(), timezone(TIME_ZONE))
         context = super(BonusClassView, self).get_context_data(*args, **kwargs)
-        mkid    = self.request.GET.get('id')
-        mk      = BonusClasses.objects.select_related().get(pk=mkid)
+        mkid = self.request.GET.get('id')
+        mk = BonusClasses.objects.select_related().get(pk=mkid)
 
         passes = {
             i.student.id: {
@@ -810,12 +804,12 @@ class BonusClassView(BaseView):
 
         except (AttributeError, KeyError):
             from traceback import format_exc
-            print ((format_exc()))
+            print((format_exc()))
             return HttpResponseServerError('No method')
 
         except Exception:
             from traceback import format_exc
-            print (format_exc())
+            print(format_exc())
             return HttpResponseServerError('failed')
 
 
@@ -1095,7 +1089,7 @@ class GroupView(BaseView):
                 'pid': obj.group_pass.id,
                 'first': self.group.lesson_is_last_in_pass(obj),
                 'last': self.group.lesson_is_first_in_pass(obj),
-                'color': '' if obj.status == Lessons.STATUSES['moved'] else self.html_color_classes[obj.group_pass.color] if not obj.student.org  else ORG_PASS_HTML_CLASS
+                'color': '' if obj.status == Lessons.STATUSES['moved'] else self.html_color_classes[obj.group_pass.color] if not obj.student.org else ORG_PASS_HTML_CLASS
             }
 
         else:
@@ -1111,7 +1105,7 @@ class GroupView(BaseView):
             }
 
     def get_context_data(self, **kwargs):
-        def to_iso(elem): # deprecated
+        def to_iso(elem):  # deprecated
             elem['date'] = elem['date'].strftime('%d.%m.%Y')
 
             return elem
@@ -1155,7 +1149,7 @@ class GroupView(BaseView):
             {
                 'person': s['student'],
                 'is_newbie': s['student'].pk in group.newbies,
-                'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
+                'calendar': map(self.get_detail_repr, s['lessons']),
                 'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
                 'last_comment': s['last_comment']
@@ -1177,7 +1171,7 @@ class GroupView(BaseView):
             } for i in group.calendar],
             'moneys': day_balance,
             'money_total': totals,
-            'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
+            'full_teachers': len(group.teachers.all()) > 1
         }
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
@@ -1191,6 +1185,9 @@ class GroupView(BaseView):
 
         return context
 
+
+# TODO сделать дефолтную выборку групп таким образом, что группа там висит до
+# конца месяца + неделю
 
 class IndexView(BaseView):
     template_name = "index.html"
