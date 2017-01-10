@@ -10,7 +10,7 @@ from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponseServerError, HttpResponse
 from django.template import RequestContext
 from django.utils.timezone import make_aware
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -25,7 +25,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, PassTypes, BonusClasses, BonusClassList, Comments  # todo ненужный импорт
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 
 def custom_proc(request):
@@ -1216,6 +1216,26 @@ class IndexView(BaseView):
             list(Groups.opened.filter(teachers=self.request.user, level__string_code='no_level')) +
             list(Groups.all.filter(teachers=self.request.user, level__string_code='no_level')[:3])
         )
+
+        debtors = Debts.objects.filter(
+            group__teachers=self.request.user
+        ).values(
+            'student__first_name',
+            'student__last_name',
+            'student__phone',
+            'group__name'
+        ).annotate(Count('id'))
+
+        _debts = defaultdict(list)
+
+        for debtor in debtors:
+            key = "%s %s %s" % (debtor['student__first_name'], debtor['student__last_name'], debtor['student__phone'])
+            _debts[key].append((debtor['group__name'], debtor['id__count']))
+
+        context['debtors'] = json.dumps([
+            dict(name=key, debts=val)
+            for key, val in _debts.iteritems()
+        ])
 
         today = datetime.datetime.now()
         context['mk'] = to_json(
