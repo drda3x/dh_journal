@@ -1229,12 +1229,16 @@ class IndexView(BaseView):
         _debts = defaultdict(list)
 
         for debtor in debtors:
-            key = "%s %s %s" % (debtor['student__first_name'], debtor['student__last_name'], debtor['student__phone'])
+            key = "%s %s %s" % (
+                debtor['student__last_name'],
+                debtor['student__first_name'],
+                debtor['student__phone']
+            )
             _debts[key].append((debtor['group__name'], debtor['id__count']))
 
         context['debtors'] = json.dumps([
-            dict(name=key, debts=val)
-            for key, val in _debts.iteritems()
+            dict(name=k, debts=v)
+            for k, v in _debts.iteritems()
         ])
 
         today = datetime.datetime.now()
