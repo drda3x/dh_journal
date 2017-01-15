@@ -24,6 +24,7 @@ class User(UserOrigin):
     objects = UserManager
     teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
     sampo_admin = models.BooleanField(verbose_name=u'Администратор САМПО', default=False)
+    assistant = models.BooleanField(verbose_name=u'Ассистент', default=False)
     about = models.TextField(verbose_name=u'Описание преподавателя', null=True, blank=True)
     photo = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True, verbose_name=u'Фото')
     video = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'Видео')

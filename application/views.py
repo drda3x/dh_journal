@@ -752,7 +752,8 @@ class BonusClassView(BaseView):
 
         except Exception:
             from traceback import format_exc
-            print format_exc()
+            print(format_exc())
+
             return HttpResponseServerError()
 
     def attendance(self, request):
@@ -1299,7 +1300,8 @@ class GroupView(BaseView):
             } for i in group.calendar],
             'moneys': day_balance,
             'money_total': totals,
-            'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
+            'full_teachers': group.teachers.filter(assistant=False).count() >= 1,
+            'assistant': group.teachers.filter(assistant=True).count() >= 1
         }
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()

@@ -117,6 +117,15 @@
                 {% endfor %}
             </tr>
             {% endif %}
+            {% if group_detail.assistant %}
+            <tr> 
+                <td style="border-right: 0px"></td>
+                <td style="border-left: 0px"><strong>Ассистентам:</strong></td>
+                {% for money in group_detail.moneys %}
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.assistant }}</td>
+                {% endfor %}
+            </tr>
+            {% endif %}
         </table>
 
         <a href="" class="btn" onclick="window.open('/print?id={{ group_detail.id }}&type=full&subtype=lessons&date={{ control_data.constant.current_date_numval }}', '', 'width=1200, height=768, location=no')">Печать</a>
@@ -129,6 +138,9 @@
             <div>ИТОГО: <strong>{{ group_detail.money_total.balance }}</strong></div>
             {% if group_detail.full_teachers %}
             <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
+            {% endif %}
+            {% if group_detail.assistant %}
+                <div>Ассистентам: <strong>{{group_detail.money_total.assistant}}</strong></div>
             {% endif %}
             {% if group_detail.money_total.next_month_balance >= 0 %}
                 <div>На следующий месяц: <strong>{{ group_detail.money_total.next_month_balance }}</strong></div>
