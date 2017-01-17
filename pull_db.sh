@@ -3,7 +3,8 @@
 ssh u48649@u48649.netangels.ru ./scripts/make_db_backup.sh
 scp u48649@u48649.netangels.ru:~/backups/db_backup.sql ../db_dumps/
 
-mysql -u tbtest -ptest << EOF
+source settings.sh
+mysql -u $DB_USER -p$DB_PASSWORD << EOF
 
 drop database TBTEST;
 create database TBTEST;
