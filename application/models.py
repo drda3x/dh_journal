@@ -558,6 +558,14 @@ class PassTypes(models.Model):
     def __unicode__(self):
         return u'%s - %s (%dр.)' % (str(self.sequence), self.name, self.prise)
 
+    def delete(self, *args, **kwargs):
+        if not self.is_actual:
+            super(PassTypes, self).delete(*args, **kwargs)
+
+        else:
+            self.is_actual = True
+            self.save()
+
     def __json__(self):
         return dict(
             name=self.name,

@@ -1072,7 +1072,7 @@ class ClubCardsView(BaseView):
         context['date_list'].sort(key=lambda x: x['key'])
         context['groups'] = groups
         context['passes'] = all_passes
-        context['pass_types'] = PassTypes.all.filter(one_group_pass=0)
+        context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
         context['students'] = students
 
         return context
