@@ -16,9 +16,11 @@
  <!-- Общий вид таблицы --> 
 <script id="table-main" type="text/template">
     <h4><%= title %></h4>
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
     </table>
-    <a href="">--показать закрытые--</a>
+    <div class="link-container">
+        <a href="">--показать закрытые--</a>
+    </div>
  </script>
 
  <!-- Строка таблицы для группы -->
@@ -42,49 +44,34 @@
 
 <!-- Регион должников -->
 <script id="debtors-main" type="text/template">
-    <h4>Должники</h4>
+    <h4><%= title %></h4>
+    <table class="table table-hover">
+        <tr>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Телефон</th>
+            <th>Кол-во занятий</th>
+        </tr>
+    </table>
 </script>
 
 <!-- Один должник -->
 <script id="debtors-one-debtor" type="text/template">
-    <strong><%= name %></strong>
-    <table class="table table-striped">
-    <th>Группа</th>
-    <th>Неоплаченных занятий</th>
-    <% _.each(debts, function(item) { %>
-        <tr> 
-            <td class="col-md-6"><%= item[0] %></td>
-            <td class="col-md-6"><%= item[1] %></td>
-        </tr>
-    <% }) %>
-    </table>
+    <td><%= surname %></td>
+    <td><%= name %></td>
+    <td><%= phone %></td>
+    <td><%= count %></td>
 </script>
 
  {% endblock%}
  {% block body %}
-    <div class="navbar navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container-fluid">
-                <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </a>
-                <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
-
-                <div class="nav-collapse collapse">
-                    <div class="pull-right dropdown header-right" style="position: relative">
-                        <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{ user.last_name }} {{ user.first_name }}<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="profile?uid={{ user.id }}" id="userProfile" tabindex="-1">Профиль</a></li>
-                            <li><a href="logout" tabindex="-1">Выход</a></li>
-                        </ul>
-                    </div>
-                </div>
-
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="">ТСК "Динамика". Электронный журнал</a>
             </div>
         </div>
-    </div>
+    </nav>
     
     <div id="container" class="container-fulid">
     </div>
@@ -193,14 +180,21 @@
             model: Debtor 
         });
 
-        var OneDebtorView = Backbone.View.extend({
-            template: _.template($("#debtors-one-debtor").html()),
+        var OneDebtorView = TableRow.extend({
+            template: _.template($("#debtors-one-debtor").html())/*,
             render: function() {
                 this.$el.html(this.template(this.model.toJSON()));  
                 return this;
             }
+            */
         });
-
+        
+        var DebtorsView = TableView.extend({
+            table_template: _.template($("#debtors-main").html()),
+            row_class: OneDebtorView 
+        });
+        
+        /*
         var DebtorsView = Backbone.View.extend({
             template: _.template($('#debtors-main').html()),
 
@@ -220,6 +214,7 @@
                 return this;
             }
         });
+        */
 
         new PageRegion().render([
             new GroupTableView({
@@ -249,7 +244,10 @@
         ]);
 
         new PageRegion().render([
-            new DebtorsView({collection: new Debtors({{ debtors | safe }})})
+                new DebtorsView({
+                    title: "Должники",
+                    collection: new Debtors({{ debtors | safe }})
+                })
         ]);
 
     })(jQuery)

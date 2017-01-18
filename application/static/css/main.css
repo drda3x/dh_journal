@@ -1,6 +1,5 @@
-
-body {
-    /*background-color: #F5F5F5;*/
+* {
+    background-color: #F5F5F5;
 }
 
 .header-right {
@@ -29,3 +28,37 @@ body {
 .strong {
 	font-weight: bold;
 }
+
+.link-container {
+    text-align: center;
+}
+
+.border {
+    border: 1px solid #e5e5e5;
+}
+
+.border * {
+    background-color: #fff;
+}
+
+.border h4 {
+    margin: 0;
+    padding: 10px;
+}
+
+table tr:hover td, table tr:hover td strong {
+    background-color: #e6e4e4;
+}
+
+.navbar {
+    background-color: #337ab7;
+}
+
+.navbar * {
+    background-color: inherit;
+}
+
+.navbar a {
+    color: #fff !important;
+}
+

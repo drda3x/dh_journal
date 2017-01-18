@@ -1234,10 +1234,13 @@ class IndexView(BaseView):
                 debtor['student__first_name'],
                 debtor['student__phone']
             )
-            _debts[key].append((debtor['group__name'], debtor['id__count']))
+            _debts[key].append(debtor['id__count'])
 
         context['debtors'] = json.dumps([
-            dict(name=k, debts=v)
+            dict([
+                (_name, _val)
+                for _name, _val in zip(('surname', 'name', 'phone'), k.split(' '))
+            ] + [('count', v)])
             for k, v in _debts.iteritems()
         ])
 
