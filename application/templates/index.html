@@ -30,9 +30,9 @@
             <br><strong style="margin-left: 5px;" class="text-danger">ЗАКРЫТА</strong>
         <% } %>
     </td>
-    <td class="col-md-3"><%= dance_hall.station %></td>
-    <td class="col-md-3"><%= days %></td>
-    <td class="col-md-3"><%= time %></td>
+    <td class="col-xs-3"><%= dance_hall.station %></td>
+    <td class="col-xs-3 hidden-xs"><%= days %></td>
+    <td class="col-xs-3"><%= time %></td>
  </script>
 
  <!-- Строка таблицы для открытого урока -->
@@ -44,8 +44,8 @@
 
 <!-- Регион должников -->
 <script id="debtors-main" type="text/template">
-    <h4><%= title %></h4>
-    <table class="table table-hover">
+    <h4 class="hidden-xs"><%= title %></h4>
+    <table class="table table-hover hidden-xs">
         <tr>
             <th>Фамилия</th>
             <th>Имя</th>
