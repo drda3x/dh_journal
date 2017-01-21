@@ -1193,6 +1193,7 @@ class IndexView(BaseView):
     template_name = "index.html"
 
     def get_context_data(self, **kwargs):
+        now = datetime.datetime.now()
         context = super(IndexView, self).get_context_data(**kwargs)
 
         to_json = lambda x: json.dumps(map(
@@ -1218,7 +1219,8 @@ class IndexView(BaseView):
         )
 
         debtors = Debts.objects.filter(
-            group__teachers=self.request.user
+            group__teachers=self.request.user,
+            date__gte = now - datetime.timedelta(days=60)
         ).values(
             'student__first_name',
             'student__last_name',
