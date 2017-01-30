@@ -940,7 +940,11 @@ class BonusClassList(models.Model):
 class TeachersSubstitution(models.Model):
     date = models.DateField(verbose_name=u"Дата замены")
     group = models.ForeignKey('Groups', verbose_name=u"Группа", db_constraint=False)
-    teachers = models.ManyToManyField('User', verbose_name=u"Состав преподавателей")
+    teachers = models.ManyToManyField('User', verbose_name=u"Состав преподавателей", null=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        # self.teachers.remove(*list(self.teachers.all()))
+        super(TeachersSubstitution, self).delete(*args, **kwargs)
 
     class Meta:
         app_label = u'application'

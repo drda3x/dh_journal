@@ -1315,7 +1315,10 @@ class GroupView(BaseView):
 
         context['teachers_cnt'] = xrange(len(group.orm.teachers.all()))
         context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))
-        context['substitutions'] = group.substitutions
+        context['substitutions'] = json.dumps(dict((
+            (key.strftime('%d.%m.%Y'), map(lambda x: x.pk, val))
+            for key, val in group.substitutions.iteritems()
+        )))
 
         return context
 

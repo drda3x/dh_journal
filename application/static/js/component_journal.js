@@ -96,7 +96,8 @@
             var $date = $('#lesson_window_date'),
             data = matrix.getColumn(context),
             $targets = $('.lesson_data'),
-            $popover = $('.popover');
+            $popover = $('.popover'),
+            $teachers = $('.teachers');
 
             $targets.empty();
             $targets.off();
@@ -108,6 +109,18 @@
             $date.text(date_val);
 
             var i = 1;
+            
+            var substitutions = $("#lesson_substitutions").data("subs")[date_val];
+            
+            $teachers.each(function(index) {
+                $(this).find('option').each(function() {
+                    var val = $(this).prop('value');
+                    $(this).prop(
+                        "selected", 
+                        (val == substitutions[index]) ? true : false
+                    )
+                });
+            });
 
             $targets.each(function() {
                 var $this = $(this);
@@ -203,7 +216,7 @@
                     window.open('/print?id=window.group.id&type=lesson&date='+getDateFromColumn(context).replace(/\./g, ''), '', 'width=500, height=800, location=no')
                 });
         } catch (e) {
-
+            console.error(e);
         }
     }
 
@@ -339,13 +352,18 @@
         backDrop('show');
         popoverLogic.hide();
 
+        var teachers = $.map($("#lesson_window .teachers"), function(element){
+            return $(element).val();
+        });
+
         var data_source = $('#lesson_content').find('tr:gt(0)'),
             json = {
                 group_id: window.group.id,
                 date: $('#lesson_window_date').text(),
                 checked: [],
                 unchecked: [],
-                canceled: false
+                canceled: false,
+                teachers: teachers
             };
 
         if(!$(this).data('context') === 'lesson_window') {

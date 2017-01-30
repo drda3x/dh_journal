@@ -37,7 +37,8 @@ from application.models import (
     SampoPassUsage,
     SampoPrises,
     BonusClassList,
-    BonusClasses
+    BonusClasses,
+    TeachersSubstitution
 )
 from application.views import group_detail_view
 from application.system_api import get_models
@@ -463,6 +464,7 @@ def process_lesson(request):
         data = json_data.get('checked', [])
         data1 = json_data.get('unchecked', [])
         canceled = json_data.get('canceled', [])
+        teachers = map(int, json_data.get('teachers', []))
 
         new_passes = filter(lambda p: isinstance(p, dict), data)
         old_passes = filter(lambda p: isinstance(p, int), data)
@@ -645,6 +647,24 @@ def process_lesson(request):
                         wrapped = PassLogic.wrap(pass_orm_object)
                         wrapped.set_lesson_not_attended(date)
 
+            if map(int, group.teachers.all().values_list('pk', flat=True)) != teachers:
+                try:
+                    subst = TeachersSubstitution(
+                        group=group,
+                        date=date
+                    )
+                    subst.save()
+                    subst.teachers.add(*list(User.objects.filter(pk__in=teachers)))
+                except:
+                    from traceback import format_exc
+                    print format_exc()
+
+                    subst.delete()
+            else:
+                TeachersSubstitution(
+                    group=group,
+                    date=date
+                ).delete()
         else:
             CanceledLessons(group=group, date=date).save()
 
@@ -667,6 +687,7 @@ def process_lesson(request):
         return HttpResponse(200)
 
     except Exception:
+        from traceback import format_exc
         print format_exc()
         return HttpResponseServerError('failed')
 
