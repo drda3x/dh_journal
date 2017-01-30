@@ -939,8 +939,8 @@ class BonusClassList(models.Model):
 
 class TeachersSubstitution(models.Model):
     date = models.DateField(verbose_name=u"Дата замены")
-    group = models.ForeignKey(Groups, verbose_name=u"Группа")
-    #teachers = models.ManyToManyField(User, verbose_name=u"Состав преподавателей")
+    group = models.ForeignKey('Groups', verbose_name=u"Группа", db_constraint=False)
+    teachers = models.ManyToManyField('User', verbose_name=u"Состав преподавателей")
 
     class Meta:
         app_label = u'application'

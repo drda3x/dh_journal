@@ -123,14 +123,20 @@ class GroupLogic(object):
 
     @cached_property
     def substitutions(self):
-        result = []
         real_subs = dict(TeachersSubstitution.objects.filter(group=self.orm, date__range=(self.date_1, self.date_2)).order_by('date').values_list('date', 'teachers'))
         default = dict.fromkeys(self.calendar, self.orm.teachers.all())
+        default.update(real_subs)
+
+        result = [
+            [dt] + map(lambda t: t.pk, teacher)
+            for dt, teacher in default.iteritems()
+        ]
+
+        result.sort(key=lambda x: x[0])
 
         return result
 
     def get_students_net(self):
-        t = self.substitutions
         net = []
 
         for student in self.students:
