@@ -435,7 +435,7 @@ class PassLogic(object):
                 obj.end_date = datetime.date(
                     obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
                     obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
-                    obj.start_date.day
+                    obj.start_date.day if obj.start_date.month + 1 != 2 else min(obj.start_date.day, 28)
                 )
 
             obj.save()
