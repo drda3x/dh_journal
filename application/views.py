@@ -1313,5 +1313,8 @@ class GroupView(BaseView):
         for det in context['pass_detail']:
             det['html_color_class'] = self.html_color_classes[det['color']]
 
+        context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))
+        context['default_teachers'] = group.orm.teachers.all()
+
         return context
 

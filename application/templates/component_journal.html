@@ -197,6 +197,17 @@
                     <input id="cancel_lesson_inp" type="checkbox">
                     Отменено
                 </label>
+                <div>
+                    <span style="display: block;">Преподаватели</span>
+                    {% for teacher in default_teachers %}
+                        <select class="teachers" name="teacher">
+                            <option value="-100">-- не было --</option>
+                            {% for a_teacher in teachers %}
+                                <option {% if a_teacher == teacher%} selected {% endif %} value="{{a_teacher.id}}">{{a_teacher.last_name}}</option>
+                            {% endfor %}
+                        </select>
+                    {% endfor %}
+                </div>
             </div>
             <div id="lesson_container" style="max-height: 425px;">
                 <table id="lesson_content" class="table table-bordered table-striped">

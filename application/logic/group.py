@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from copy import deepcopy
 from django.utils.functional import cached_property
 from django.db.models import Sum, Q, Count
-from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments
+from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 
 
@@ -121,7 +121,16 @@ class GroupLogic(object):
         except Lessons.DoesNotExist:
             return None
 
+    @cached_property
+    def substitutions(self):
+        result = []
+        real_subs = dict(TeachersSubstitution.objects.filter(group=self.orm, date__range=(self.date_1, self.date_2)).order_by('date').values_list('date', 'teachers'))
+        default = dict.fromkeys(self.calendar, self.orm.teachers.all())
+
+        return result
+
     def get_students_net(self):
+        t = self.substitutions
         net = []
 
         for student in self.students:

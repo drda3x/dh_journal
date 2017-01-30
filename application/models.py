@@ -935,3 +935,13 @@ class BonusClassList(models.Model):
     class Meta:
         unique_together = ('group', 'student')
         app_label = u'application'
+
+
+class TeachersSubstitution(models.Model):
+    date = models.DateField(verbose_name=u"Дата замены")
+    group = models.ForeignKey(Groups, verbose_name=u"Группа")
+    #teachers = models.ManyToManyField(User, verbose_name=u"Состав преподавателей")
+
+    class Meta:
+        app_label = u'application'
+        unique_together = ('date', 'group')
