@@ -649,22 +649,29 @@ def process_lesson(request):
 
             if map(int, group.teachers.all().values_list('pk', flat=True)) != teachers:
                 try:
-                    subst = TeachersSubstitution(
-                        group=group,
-                        date=date
-                    )
-                    subst.save()
-                    subst.teachers.add(*list(User.objects.filter(pk__in=teachers)))
-                except:
-                    from traceback import format_exc
-                    print format_exc()
+                    subst = TeachersSubstitution.objects.get(group=group, date=date)
+                    subst.teachers.remove(*subst.teachers.all())
+                    subst.teachers.add(*User.objects.filter(pk__in=teachers))
 
-                    subst.delete()
+                except TeachersSubstitution.DoesNotExist:
+                    try:
+                        subst = TeachersSubstitution(
+                            group=group,
+                            date=date
+                        )
+                        subst.save()
+                        subst.teachers.add(*list(User.objects.filter(pk__in=teachers)))
+                    except:
+                        from traceback import format_exc
+                        print format_exc()
+
+                        subst.delete()
             else:
-                TeachersSubstitution(
+                subst = TeachersSubstitution.objects.get(
                     group=group,
                     date=date
-                ).delete()
+                )
+                subst.delete()
         else:
             CanceledLessons(group=group, date=date).save()
 
