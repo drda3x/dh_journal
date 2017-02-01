@@ -4,6 +4,7 @@ import re
 import time
 import datetime, math, calendar as calendar_origin
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils.functional import cached_property
 from django.utils.timezone import utc
 from django.contrib.auth.models import User as UserOrigin, UserManager
@@ -23,6 +24,7 @@ class User(UserOrigin):
     objects = UserManager
     teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
     sampo_admin = models.BooleanField(verbose_name=u'Администратор САМПО', default=False)
+    assistant = models.BooleanField(verbose_name=u'Ассистент', default=False)
     about = models.TextField(verbose_name=u'Описание преподавателя', null=True, blank=True)
     photo = models.FileField(upload_to=FILE_STORAGE, null=True, blank=True, verbose_name=u'Фото')
     video = models.CharField(max_length=100, null=True, blank=True, verbose_name=u'Видео')
@@ -531,7 +533,7 @@ class Comments(models.Model):
 
 class ActualPassTypes(models.Manager):
     def get_queryset(self, *args, **kwargs):
-        return super(ActualPassTypes, self).get_queryset().filter(is_actual=True)
+            return self.model.CustomQuerySet(self.model).filter(is_actual=True)
 
 
 class PassTypes(models.Model):
@@ -555,6 +557,14 @@ class PassTypes(models.Model):
 
     def __unicode__(self):
         return u'%s - %s (%dр.)' % (str(self.sequence), self.name, self.prise)
+
+    def delete(self, *args, **kwargs):
+        if not self.is_actual:
+            super(PassTypes, self).delete(*args, **kwargs)
+
+        else:
+            self.is_actual = True
+            self.save()
 
     def __json__(self):
         return dict(
@@ -605,6 +615,26 @@ class PassTypes(models.Model):
         app_label = u'application'
         verbose_name = u'Тип абонемента'
         verbose_name_plural = u'Типы абонементов'
+
+    class CustomQuerySet(QuerySet):
+
+        def filter(self, *args, **kwargs):
+            try:
+                return super(self.__class__, self).filter(*args, **kwargs)
+
+            except PassTypes.DoesNotExist:
+                return PassTypes.all.filter(*args, **kwargs)
+
+        def get(self, *args, **kwargs):
+            u"""
+            В случае падения запроса вернуть штатный результат
+            """
+            try:
+                return super(self.__class__, self).get(*args, **kwargs)
+
+            except PassTypes.DoesNotExist:
+                return PassTypes.all.get(*args, **kwargs)
+
 
 
 class GroupList(models.Model):
@@ -905,3 +935,17 @@ class BonusClassList(models.Model):
     class Meta:
         unique_together = ('group', 'student')
         app_label = u'application'
+
+
+class TeachersSubstitution(models.Model):
+    date = models.DateField(verbose_name=u"Дата замены")
+    group = models.ForeignKey('Groups', verbose_name=u"Группа", db_constraint=False)
+    teachers = models.ManyToManyField('User', verbose_name=u"Состав преподавателей", null=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        # self.teachers.remove(*list(self.teachers.all()))
+        super(TeachersSubstitution, self).delete(*args, **kwargs)
+
+    class Meta:
+        app_label = u'application'
+        unique_together = ('date', 'group')

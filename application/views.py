@@ -28,7 +28,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 
 def custom_proc(request):
@@ -752,7 +752,8 @@ class BonusClassView(BaseView):
 
         except Exception:
             from traceback import format_exc
-            print format_exc()
+            print(format_exc())
+
             return HttpResponseServerError()
 
     def attendance(self, request):
@@ -1071,7 +1072,7 @@ class ClubCardsView(BaseView):
         context['date_list'].sort(key=lambda x: x['key'])
         context['groups'] = groups
         context['passes'] = all_passes
-        context['pass_types'] = PassTypes.all.filter(one_group_pass=0)
+        context['pass_types'] = PassTypes.objects.filter(one_group_pass=0)
         context['students'] = students
 
         return context
@@ -1298,9 +1299,16 @@ class GroupView(BaseView):
                 'real_date': i in real_group_calendar
             } for i in group.calendar],
             'moneys': day_balance,
-            'money_total': totals,
-            'full_teachers': len(group.teachers.all()) > 1 #group.teacher_leader and group.teacher_follower
+            'money_total': totals
         }
+
+        salary = defaultdict(list)
+        for i in day_balance:
+            for k, v in i['salary'].iteritems():
+                salary[k].append(v)
+
+        context['salary'] = salary.items()
+
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)
@@ -1310,6 +1318,13 @@ class GroupView(BaseView):
 
         for det in context['pass_detail']:
             det['html_color_class'] = self.html_color_classes[det['color']]
+
+        context['teachers_cnt'] = xrange(len(group.orm.teachers.all()))
+        context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))
+        context['substitutions'] = json.dumps(dict((
+            (key.strftime('%d.%m.%Y'), map(lambda x: x.pk, val))
+            for key, val in group.substitutions.iteritems()
+        )))
 
         return context
 
