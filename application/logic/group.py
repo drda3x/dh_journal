@@ -6,6 +6,7 @@ from django.utils.functional import cached_property
 from django.db.models import Sum, Q, Count
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
+from itertools import chain, takewhile
 
 
 class copy_cache(cached_property):
@@ -193,8 +194,8 @@ class GroupLogic(object):
         total = 0
         total_rent = 0
         statuses = [Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
-        assistants = self.orm.teachers.filter(assistant=True).count()
-        teachers = self.orm.teachers.all().count()
+        teachers = set(chain(*self.substitutions.itervalues()))
+        teachers_count = len(self.orm.teachers.all())
 
         for day in self.calendar:
             buf = {}
@@ -209,20 +210,31 @@ class GroupLogic(object):
                 buf['day_total'] = day_saldo
                 buf['dance_hall'] = int(self.orm.dance_hall.prise)
                 buf['club'] = round(max(buf['day_total'] - buf['dance_hall'], 0) * 0.3, 0)
-                buf['assistant'] = self.ASSISTANT_SALARY * assistants
                 buf['balance'] = round(
-                    buf['day_total'] - buf['dance_hall'] - abs(buf['club']) - buf['assistant'],
+                    buf['day_total'] - buf['dance_hall'] - abs(buf['club']),
                     0
                 )
-                buf['half_balance'] = round(
-                    max(buf['balance'] / (teachers - assistants), 0),
-                    1
-                )
+                # buf['half_balance'] = round(
+                #     max(buf['balance'] / (teachers), 0),
+                #     1
+                # )
                 buf['date'] = day
                 buf['canceled'] = self.canceled_lessons
 
                 total += buf['day_total']
                 total_rent += buf['dance_hall']
+
+                buf['salary'] = dict.fromkeys(teachers, 0)
+                today_teachers = self.substitutions[day]
+                assistants = len(filter(lambda x: x.assistant, today_teachers))
+
+                for t in today_teachers:
+                    if t.assistant:
+                        buf['salary'][t] = self.ASSISTANT_SALARY
+                    elif assistants:
+                        buf['salary'][t] = buf['balance'] - self.ASSISTANT_SALARY * assistants
+                    else:
+                        buf['salary'][t] = buf['balance'] / len(today_teachers)
 
             else:
                 buf['day_total'] = ''
@@ -231,25 +243,29 @@ class GroupLogic(object):
                 buf['balance'] = ''
                 buf['half_balance'] = ''
                 buf['date'] = ''
-                buf['assistant'] = ''
                 buf['canceled'] = self.canceled_lessons
+                buf['salary'] = dict.fromkeys(teachers, '')
 
             saldo.append(buf)
 
         totals = dict()
         totals['day_total'] = sum(map(lambda x: x['day_total'] or 0, saldo))
-        totals['assistant'] = sum([x['assistant'] or 0 for x in saldo])
         totals['dance_hall'] = total_rent #todo если отмена занятий, то возможно денег списывать не надо!
         totals['club'] = round(
             max(totals['day_total'] - totals['dance_hall'], 0) * 0.3,
             0
         )
-        totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'] - totals['assistant'], 0)
-        totals['half_balance'] = round(
-            max(totals['balance'] / (teachers - assistants), 0),
-            1
-        )
+        totals['balance'] = round(totals['day_total'] - totals['dance_hall'] - totals['club'], 0)
+        # totals['half_balance'] = round(
+        #     max(totals['balance'] / teachers, 0),
+        #     1
+        # )
         totals['next_month_balance'] = -1000
+        totals['salary'] = dict.fromkeys(teachers, 0)
+
+        for i in takewhile(lambda x: type(x['day_total']) == int, saldo):
+            for k in totals['salary'].iterkeys():
+                totals['salary'][k] += i['salary'][k]
 
         try:
             if sorted(set(self.calendar) - set(self.canceled_lessons))[-1] <= self.orm.last_lesson:

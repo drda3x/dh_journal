@@ -28,7 +28,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 
 def custom_proc(request):
@@ -1299,10 +1299,16 @@ class GroupView(BaseView):
                 'real_date': i in real_group_calendar
             } for i in group.calendar],
             'moneys': day_balance,
-            'money_total': totals,
-            'full_teachers': group.teachers.filter(assistant=False).count() >= 1,
-            'assistant': group.teachers.filter(assistant=True).count() >= 1
+            'money_total': totals
         }
+
+        salary = defaultdict(list)
+        for i in day_balance:
+            for k, v in i['salary'].iteritems():
+                salary[k].append(v)
+
+        context['salary'] = salary.items()
+
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)

@@ -647,7 +647,7 @@ def process_lesson(request):
                         wrapped = PassLogic.wrap(pass_orm_object)
                         wrapped.set_lesson_not_attended(date)
 
-            if map(int, group.teachers.all().values_list('pk', flat=True)) != teachers:
+            if set(map(int, group.teachers.all().values_list('pk', flat=True))) != set(teachers):
                 try:
                     subst = TeachersSubstitution.objects.get(group=group, date=date)
                     subst.teachers.remove(*subst.teachers.all())
@@ -660,18 +660,22 @@ def process_lesson(request):
                             date=date
                         )
                         subst.save()
-                        subst.teachers.add(*list(User.objects.filter(pk__in=teachers)))
+                        subst.teachers.add(*User.objects.filter(pk__in=teachers))
                     except:
                         from traceback import format_exc
                         print format_exc()
 
                         subst.delete()
             else:
-                subst = TeachersSubstitution.objects.get(
-                    group=group,
-                    date=date
-                )
-                subst.delete()
+                try:
+                    subst = TeachersSubstitution.objects.get(
+                        group=group,
+                        date=date
+                    )
+                    subst.delete()
+                except TeachersSubstitution.DoesNotExist:
+                    pass
+
         else:
             CanceledLessons(group=group, date=date).save()
 
