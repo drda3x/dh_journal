@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ssh u48649@u48649.netangels.ru ./scripts/make_db_backup.sh
+ssh u48649@u48649.netangels.ru ./scripts/make_db_backup.sh $1
 scp u48649@u48649.netangels.ru:~/backups/db_backup.sql ../db_dumps/
 
 source settings.sh
