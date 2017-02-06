@@ -2,20 +2,22 @@
 <html>
     <head>
         <title>{% block title %}{% endblock %}</title>
-        <link rel="stylesheet" href="../static/bootstrap-3.3.2/css/bootstrap.css">
-        <link rel="stylesheet" href="../static/css/main.css" />
-        <link rel="stylesheet" href="../static/css/datepicker.css" />
-        <link rel="stylesheet" href="../static/shortcard/short_card.css" />
-        <link rel="stylesheet" href="../static/alert/alert.css" />
-        <script type="text/javascript" src="../static/js/jquery.js"></script>
-        <script type="text/javascript" src="../static/js/jquery.cookie.js"></script>
-        <script type="text/javascript" src="../static/bootstrap-3.3.2/js/bootstrap.js"></script>
-        <script type="text/javascript" src="../static/bootstrap-3.3.2/js/bootstrap-datepicker.js"></script>
-        <script type="text/javascript" src="../static/shortcard/short_card.js"></script>
-        <script type="text/javascript" src="../static/alert/alert.js"></script>
-        <script type="text/javascript" src="../static/js/underscore-min.js"></script>
-        <script type="text/javascript" src="../static/js/backbone-min.js"></script>
-        <script type="text/javascript">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="../static/css/main_page.css">
+            <link rel="stylesheet" href="../static/bootstrap-3.3.2/css/bootstrap.css">
+            <link rel="stylesheet" href="../static/css/main.css" />
+            <link rel="stylesheet" href="../static/css/datepicker.css" />
+            <link rel="stylesheet" href="../static/shortcard/short_card.css" />
+            <link rel="stylesheet" href="../static/alert/alert.css" />
+            <script type="text/javascript" src="../static/js/jquery.js"></script>
+            <script type="text/javascript" src="../static/js/jquery.cookie.js"></script>
+            <script type="text/javascript" src="../static/bootstrap-3.3.2/js/bootstrap.js"></script>
+            <script type="text/javascript" src="../static/bootstrap-3.3.2/js/bootstrap-datepicker.js"></script>
+            <script type="text/javascript" src="../static/shortcard/short_card.js"></script>
+            <script type="text/javascript" src="../static/alert/alert.js"></script>
+            <script type="text/javascript" src="../static/js/underscore-min.js"></script>
+            <script type="text/javascript" src="../static/js/backbone-min.js"></script>
+            <script type="text/javascript">
             var csrftoken = $.cookie('csrftoken');
 
             function csrfSafeMethod(method) {
@@ -34,9 +36,19 @@
         {% block head %}{% endblock %}
     </head>
     <body>
+        <nav class="navbar navbar-default">
+                        <div class="container-fluid">
+                            <div class="navbar-header">
+                                <a class="navbar-brand hidden-xs" href="">ТСК "Динамика". Электронный журнал</a>
+                                <a class="navbar-brand visible-xs" style="font-size: 13pt;" href="">ТСК "Динамика". Электронный журнал</a>
+                            </div>
+                        </div>
+        </nav>
+        <div id="container" class="container-fulid"></div>
         {% block body %}
             {% block content %}
             {% endblock %}
         {% endblock %}
     </body>
 </html>
+
