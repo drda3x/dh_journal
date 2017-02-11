@@ -784,7 +784,8 @@ class BonusClassView(BaseView):
         )
         _pass.save()
 
-        if mk.within_group and mk.within_group.id == gid:
+        if mk.within_group and mk.within_group.id == gid \
+                and not Lessons.objects.filter(group=group, student=student, date=mk.date).exists():
             one_time_pass = Passes(
                 student=student,
                 group=group,
