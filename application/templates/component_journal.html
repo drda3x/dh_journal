@@ -129,7 +129,7 @@
             <div>ИТОГО: <strong>{{ group_detail.money_total.balance }}</strong></div>
             {% for teacher, salary in group_detail.money_total.salary.items %}
                 {% if salary.compensation > 0%}
-                    <div>Зарплата {{teacher.last_name}} {{teacher.first_name}} + компенсация от клуба: <strong>{{salary.count}} + {{salary.compensation}}</strong></div>
+                    <div>Зарплата {{teacher.last_name}} {{teacher.first_name}} + доплата от клуба: <strong>{{salary.count}} + {{salary.compensation}}</strong></div>
                 {% else %}
                 <div>Зарплата {{teacher.last_name}} {{teacher.first_name}}: <strong>{{salary.count}}</strong></div>
                 {% endif %}
