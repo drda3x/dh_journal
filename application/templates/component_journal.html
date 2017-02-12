@@ -201,7 +201,7 @@
                         <select class="teachers" name="teacher">
                             <option value="-100">-- не было --</option>
                             {% for a_teacher in teachers %}
-                                <option value="{{a_teacher.id}}">{{a_teacher.last_name}}</option>
+                                <option value="{{a_teacher.id}}">{{a_teacher.last_name}} {{a_teacher.first_name|slice:"1"}}.</option>
                             {% endfor %}
                         </select>
                     {% endfor %}
