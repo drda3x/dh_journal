@@ -127,6 +127,13 @@
             <div>Аренда залла: <strong>{{ group_detail.money_total.dance_hall }}</strong></div>
             <div>30% клубу: <strong>{{ group_detail.money_total.club }}</strong></div>
             <div>ИТОГО: <strong>{{ group_detail.money_total.balance }}</strong></div>
+            {% for teacher, salary in group_detail.money_total.salary.items %}
+                {% if salary.compensation > 0%}
+                    <div>Зарплата {{teacher.last_name}} {{teacher.first_name}} + компенсация от клуба: <strong>{{salary.count}} + {{salary.compensation}}</strong></div>
+                {% else %}
+                <div>Зарплата {{teacher.last_name}} {{teacher.first_name}}: <strong>{{salary.count}}</strong></div>
+                {% endif %}
+            {% endfor %}
             {% if group_detail.full_teachers %}
             <div>Преподавателям: <strong>{{ group_detail.money_total.half_balance }}</strong></div>
             {% endif %}

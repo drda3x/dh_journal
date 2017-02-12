@@ -7,6 +7,7 @@ from django.db.models import Sum, Q, Count
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 from itertools import chain, takewhile
+from collections import Counter
 
 
 class copy_cache(cached_property):
@@ -17,6 +18,8 @@ class copy_cache(cached_property):
 class GroupLogic(object):
 
     ASSISTANT_SALARY = 500
+    MIN_LESSON_SALARY = 625
+    DEFAULT_LESSONS_PER_MONTH = 8
 
     def __init__(self, group_id, date=None):
         now = datetime.now()
@@ -124,7 +127,7 @@ class GroupLogic(object):
 
     @cached_property
     def substitutions(self):
-        result = dict.fromkeys(self.calendar, self.orm.teachers.all())
+        result = dict.fromkeys(self.calendar, list(self.orm.teachers.all()))
         for subst in TeachersSubstitution.objects.filter(group=self.orm, date__range=(self.date_1, self.date_2)).order_by('date'):
             result[subst.date] = list(subst.teachers.all())
 
@@ -252,6 +255,19 @@ class GroupLogic(object):
 
             saldo.append(buf)
 
+        teacher_lessons_count = Counter(reduce(
+            lambda arr, x: arr + x,
+            self.substitutions.values(),
+            []
+        ))
+
+        group_lessons_per_month = len(self.calendar)
+        compensation_to = [
+            teacher
+            for teacher, lessons in teacher_lessons_count.items()
+            if not teacher.assistant and lessons >= group_lessons_per_month
+        ]
+
         totals = dict()
         totals['day_total'] = sum(map(lambda x: x['day_total'] or 0, saldo))
         totals['dance_hall'] = total_rent #todo если отмена занятий, то возможно денег списывать не надо!
@@ -265,11 +281,14 @@ class GroupLogic(object):
         #     1
         # )
         totals['next_month_balance'] = -1000
-        totals['salary'] = dict.fromkeys(teachers, 0)
+        totals['salary'] = dict([
+            (teacher, {"count": 0, "compensation": 0})
+            for teacher in teachers
+        ])
 
-        for i in takewhile(lambda x: type(x['day_total']) == int, saldo):
+        for i in (_i for _i in saldo if type(_i['day_total']) != str ):
             for k in totals['salary'].iterkeys():
-                totals['salary'][k] += i['salary'][k]
+                totals['salary'][k]['count'] += i['salary'][k]
 
         try:
             if sorted(set(self.calendar) - set(self.canceled_lessons))[-1] <= self.orm.last_lesson:
@@ -281,6 +300,14 @@ class GroupLogic(object):
                         date__gt=self.calendar[-1]
                     ))
                 ))
+
+                min_month_salary = min(self.MIN_LESSON_SALARY * len(self.calendar), 5000)
+
+                for teacher, salary in totals['salary'].iteritems():
+                    compensation_value = min_month_salary - salary['count']
+                    if compensation_value > 0 and teacher in compensation_to:
+                        totals['salary'][teacher]['compensation'] = compensation_value
+
         except IndexError:
             pass
 
