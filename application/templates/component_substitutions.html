@@ -1,0 +1,95 @@
+{% block head %}
+    <style>
+        .select-subst{
+            display: none
+        }
+        .table tr.clickable td {
+            line-height: 42px
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% block content %}
+        <table class="table table-bordered table-striped table-hover">
+            <tr>
+                <th>Дата</th>
+                <th colspan="{{default_tachers_cnt}}">Преподаватели</th>
+            </tr>
+            {% with all_teachers=teachers %}
+                {% for dt, teachers in raw_substitutions %}
+                    <tr class="clickable">
+                        <td class="span3">{{ dt }}</td>
+                        {% for teacher in teachers %}
+                            {% if teacher %}
+                                <td class="span4" data-id="{{teacher.pk}}">
+                                    <span>{{ teacher.last_name }} {{teacher.first_name}}</span>
+                                    <select class="select-subst span3" name="select_subst">
+                                        <option value="-100">-- не было --</option>
+                                        {% for a_teacher in all_teachers %}
+                                            <option {% if teacher == a_teacher %} selected {% endif %} value="{{a_teacher.pk}}">{{a_teacher.last_name}} {{a_teacher.first_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            {% else %}
+                                <td class="span4" data-id="-100"><span>--не было--</span>
+                                    <select class="select-subst" name="select_subst">
+                                        <option value="-100">-- не было --</option>
+                                        {% for teacher in all_teachers %}
+                                            <option value="{{teacher.pk}}">{{teacher.last_name}} {{teacher.first_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endwith %}
+        </table>
+    {% endblock %}
+    <script type="text/javascript">
+(function() {
+    var $table = $('.table'),
+        $spans = $table.find('span'),
+        $selects = $table.find('select');
+    
+    /*
+    $table.find('tr.clickable').click(function() {
+        $spans.show();
+        $selects.hide();
+    });
+    */
+
+    $('body').click(function() {
+        $spans.show();
+        $selects.hide();
+    });
+
+    $table.find('tr.clickable').each(function() {
+        var self = $(this);
+        var $selects = self.find('select.select-subst')
+            .click(function(event) {
+                event.stopPropagation();
+                var $options = $(this).children();
+                
+                for(var i = $options.length - 1; i>=0; i--) {
+                    var $option = $($options[i]);
+                    if($option.val() == $(this).val()) {
+                        $(this).prev().text($option.text());
+                    }
+                }
+            });
+
+    }).dblclick(function(event) {
+        event.stopPropagation();
+
+        $spans.show();
+        $selects.hide();
+
+        $(this).find('span').hide();
+        $(this).find('select').show();
+    });
+
+})()
+    </script>
+{% endblock %}

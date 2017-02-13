@@ -1327,5 +1327,12 @@ class GroupView(BaseView):
             for key, val in group.substitutions.iteritems()
         )))
 
+        default_teachers_cnt = len(group.orm.teachers.all())
+        context['raw_substitutions'] = (
+            (date.strftime('%d.%m.%Y'), (list(teachers) + [None] * default_teachers_cnt)[:default_teachers_cnt])
+            for date, teachers in sorted(group.substitutions.iteritems(), key=lambda x: x[0])
+        )
+        context['default_tachers_cnt'] = default_teachers_cnt
+
         return context
 

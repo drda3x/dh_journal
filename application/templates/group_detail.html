@@ -45,6 +45,7 @@
     <ul class="nav nav-tabs" id="navTab">
         <li class="active"><a id="journalNav" href="#journal-tc" data-toggle="tab">Ведомость</a></li>
         <li><a id="infoNav" href="#info" data-toggle="tab">Группа</a></li>
+        <li><a id="substNav" href="#subst" data-toggle="tab">Замены</a></li>
     </ul>
 
     <div class="tab-content">
@@ -53,6 +54,9 @@
         </div>
         <div class="tab-pane" id="info">
             {% include "component_group_info.html" %}
+        </div>
+        <div id="subst" class="tab-pane">
+            {% include "component_substitutions.html" %}
         </div>
     </div>
     {% endif %}
