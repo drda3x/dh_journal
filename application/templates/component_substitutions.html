@@ -18,13 +18,14 @@
             </tr>
             {% with all_teachers=teachers %}
                 {% for dt, teachers in raw_substitutions %}
-                    <tr class="clickable">
+                    {% with rownum=forloop.counter%}
+                        <tr class="clickable" data-date="{{ dt }}">
                         <td class="span3">{{ dt }}</td>
                         {% for teacher in teachers %}
                             {% if teacher %}
                                 <td class="span4" data-id="{{teacher.pk}}">
                                     <span>{{ teacher.last_name }} {{teacher.first_name}}</span>
-                                    <select class="select-subst span3" name="select_subst">
+                                    <select class="select-subst span3 rownum{{rownum}}" name="select_subst">
                                         <option value="-100">-- не было --</option>
                                         {% for a_teacher in all_teachers %}
                                             <option {% if teacher == a_teacher %} selected {% endif %} value="{{a_teacher.pk}}">{{a_teacher.last_name}} {{a_teacher.first_name}}</option>
@@ -43,6 +44,7 @@
                             {% endif %}
                         {% endfor %}
                     </tr>
+                    {% endwith %}
                 {% endfor %}
             {% endwith %}
         </table>
@@ -51,7 +53,8 @@
 (function() {
     var $table = $('.table'),
         $spans = $table.find('span'),
-        $selects = $table.find('select');
+        $selects = $table.find('select'),
+        alert_window = window.createWindowAlert();
     
     /*
     $table.find('tr.clickable').click(function() {
@@ -60,25 +63,59 @@
     });
     */
 
+    var changes = {};
+
     $('body').click(function() {
         $spans.show();
         $selects.hide();
+       
+        if(Object.keys(changes).length > 0) {
+            var data = {
+                group_id: {{ group_detail.id }},
+                substitutions: changes
+            }
+
+            alert_window.success('coхранение');
+
+            $.ajax({
+                method: "POST", 
+                url: "",
+                data: {
+                    action: 'rest_process_subst',
+                    data: JSON.stringify(data)
+                } 
+            }).success(function() {
+                changes = {};
+                alert_window.success('сохранено');
+            }).error(function() {
+                alert_window.error('Возникла ошибка при сохранении.');
+            });
+        }
     });
 
     $table.find('tr.clickable').each(function() {
         var self = $(this);
         var $selects = self.find('select.select-subst')
-            .click(function(event) {
-                event.stopPropagation();
-                var $options = $(this).children();
-                
-                for(var i = $options.length - 1; i>=0; i--) {
-                    var $option = $($options[i]);
-                    if($option.val() == $(this).val()) {
-                        $(this).prev().text($option.text());
-                    }
+        .click(function(event) {
+            event.stopPropagation();
+            var $options = $(this).children();
+            
+            for(var i = $options.length - 1; i>=0; i--) {
+                var $option = $($options[i]);
+                if($option.val() == $(this).val()) {
+                    $(this).prev().text($option.text());
                 }
+            }
+        })
+        .change(function() {
+            var cls = $(this).attr('class'),
+                date = self.data('date'),
+                row_selects = self.find('.' + cls.replace(/\s/g, '.'));
+            
+            changes[date] = $.map(row_selects, function(element) {
+                return $(element).val();
             });
+        });
 
     }).dblclick(function(event) {
         event.stopPropagation();

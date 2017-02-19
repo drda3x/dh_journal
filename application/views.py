@@ -22,7 +22,7 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -253,13 +253,13 @@ class BaseView(TemplateView):
 
         if action_name:
             try:
-                return getattr(self, action_name)
+                return getattr(self, action_name)(*args, **kwargs)
 
             except Exception:
                 return HttpResponseServerError()
 
         else:
-            return super(BaseException, self).post(*args, **kwargs)
+            return HttpResponseServerError('wrong action name')
 
 
 
@@ -1195,6 +1195,28 @@ class PrintView(BaseView):
 
 class GroupView(BaseView):
     template_name = 'group_detail.html'
+
+    def rest_process_subst(self, *args, **kwargs):
+        """
+        REST method for process teachers substitutions
+        """
+        request_data = json.loads(self.request.POST['data'])
+        group = Groups.objects.get(pk=request_data['group_id'])
+
+        for _date, teachers in request_data['substitutions'].iteritems():
+            s_date = datetime.datetime.strptime(_date, '%d.%m.%Y')
+            qs = TeachersSubstitution.objects.filter(date=s_date, group=group)
+            qs.delete()
+
+            if set(group.teachers.only('pk')) != teachers:
+                new_subst = TeachersSubstitution(
+                    date=s_date.date(),
+                    group=group
+                )
+                new_subst.save()
+                new_subst.teachers.add(*User.objects.filter(pk__in=teachers))
+
+        return HttpResponse("OK")
 
     @cached_property
     def html_color_classes(self):
