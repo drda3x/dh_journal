@@ -248,6 +248,20 @@ class BaseView(TemplateView):
 
         return context
 
+    def post(self, *args, **kwargs):
+        action_name = self.request.POST.get('action')
+
+        if action_name:
+            try:
+                return getattr(self, action_name)
+
+            except Exception:
+                return HttpResponseServerError()
+
+        else:
+            return super(BaseException, self).post(*args, **kwargs)
+
+
 
 class IndexView(BaseView):
     template_name = 'main_view.html'
