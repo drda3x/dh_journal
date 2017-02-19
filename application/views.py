@@ -290,11 +290,21 @@ class IndexView(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-        context['now'] = datetime.datetime.now().date()
+        now = datetime.datetime.now()
+        context['now'] = now.date()
 
         depth = 1
         menu = []
         user = self.request.user
+        month_start = datetime.datetime.strptime('01.%d.%d' % (now.month, now.year), '%d.%m.%Y')
+
+        substitutions_qs = TeachersSubstitution.objects.filter(
+            teachers=user,
+            date__range= [
+                datetime.datetime.strptime('01.%d.%d' % (now.month, now.year), '%d.%m.%Y'),
+                datetime.datetime.strptime('28.%d.%d' % (now.month, now.year), '%d.%m.%Y') + datetime.timedelta(weeks=2)
+            ]
+        ).values_list('group_id', flat=True)
 
         # Меню для руководства
         if user.is_superuser:
@@ -314,7 +324,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'urls': groups.filter(
-                    pk__in=TeachersSubstitution.objects.filter(teachers=user).values_list('group_id', flat=True)
+                    pk__in=substitutions_qs
                 ).exclude(teachers=user)
             })
 
@@ -369,7 +379,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'urls': Groups.objects.filter(
-                    pk__in=TeachersSubstitution.objects.filter(teachers=user).values_list('group_id', flat=True)
+                    pk__in=substitutions_qs
                 ).exclude(teachers=user)
             })
 
