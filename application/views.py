@@ -308,6 +308,16 @@ class IndexView(BaseView):
                 'urls': groups.filter(teachers=user)
             })
 
+            depth += 1
+            menu.append({
+                'label': u'Замены',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': groups.filter(
+                    pk__in=TeachersSubstitution.objects.filter(teachers=user).values_list('group_id', flat=True)
+                ).exclude(teachers=user)
+            })
+
             # Группы других преподавателей
             depth += 1
             menu.append({
@@ -351,6 +361,16 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'urls': Groups.opened.filter(teachers=user)
+            })
+
+            depth += 1
+            menu.append({
+                'label': u'Замены',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': Groups.objects.filter(
+                    pk__in=TeachersSubstitution.objects.filter(teachers=user).values_list('group_id', flat=True)
+                ).exclude(teachers=user)
             })
 
             #Мастер-классы
