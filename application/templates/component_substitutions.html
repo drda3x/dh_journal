@@ -1,8 +1,8 @@
 {% block head %}
     <style>
-        .select-subst{
+        /*.select-subst{
             display: none
-        }
+        }*/
         .table tr.clickable td {
             line-height: 42px
         }
@@ -24,7 +24,7 @@
                         {% for teacher in teachers %}
                             {% if teacher %}
                                 <td class="span4" data-id="{{teacher.pk}}">
-                                    <span>{{ teacher.last_name }} {{teacher.first_name}}</span>
+                                    <!-- span>{{ teacher.last_name }} {{teacher.first_name}}</span-->
                                     <select class="select-subst span3 rownum{{rownum}}" name="select_subst">
                                         <option value="-100">-- не было --</option>
                                         {% for a_teacher in all_teachers %}
@@ -33,7 +33,8 @@
                                     </select>
                                 </td>
                             {% else %}
-                                <td class="span4" data-id="-100"><span>--не было--</span>
+                                <td class="span4" data-id="-100">
+                                    <!--span>--не было--</span-->
                                     <select class="select-subst" name="select_subst">
                                         <option value="-100">-- не было --</option>
                                         {% for teacher in all_teachers %}
@@ -63,12 +64,20 @@
     });
     */
 
-    var changes = {};
+    var changes = {},
+        savingTimer = null; 
 
-    $('body').click(function() {
-        $spans.show();
-        $selects.hide();
-       
+    function setSavingTimer() {
+        savingTimer = setTimeout(sendRequest, 2000);
+    }
+
+    function resetSavingTimer() {
+        if(savingTimer != null) {
+            clearTimeout(savingTimer);
+        }
+    }
+
+    function sendRequest() {
         if(Object.keys(changes).length > 0) {
             var data = {
                 group_id: {{ group_detail.id }},
@@ -91,7 +100,7 @@
                 alert_window.error('Возникла ошибка при сохранении.');
             });
         }
-    });
+    }
 
     $table.find('tr.clickable').each(function() {
         var self = $(this);
@@ -115,13 +124,16 @@
             changes[date] = $.map(row_selects, function(element) {
                 return $(element).val();
             });
+
+            resetSavingTimer();
+            setSavingTimer();
         });
 
     }).dblclick(function(event) {
         event.stopPropagation();
 
-        $spans.show();
-        $selects.hide();
+        //$spans.show();
+        //$selects.hide();
 
         $(this).find('span').hide();
         $(this).find('select').show();
