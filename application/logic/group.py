@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as dtdate
 from copy import deepcopy
 from django.utils.functional import cached_property
 from django.db.models import Sum, Q, Count
@@ -132,6 +132,7 @@ class GroupLogic(object):
 
     def get_students_net(self):
         net = []
+        today = datetime.utcnow().date()
 
         for student in self.students:
             lessons = filter(lambda l: l.student == student, self.lessons)
@@ -146,11 +147,10 @@ class GroupLogic(object):
 
             for p in phantom_passes:
                 day_after_mk = p.bonus_class.date + timedelta(days=1)
-                try:
-                    temp_date = max(arr[-1].date, self.orm.last_lesson, day_after_mk)
-                except IndexError:
-                    temp_date = max(self.orm.last_lesson, day_after_mk)
-
+                # last_lesson = self.orm.last_lesson + timedelta(days=0)
+                temp_date = max(
+                    [day_after_mk, today] + map(lambda x: x.date, arr[-1:])
+                )
                 phantom_lessons = [
                     self.PhantomLesson(pl.date(), p)
                     for pl in self.orm.get_calendar(p.lessons, temp_date)
@@ -165,6 +165,10 @@ class GroupLogic(object):
             try:
                 obj = iterator.next()
                 for date in i_calendar:
+
+                    while obj.date < date:
+                        obj = iterator.next()
+
                     if date in self.canceled_lessons:
                         _net.append(self.CanceledLesson())
                     elif obj.date == date:
