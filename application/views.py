@@ -22,7 +22,7 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -248,6 +248,20 @@ class BaseView(TemplateView):
 
         return context
 
+    def post(self, *args, **kwargs):
+        action_name = self.request.POST.get('action')
+
+        if action_name:
+            try:
+                return getattr(self, action_name)(*args, **kwargs)
+
+            except Exception:
+                return HttpResponseServerError()
+
+        else:
+            return HttpResponseServerError('wrong action name')
+
+
 
 class IndexView(BaseView):
     template_name = 'main_view.html'
@@ -276,11 +290,21 @@ class IndexView(BaseView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-        context['now'] = datetime.datetime.now().date()
+        now = datetime.datetime.now()
+        context['now'] = now.date()
 
         depth = 1
         menu = []
         user = self.request.user
+        month_start = datetime.datetime.strptime('01.%d.%d' % (now.month, now.year), '%d.%m.%Y')
+
+        substitutions_qs = TeachersSubstitution.objects.filter(
+            teachers=user,
+            date__range= [
+                datetime.datetime.strptime('01.%d.%d' % (now.month, now.year), '%d.%m.%Y'),
+                datetime.datetime.strptime('28.%d.%d' % (now.month, now.year), '%d.%m.%Y') + datetime.timedelta(weeks=2)
+            ]
+        ).values_list('group_id', flat=True)
 
         # Меню для руководства
         if user.is_superuser:
@@ -292,6 +316,16 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'urls': groups.filter(teachers=user)
+            })
+
+            depth += 1
+            menu.append({
+                'label': u'Замены',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': groups.filter(
+                    pk__in=substitutions_qs
+                ).exclude(teachers=user)
             })
 
             # Группы других преподавателей
@@ -337,6 +371,16 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'urls': Groups.opened.filter(teachers=user)
+            })
+
+            depth += 1
+            menu.append({
+                'label': u'Замены',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': Groups.objects.filter(
+                    pk__in=substitutions_qs
+                ).exclude(teachers=user)
             })
 
             #Мастер-классы
@@ -1182,6 +1226,28 @@ class PrintView(BaseView):
 
 class GroupView(BaseView):
     template_name = 'group_detail.html'
+
+    def rest_process_subst(self, *args, **kwargs):
+        """
+        REST method for process teachers substitutions
+        """
+        request_data = json.loads(self.request.POST['data'])
+        group = Groups.objects.get(pk=request_data['group_id'])
+
+        for _date, teachers in request_data['substitutions'].iteritems():
+            s_date = datetime.datetime.strptime(_date, '%d.%m.%Y')
+            qs = TeachersSubstitution.objects.filter(date=s_date, group=group)
+            qs.delete()
+
+            if set(group.teachers.only('pk')) != teachers:
+                new_subst = TeachersSubstitution(
+                    date=s_date.date(),
+                    group=group
+                )
+                new_subst.save()
+                new_subst.teachers.add(*User.objects.filter(pk__in=teachers))
+
+        return HttpResponse("OK")
 
     @cached_property
     def html_color_classes(self):
