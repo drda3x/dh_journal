@@ -315,7 +315,9 @@ class IndexView(BaseView):
                 'label':u'Мои группы',
                 'depth': str(depth),
                 'hideable': False,
-                'urls': groups.filter(teachers=user)
+                'urls': [
+                    GroupLogic(g) for g in groups.filter(teachers=user)
+                ]
             })
 
             depth += 1
@@ -339,7 +341,9 @@ class IndexView(BaseView):
                         'label': level.name,
                         'hideable': True,
                         'depth': '%d_%d' % (depth, level_depth),
-                        'urls': groups.filter(level=level).exclude(teachers=user)
+                        'urls': [
+                            GroupLogic(g) for g in groups.filter(level=level).exclude(teachers=user)
+                        ]
                     } for level_depth, level in enumerate(GroupLevels.objects.all())
                 ]
             })
@@ -1361,6 +1365,15 @@ class GroupView(BaseView):
             } for s in group.get_students_net()
         ]
 
+        if self.request.user.is_superuser:
+            profit = group.profit()
+            bad_profit = [day for day, val in profit if val == -1]
+            normal_profit = [day for day, val in profit if val == 0]
+            good_profit = [day for day, val in profit if val == 1]
+
+        else:
+            bad_profit = normal_profit = good_profit = []
+
         real_group_calendar = [k['date'].date() for k in group.calcked_calendar]
         context['group_detail'] = {
             'id': group.id,
@@ -1372,7 +1385,11 @@ class GroupView(BaseView):
             'calendar': [{
                 'date': i.strftime('%d.%m.%Y'),
                 'canceled': i in group.canceled_lessons,
-                'real_date': i in real_group_calendar
+                'real_date': i in real_group_calendar,
+                'profit': 1 if i in good_profit \
+                     else 0 if i in normal_profit \
+                     else -1 if i in bad_profit \
+                     else None
             } for i in group.calendar],
             'moneys': day_balance,
             'money_total': totals
@@ -1384,7 +1401,6 @@ class GroupView(BaseView):
                 salary[k].append(v)
 
         context['salary'] = salary.items()
-        print salary.values()
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)

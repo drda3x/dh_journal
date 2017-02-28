@@ -319,6 +319,46 @@ class GroupLogic(object):
 
         return saldo, totals
 
+    def profit(self):
+        u"""
+        Прибыльность группы
+        """
+        teachers_cnt = len(self.orm.teachers.all())
+        normal_profit = 650 * teachers_cnt
+        good_profit = 1000 * teachers_cnt
+
+        money, _ = self.calc_money()
+
+        profit = [
+            (
+                day,
+                -1 if money['balance'] <= normal_profit else 0 if money['balance'] <= good_profit else 1
+            )
+            for money, day in zip(money, self.calendar)
+            if money['balance'] != ''
+        ]
+
+        return profit
+
+    @cached_property
+    def rt_profit(self):
+        default_days = 3
+        teachers_cnt = len(self.orm.teachers.all())
+        normal_profit = 650 * teachers_cnt
+        good_profit = 1000 * teachers_cnt
+
+        money, _ = self.calc_money()
+        profit_vals = [
+            m['balance']
+            for m in money
+            if isinstance(m['balance'], (int, float))
+        ][-default_days:]
+
+        profit = sum(profit_vals)
+
+        return -1 if profit <= normal_profit * len(profit_vals) else 0 if profit <= good_profit * len(profit_vals) else 1
+
+
     class PhantomLesson(object):
 
         def __init__(self, date, group_pass):

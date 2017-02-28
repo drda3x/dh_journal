@@ -43,6 +43,8 @@
 
 			{% elif level_url|is_type:'Url' %}
 				<a class="group" href="{{level_url.url}}">{{level_url.label}}</a>
+            {% elif level_url|is_type:'GroupLogic' %}
+            <a class="group {% if level_url.rt_profit == -1 %} text-error {% elif level_url.rt_profit == 0%} text-info {% elif level_url.rt_profit == 1%} text-success {% endif %}" data-id="{{ level_url.orm.id }}" data-type="group" href="/group?id={{ level_url.orm.id }}"">{{level_url.orm.dance_hall.station}}<br>{{ level_url.orm.name }}{% if level_url.orm.start_date > now %} c {{ level_url.orm.start_date_str }} {% endif %} - {{ level_url.orm.days|joinby:','}} {{ level_url.orm.time }}</a>
 			{% endif %}
 			</li>
 		{% endif %}
