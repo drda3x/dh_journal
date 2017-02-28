@@ -378,7 +378,7 @@ class MultiPass(BasePass):
 
         try:
             if not isinstance(kwargs['group'], Groups):
-                kwargs['group'] = Groups.objects.get(pk=kwargs['group'])
+                kwargs['group'] = Groups.all.get(pk=kwargs['group'])
 
         except Exception:
             raise TypeError('Expected group or group.id in kwargs')

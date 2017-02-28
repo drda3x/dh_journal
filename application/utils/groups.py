@@ -262,7 +262,7 @@ def get_student_groups(student, opened_only=False, **kwargs):
     if opened_only:
         return Groups.opened.filter(pk__in=group_list_filter)
     else:
-        return Groups.objects.filter(pk__in=group_list_filter)
+        return Groups.all.filter(pk__in=group_list_filter)
 
 
 def get_student_lesson_status(student, group, _date):

@@ -956,6 +956,9 @@ def get_club_card_detail(request):
             lessons_statuses = map(get_lesson, group_calendar)
             lessons = zip(map(lambda d: d.strftime('%d.%m.%Y'), group_calendar), lessons_statuses)
 
+            if len(lessons) == 0:
+                continue
+
             group_json = {
                 'group': {
                     'id': group.id,
