@@ -21,10 +21,14 @@ class GroupLogic(object):
     MIN_LESSON_SALARY = 625
     DEFAULT_LESSONS_PER_MONTH = 8
 
-    def __init__(self, group_id, date=None):
+    def __init__(self, group, date=None):
         now = datetime.now()
 
-        self.orm = Groups.all.select_related('dance_hall').get(pk=group_id)
+        if isinstance(group, int):
+            self.orm = Groups.all.select_related('dance_hall').get(pk=group)
+        elif not isinstance(group, Groups):
+            raise Exception('Expected Groups instance or Groups.id')
+
         # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
         # group_end_date = self.orm_end_date
 

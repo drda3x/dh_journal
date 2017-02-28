@@ -1403,3 +1403,29 @@ class GroupView(BaseView):
 
         return context
 
+
+class FinanceView(BaseView):
+
+    def get_context_data(self, **kwargs):
+        context = super(FinanceView, self).get_context_data(**kwargs)
+
+        if 'date' in self.request.GET:
+            date1 = datetime.datetime.strptime('01' + self.request.GET['date'], '%d%m%Y')
+        else:
+            date1 = datetime.datetime.now().replace(day=1)
+
+        date2 = get_last_day_of_month(date1)
+
+        groups = Groups.all.filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=date1)
+            start_date__lte=date2
+        )
+
+        data = [
+            GroupLogic(group, date1).calc_money()
+            for group in groups
+        ]
+
+        context['finance_data'] = data
+
+        return context
