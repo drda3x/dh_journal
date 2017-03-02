@@ -363,6 +363,14 @@ class IndexView(BaseView):
                 'urls': [g for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
+            depth += 1
+            menu.append({
+                'label': u'Отчеты',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [self.Url(u'Финансовый отчет', 'finance')]
+            })
+
         # Меню для других преподов
         else:
             # Мои группы
@@ -1315,7 +1323,7 @@ class GroupView(BaseView):
         except KeyError:
             request_date = None
 
-        self.group = group = GroupLogic(self.request.GET['id'], request_date)
+        self.group = group = GroupLogic(int(self.request.GET['id']), request_date)
 
         forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
         if group.last_lesson_ever:
@@ -1416,6 +1424,7 @@ class FinanceView(BaseView):
         else:
             date1 = datetime.datetime.now().replace(day=1)
 
+        date1 = datetime.datetime(2017, 2, 1)
         date2 = get_last_day_of_month(date1)
 
         groups = Groups.all.filter(
@@ -1424,10 +1433,35 @@ class FinanceView(BaseView):
         )
 
         data = [
-            GroupLogic(group, date1)#.calc_money()
+            (group, GroupLogic(group, date1).calc_money()[-1])
             for group in groups
         ]
 
+        sal = defaultdict(list)
+
+        for group, salary_data in data:
+            for teacher, salary_val in salary_data['salary'].iteritems():
+                sal[teacher].append((group, salary_val))
+
+        for teacher, teacher_salary_details in sal.iteritems():
+
+            val = [
+                v[1] for v in teacher_salary_details
+            ]
+
+            s1 = sum([
+                v['count'] for v in val
+            ])
+
+            s2 = sum([
+                v['compensation'] for v in val
+            ])
+
+            sal[teacher].append(
+                ({'name': u'ИТОГО', 'dance_hall': ''}, {'count': s1, 'compensation': s2})
+            )
+
         context['finance_data'] = data
+        context['sal'] = dict(sal)
 
         return context

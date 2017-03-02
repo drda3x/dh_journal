@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+    {% block content %}
+            <h1 class="text-error">Таблицы на февраль 2017</h1>
+            <table class="table table-striped">
+            <tr>
+                <th>Группа</th>
+                <th>Всего</th>
+                <th>Аренда зала</th>
+                <th>% клуба</th>
+                <th>На следующий месяц</th>
+            </tr>
+            {% for group, data in finance_data %}
+                <tr>
+                    <td class="span5">{{group.name}} {{group.dance_hall.station}} {% for day in group.days %} {{day}} {%endfor%} {{group.time}}</td>
+                    <td>{{ data.day_total }}</td>
+                    <td>{{ data.dance_hall }}</td>
+                    <td>{{ data.club }}</td>
+                    <td>{{ data.next_month_balance }}</td>
+                </tr>                </tr>
+            {% endfor %}
+            </table>
+            
+            {% for teacher, data in sal.items %}
+                <h4>{{teacher.last_name}} {{teacher.first_name}}</h4>
+                <table class="table table-striped">
+                    <tr>
+                        <th>Группа</th>
+                        <th>Сбор за группу</th>
+                        <th>Доплата от клуба</th>
+                    </tr>
+                {% for g, s in data%}
+                    <tr> 
+                        {% if forloop.last %}
+                            <td class="span5"><strong>{{g.name}} {{g.dance_hall}} {% for day in g.days %} {{day}} {%endfor%}</strong></td>
+                            <td><strong>{{s.count}}</strong></td>
+                            <td><strong>{{s.compensation}}</strong></td>
+                        {% else %}
+                            <td class="span5">{{g.name}} {{g.dance_hall}} {% for day in g.days %} {{day}} {%endfor%}</td>
+                            <td>{{s.count}}</td>
+                            <td>{{s.compensation}}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </table>
+            {% endfor %}
+
+    {% endblock %}
+    {% block script %}
+    {% endblock %}
+{% endblock %}

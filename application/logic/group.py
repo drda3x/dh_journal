@@ -307,7 +307,7 @@ class GroupLogic(object):
                     ))
                 ))
 
-                min_month_salary = min(self.MIN_LESSON_SALARY * len(self.calendar), 5000)
+                min_month_salary = min(self.MIN_LESSON_SALARY * (len(self.calendar) - len(self.canceled_lessons)), 5000)
 
                 for teacher, salary in totals['salary'].iteritems():
                     compensation_value = min_month_salary - salary['count']
