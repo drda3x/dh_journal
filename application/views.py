@@ -1406,6 +1406,8 @@ class GroupView(BaseView):
 
 class FinanceView(BaseView):
 
+    template_name = 'finance.html'
+
     def get_context_data(self, **kwargs):
         context = super(FinanceView, self).get_context_data(**kwargs)
 
@@ -1417,12 +1419,12 @@ class FinanceView(BaseView):
         date2 = get_last_day_of_month(date1)
 
         groups = Groups.all.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=date1)
+            Q(end_date__isnull=True) | Q(end_date__gte=date1),
             start_date__lte=date2
         )
 
         data = [
-            GroupLogic(group, date1).calc_money()
+            GroupLogic(group, date1)#.calc_money()
             for group in groups
         ]
 

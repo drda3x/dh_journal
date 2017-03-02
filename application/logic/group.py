@@ -26,7 +26,9 @@ class GroupLogic(object):
 
         if isinstance(group, int):
             self.orm = Groups.all.select_related('dance_hall').get(pk=group)
-        elif not isinstance(group, Groups):
+        elif isinstance(group, Groups):
+            self.orm = group
+        else:
             raise Exception('Expected Groups instance or Groups.id')
 
         # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
