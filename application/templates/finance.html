@@ -6,7 +6,7 @@
 {% block body %}
     {% block content %}
             <h1 class="text-error">Таблицы на февраль 2017</h1>
-            <table class="table table-striped">
+            <table class="table table-striped table-hover">
             <tr>
                 <th>Группа</th>
                 <th>Всего</th>
@@ -16,7 +16,7 @@
             </tr>
             {% for group, data in finance_data %}
                 <tr>
-                    <td class="span5">{{group.name}} {{group.dance_hall.station}} {% for day in group.days %} {{day}} {%endfor%} {{group.time}}</td>
+                    <td class="span5">{{group.dance_hall.station}} {% for day in group.days %} {{day}} {%endfor%} {{group.time}} <br> {{group.name}}</td>
                     <td>{{ data.day_total }}</td>
                     <td>{{ data.dance_hall }}</td>
                     <td>{{ data.club }}</td>
@@ -36,11 +36,11 @@
                 {% for g, s in data%}
                     <tr> 
                         {% if forloop.last %}
-                            <td class="span5"><strong>{{g.name}} {{g.dance_hall}} {% for day in g.days %} {{day}} {%endfor%}</strong></td>
+                            <td class="span5"><strong>{{g.dance_hall.station}} {% for day in g.days %} {{day}} {%endfor%} {{g.time}} {{g.name}} </strong></td>
                             <td><strong>{{s.count}}</strong></td>
                             <td><strong>{{s.compensation}}</strong></td>
                         {% else %}
-                            <td class="span5">{{g.name}} {{g.dance_hall}} {% for day in g.days %} {{day}} {%endfor%}</td>
+                            <td class="span5">{{g.dance_hall.station}} {% for day in g.days %} {{day}} {%endfor%} {{g.time}} <br> {{g.name}} </td>
                             <td>{{s.count}}</td>
                             <td>{{s.compensation}}</td>
                         {% endif %}

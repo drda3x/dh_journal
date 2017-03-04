@@ -1430,7 +1430,7 @@ class FinanceView(BaseView):
         groups = Groups.all.filter(
             Q(end_date__isnull=True) | Q(end_date__gte=date1),
             start_date__lte=date2
-        )
+        ).order_by('dance_hall__station', '_days', 'time')
 
         data = [
             (group, GroupLogic(group, date1).calc_money()[-1])
