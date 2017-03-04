@@ -1438,10 +1438,25 @@ class FinanceView(BaseView):
         ]
 
         sal = defaultdict(list)
+        group_totals = dict.fromkeys([
+           'day_total',
+            'dance_hall',
+            'club',
+            'next_month_balance'
+        ], 0)
 
         for group, salary_data in data:
             for teacher, salary_val in salary_data['salary'].iteritems():
                 sal[teacher].append((group, salary_val))
+
+            for key, val in salary_data.iteritems():
+                if key in group_totals.keys():
+                    group_totals[key] += val
+
+        data.append((
+            dict(name=u"ИТОГО"),
+            group_totals
+        ))
 
         for teacher, teacher_salary_details in sal.iteritems():
 

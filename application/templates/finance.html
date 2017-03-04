@@ -16,12 +16,21 @@
             </tr>
             {% for group, data in finance_data %}
                 <tr>
+                    {% if forloop.last %}
+                    <td class="span5"><strong>{{group.dance_hall.station}} {% for day in group.days %} {{day}} {%endfor%} {{group.time}} {{group.name}}</strong></td>
+                    <td><strong>{{ data.day_total }}</strong></td>
+                    <td><strong>{{ data.dance_hall }}</strong></td>
+                    <td><strong>{{ data.club }}</strong></td>
+                    <td><strong>{{ data.next_month_balance }}</strong></td>
+
+                    {% else %}
                     <td class="span5">{{group.dance_hall.station}} {% for day in group.days %} {{day}} {%endfor%} {{group.time}} <br> {{group.name}}</td>
                     <td>{{ data.day_total }}</td>
                     <td>{{ data.dance_hall }}</td>
                     <td>{{ data.club }}</td>
                     <td>{{ data.next_month_balance }}</td>
-                </tr>                </tr>
+                    {% endif %}
+                </tr>
             {% endfor %}
             </table>
             
