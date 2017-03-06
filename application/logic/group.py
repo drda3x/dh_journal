@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, date as dtdate
 from copy import deepcopy
 from django.utils.functional import cached_property
 from django.db.models import Sum, Q, Count
-from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution
+from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution, BonusClasses
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 from itertools import chain, takewhile
 from collections import Counter
@@ -138,6 +138,19 @@ class GroupLogic(object):
             result[subst.date] = list(subst.teachers.all())
 
         return result
+
+    @cached_property
+    def bonus_classes(self):
+        return list(
+            BonusClasses.objects.filter(within_group=self.orm, date__range=[self.date_1, self.date_2])
+        )
+
+    def calc_bonus_class_finance(self, day):
+        try:
+            bonus_class = filter(lambda bk: bk.date == day, self.bonus_classes).pop(0)
+            raw_sum = bonus_class.get_finance()
+        except Exception:
+            return 0
 
     def get_students_net(self):
         net = []

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+) -*- coding: utf-8 -*-
 
 import re
 import time
@@ -393,6 +393,7 @@ class Groups(models.Model):
 
 
 class BonusClasses(models.Model):
+    prise = 99
 
     date = models.DateField(verbose_name=u'Дата')
     time = models.TimeField(verbose_name=u'Время начала', null=True, blank=True)
@@ -419,7 +420,6 @@ class BonusClasses(models.Model):
     def end_datetime(self):
         return datetime.datetime.combine(self.date, self.end_time)
 
-
     @property
     def repr(self):
         return self.repr_short()
@@ -435,6 +435,9 @@ class BonusClasses(models.Model):
             self.teacher_leader.last_name if self.teacher_leader else u'',
             self.teacher_follower.last_name if self.teacher_follower else u''
         )
+
+    def get_finance(self):
+        return len(list(BonusClassList.objects.filter(group=self, attendance=True))) * self.prise
 
     class Meta:
         unique_together = ('date', 'hall')
