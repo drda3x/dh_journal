@@ -1384,7 +1384,7 @@ class GroupView(BaseView):
                 salary[k].append(v)
 
         context['salary'] = salary.items()
-
+        print salary.values()
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
         context['other_groups'] = Groups.opened.exclude(id=group.id)
