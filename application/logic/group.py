@@ -356,6 +356,9 @@ class GroupLogic(object):
 
         profit = sum(profit_vals)
 
+        if len(profit_vals) == 0:
+            return 0
+
         return -1 if profit <= normal_profit * len(profit_vals) else 0 if profit <= good_profit * len(profit_vals) else 1
 
 
