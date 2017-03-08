@@ -336,19 +336,24 @@ class GroupLogic(object):
         u"""
         Прибыльность группы
         """
-        teachers_cnt = len(self.orm.teachers.all())
-        normal_profit = 650 * teachers_cnt
-        good_profit = 1000 * teachers_cnt
+        teachers_cnt = len(self.orm.teachers.all().exclude(assistant=True))
+        assistants = len(self.orm.teachers.filter(assistant=True))
+        normal_profit = 650
+        good_profit = 1000
 
         money, _ = self.calc_money()
+        vals = [
+            m['balance'] / teachers_cnt - self.ASSISTANT_SALARY * assistants if m['balance'] != '' else ''
+            for m in money
+        ]
 
         profit = [
             (
                 day,
-                -1 if money['balance'] <= normal_profit else 0 if money['balance'] <= good_profit else 1
+                -1 if val <= normal_profit else 0 if val <= good_profit else 1
             )
-            for money, day in zip(money, self.calendar)
-            if money['balance'] != ''
+            for val, day in zip(vals, self.calendar)
+            if val != ''
         ]
 
         return profit
@@ -356,13 +361,14 @@ class GroupLogic(object):
     @cached_property
     def rt_profit(self):
         default_days = 3
-        teachers_cnt = len(self.orm.teachers.all())
-        normal_profit = 650 * teachers_cnt
-        good_profit = 1000 * teachers_cnt
+        teachers_cnt = len(self.orm.teachers.all().exclude(assistant=True))
+        assistants = len(self.orm.teachers.filter(assistant=True))
+        normal_profit = 650
+        good_profit = 1000
 
         money, _ = self.calc_money()
         profit_vals = [
-            m['balance']
+            m['balance'] / teachers_cnt - self.ASSISTANT_SALARY * assistants
             for m in money
             if isinstance(m['balance'], (int, float))
         ][-default_days:]
