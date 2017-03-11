@@ -141,8 +141,9 @@ class GroupLogic(object):
 
     @cached_property
     def bonus_classes(self):
+        now = datetime.now()
         return list(
-            BonusClasses.objects.filter(within_group=self.orm, date__range=[self.date_1, self.date_2])
+            BonusClasses.objects.filter(within_group=self.orm, date__range=[self.date_1, now])
         )
 
     def calc_bonus_class_finance(self, day):
