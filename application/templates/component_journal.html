@@ -99,6 +99,13 @@
                 {% endfor %}
             </tr>
             <tr>
+                <td style="border-right: 0"></td>
+                <td style="border-left: 0""><strong>Сбор с ОУ:</strong></td>
+                {% for money in group_detail.moneys %}
+                    <td class="hover-able {% if money.canceled %}canceled{% endif %}">{{ money.open_lesson }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
                 <td style="border-right: 0px"></td>
                 <td style="border-left: 0px"><strong>Аренда залла:</strong></td>
                 {% for money in group_detail.moneys %}

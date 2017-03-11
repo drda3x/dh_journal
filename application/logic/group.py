@@ -223,17 +223,28 @@ class GroupLogic(object):
         teachers = set(chain(*self.substitutions.itervalues()))
         teachers_count = len(self.orm.teachers.all())
 
+        open_lessons = dict((
+            (bc.date, bc)
+            for bc in self.bonus_classes
+        ))
+
         for day in self.calendar:
             buf = {}
-            lessons = filter(lambda _l: _l.date == day and _l.status in statuses, self.lessons)
+            open_lesson = open_lessons.get(day)
+            lessons = [
+                l for l in self.lessons
+                if l.date == day and l.status in statuses and l.group_pass.bonus_class == None
+            ]
 
-            if lessons:
+            if lessons or open_lesson:
                 day_saldo = sum(
-                    map(lambda l: l.prise(), lessons),
-                    0
+                    [l.prise() for l in lessons], 0
                 )
 
-                buf['day_total'] = day_saldo
+                open_lesson_saldo = open_lesson.get_finance() if open_lesson else None
+
+                buf['day_total'] = day_saldo + (open_lesson_saldo or 0)
+                buf['open_lesson'] = open_lesson_saldo if open_lesson else '-'
                 buf['dance_hall'] = int(self.orm.dance_hall.prise)
                 buf['club'] = round(max(buf['day_total'] - buf['dance_hall'], 0) * 0.3, 0)
                 buf['balance'] = round(
@@ -264,6 +275,7 @@ class GroupLogic(object):
 
             else:
                 buf['day_total'] = ''
+                buf['open_lesson'] = ''
                 buf['dance_hall'] = ''
                 buf['club'] = ''
                 buf['balance'] = ''
