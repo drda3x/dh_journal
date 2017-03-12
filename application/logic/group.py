@@ -232,10 +232,17 @@ class GroupLogic(object):
         for day in self.calendar:
             buf = {}
             open_lesson = open_lessons.get(day)
-            lessons = [
-                l for l in self.lessons
-                if l.date == day and l.status in statuses and l.group_pass.bonus_class == None
-            ]
+
+            if not open_lesson:
+                lessons = [
+                    l for l in self.lessons
+                    if l.date == day and l.status in statuses
+                ]
+            else:
+                lessons = [
+                    l for l in self.lessons
+                    if l.date == day and l.status in statuses and l.group_pass.bonus_class == None
+                ]
 
             if lessons or open_lesson:
                 day_saldo = sum(
