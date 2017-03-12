@@ -241,7 +241,7 @@ class GroupLogic(object):
             else:
                 lessons = [
                     l for l in self.lessons
-                    if l.date == day and l.status in statuses and l.group_pass.bonus_class == None
+                    if l.date == day and l.status in statuses and l.group_pass.bonus_class != open_lesson
                 ]
 
             if lessons or open_lesson:
