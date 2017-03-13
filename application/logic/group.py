@@ -233,16 +233,15 @@ class GroupLogic(object):
             buf = {}
             open_lesson = open_lessons.get(day)
 
-            if not open_lesson:
-                lessons = [
-                    l for l in self.lessons
-                    if l.date == day and l.status in statuses
-                ]
-            else:
-                lessons = [
-                    l for l in self.lessons
-                    if l.date == day and l.status in statuses and l.group_pass.bonus_class != open_lesson
-                ]
+            lessons = [
+                l for l in self.lessons
+                if l.date == day and l.status in statuses
+            ]
+
+            if open_lesson:
+                bonus_class_lessons_to_minus = sum([
+                    lesson.prise() for lesson in lessons if lesson.group_pass.bonus_class == open_lesson
+                ])
 
             if lessons or open_lesson:
                 day_saldo = sum(
