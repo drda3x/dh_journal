@@ -248,7 +248,7 @@ class GroupLogic(object):
                     [l.prise() for l in lessons], 0
                 )
 
-                open_lesson_saldo = open_lesson.get_finance() if open_lesson else None
+                open_lesson_saldo = (open_lesson.get_finance() - bonus_class_lessons_to_minus)  if open_lesson else None
 
                 buf['day_total'] = day_saldo + (open_lesson_saldo or 0)
                 buf['open_lesson'] = open_lesson_saldo if open_lesson else '-'
