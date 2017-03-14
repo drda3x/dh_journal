@@ -38,7 +38,7 @@
                 {% endfor %}
             </ul>
         </div>
-        <strong class="text-info">Группа: </strong>{{ group_detail.name }}
+        <strong class="text-info">Группа: </strong>{{ group_detail.station}} {{ group_detail.days_str }} {{group_detail.time}} ({{ group_detail.name }})
         <span id="infoLastLesson"><strong class="text-info" style="margin: 0 0 0 10px;">Последнее занятие: </strong>{{ group_detail.last_lesson }}</span>
         <span id="infoStartDate" style="display: none;"><strong  class="text-info" style="margin: 0 0 0 10px;">Дата начала: </strong>{{ group_detail.start_date }}</span>
     </div>
