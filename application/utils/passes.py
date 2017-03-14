@@ -128,6 +128,7 @@ class BasePass(object):
         self.process_lesson(date, Lessons.STATUSES['attended'])
         self.check_moved_lessons()
         self.check_lessons_count()
+        #self.check_moved_lessons()
 
     def write_off(self):
         try:
