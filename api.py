@@ -887,6 +887,3 @@ def get_club_card_detail(request):
         return HttpResponseServerError('failed')
 
 
-def get_teacher_video(request):
-    import pudb; pudb.set_trace()  # XXX BREAKPOINT
-    pass
