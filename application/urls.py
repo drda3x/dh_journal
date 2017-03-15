@@ -57,6 +57,7 @@ urlpatterns += [
     url(r'^edit_comment', api.add_or_edit_comment),
     url(r'^delete_comment', api.delete_comment),
     url(r'^restorelesson', api.restore_lesson),
+    url(r'^video/', api.get_teacher_video),
     url(r'^finance', views.FinanceView.as_view()),
     url(r'writeoffdebt', api.write_off_debt),
     url(r'clubcards', views.ClubCardsView.as_view()),

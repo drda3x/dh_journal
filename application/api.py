@@ -15,6 +15,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.db.models import Q
+from django.shortcuts import redirect
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student
 from application.utils.passes import PassLogic, GhostPass
@@ -979,3 +980,17 @@ def get_club_card_detail(request):
 
 def mk_add_student(request):
     return add_student(request, BonusClassList)
+
+
+def get_teacher_video(request):
+    try:
+        teacher_id = int(request.path.split('/')[-1])
+        video_link = User.objects.get(pk=teacher_id).video
+
+        if video_link:
+            return redirect(video_link)
+        else:
+            return HttpResponseNotFound()
+
+    except Exception:
+        return HttpResponseNotFound()

@@ -8,6 +8,7 @@ from copy import deepcopy
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.shortcuts import redirect
 from django.db.models import Q
 
 from application.utils.passes import PassLogic
@@ -884,3 +885,8 @@ def get_club_card_detail(request):
     except Exception:
         format_exc()
         return HttpResponseServerError('failed')
+
+
+def get_teacher_video(request):
+    import pudb; pudb.set_trace()  # XXX BREAKPOINT
+    pass
