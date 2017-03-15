@@ -23,7 +23,7 @@
                     Фамилия Имя
                 </th>
                 {% for date in group_detail.calendar %}
-                <th class="hover-able {% if date.canceled %}canceled{% endif %} {% if not date.real_date %} text-error {% endif%} {% if date.profit == -1 %} profit-bad {% elif date.profit == 0 %} profit-normal {% elif date.profit == 1 %} profit-good {% endif %}">{{ date.date }}{% if date.canceled %} <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
+                <th class="hover-able {% if date.canceled %}canceled{% endif %} {% if not date.real_date %} text-error {% endif%} {% if date.profit == -1 %} profit-bad {% elif date.profit == 0 %} profit-normal {% elif date.profit == 1 %} profit-good {% endif %}">{{ date.date }}{% if date.canceled %} <br> <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
                 {% endfor %}
             </tr>
             {% for student in group_detail.students %}

@@ -48,14 +48,19 @@ class BasePass(object):
             pass
 
     def check_lessons_count(self):
-        self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status=Lessons.STATUSES['not_processed']))
+        self.orm_object.lessons = len(Lessons.objects.filter(group_pass=self.orm_object, status__in=[Lessons.STATUSES['not_processed'], Lessons.STATUSES['moved']]))
         self.orm_object.save()
 
     def check_moved_lessons(self):
-        count = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object))
-        moved = len(Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object, status=Lessons.STATUSES['moved']))
-        if self.orm_object.lessons_origin < count - moved:
-            map(lambda l: l.delete(), Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object).order_by('date')[:count - self.orm_object.lessons_origin + moved].reverse())
+        all_lessons = Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object)
+        count = len(all_lessons)
+        moved = len(all_lessons.filter(status=Lessons.STATUSES['moved']))
+
+        lessons_val = self.orm_object.lessons_origin - count + moved
+
+        if lessons_val < 0:
+            for lesson in all_lessons.order_by('date')[:abs(lessons_val)].reverse():
+                lesson.delete()
             self.orm_object.skips = self.orm_object.skips_origin - moved
             self.orm_object.save()
 
@@ -128,7 +133,6 @@ class BasePass(object):
         self.process_lesson(date, Lessons.STATUSES['attended'])
         self.check_moved_lessons()
         self.check_lessons_count()
-        #self.check_moved_lessons()
 
     def write_off(self):
         try:
