@@ -12,7 +12,6 @@
                     <th style="min-width: 100px;">Фамилия</th>
                     <th style="min-width: 100px;">Имя</th>
                     <th style="min-width: 133px;">Телефон</th>
-                    <th style="min-width: 150px;">E-mail</th>
                     <th>ОРГ-статус</th>
                     <th>Остаток по абонементу</th>
                     <th style="min-width: 120px;">Коментарий</th>
@@ -24,7 +23,6 @@
                     <td style="min-width: 100px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.last_name }}</td>
                     <td style="min-width: 100px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.first_name }}</td>
                     <td style="min-width: 133px;" {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.str_phone }}</td>
-                    <td style="min-width: 150px;">{{ student.person.e_mail }}</td>
                     <td>{% if student.person.org %}ОРГ{% endif %}</td>
                     <td>{{ student.pass_remaining }}
                         {% if student.debt %}
@@ -74,12 +72,6 @@
                                 <label class="control-label" for="phone">Тел.</label>
                                 <div class="controls">
                                     <input type="tel" name="phone" id="phone" required />
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label class="control-label" for="e_mail">E-mail</label>
-                                <div class="controls">
-                                    <input type="email" name="e_mail" id="e_mail" />
                                 </div>
                             </div>
                             <div class="control-group">

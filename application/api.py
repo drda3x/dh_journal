@@ -104,7 +104,7 @@ def add_student(request, group_list_orm=GroupList):
         _json = _add_student(
             request.GET['id'],
             (request.GET['first_name'], request.GET['last_name'], request.GET['phone']),
-            request.GET['e_mail'],
+            request.GET.get('e_mail'),
             request.GET.get('is_org')
         )
 
