@@ -1354,6 +1354,7 @@ class GroupView(BaseView):
         }
 
         day_balance, totals = group.calc_money()
+        _request_date = request_date.date() if request_date else None
         students = [
             {
                 'person': s['student'],
@@ -1361,7 +1362,10 @@ class GroupView(BaseView):
                 'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
                 'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
-                'last_comment': s['last_comment']
+                'last_comment': s['last_comment'],
+                'lessons_count': len([
+                    l for l in s['lessons'] if l is not None or (_request_date or group.orm.start_date) >= now.date()
+                ])
             } for s in group.get_students_net()
         ]
 
@@ -1384,6 +1388,8 @@ class GroupView(BaseView):
             'time': group.orm.time,
             'start_date': group.start_date,
             'students': students,
+            'active_students': filter(lambda s: s['lessons_count'] > 0, students),
+            'not_active_students': filter(lambda s: s['lessons_count'] == 0, students),
             'last_lesson': group.last_lesson,
             'calendar': [{
                 'date': i.strftime('%d.%m.%Y'),

@@ -6,11 +6,11 @@ if(!window.View) window.View = {};
     /**
      * Класс 'Матрица'
      */
-    function Matrix() {
+    function Matrix(element) {
         this.current_column_num = null;
         this.content = [];
 
-        var rows = $('#journal.table tbody').children();
+        var rows = $(element).find('tbody').children();
 
         for(var i= 0, j=rows.length; i<j; i++) {
             var row=rows[i],

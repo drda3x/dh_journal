@@ -3,7 +3,7 @@
 
     var multipassName = 'Клубная карта';
 
-    var matrix = new window.View.Matrix(),
+    var matrix = new window.View.Matrix($('#journal.table')),
         popoverLogic = new window.vidgetsLogic.Popover(window.group.id);
 
     // Логика sub-menu
@@ -125,14 +125,16 @@
             $targets.each(function() {
                 var $this = $(this);
 
-                $this.attr('class', data[i].attr('class'));
-                $this.addClass('lesson_data');
+                if (data[i].data('stid') == $this.data('stid')) {
+                    $this.attr('class', data[i].attr('class'));
+                    $this.addClass('lesson_data');
+                }
 
                 // Удаляем следы hover-эффекта от родительской таблицы
                 $this.removeClass('active');
                 $this.removeClass('highlight');
 
-                if(data[i].data('pass') === 'True') {
+                if(data[i].data('stid') == $this.data('stid') && data[i].data('pass') === 'True') {
                     var attended = data[i].data('sign') == 'True',
                         $inp = $('<input type="checkbox" style="margin: 0" />'),
                         label = data[i].text();
@@ -181,7 +183,10 @@
                     });
                 }
 
-                i++;
+                if (data[i].data('stid') == $this.data('stid')) {
+                    i++;
+                }
+
             });
 
             var $blockTable = $('#block_table'),

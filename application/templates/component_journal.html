@@ -26,7 +26,7 @@
                 <th class="hover-able {% if date.canceled %}canceled{% endif %} {% if not date.real_date %} text-error {% endif%} {% if date.profit == -1 %} profit-bad {% elif date.profit == 0 %} profit-normal {% elif date.profit == 1 %} profit-good {% endif %}">{{ date.date }}{% if date.canceled %} <br> <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
                 {% endfor %}
             </tr>
-            {% for student in group_detail.students %}
+            {% for student in group_detail.active_students %}
             <tr  data-stid="{{ student.person.id }}" class="student_row">
                 <td style="width: 15px">{{ forloop.counter }}</td>
                 <td {% if student.debt %} style="min-width: 200px; line-height: 1" {% else %} style="min-width: 150px; line-height: 1" {% endif %} class="fio_cell">
@@ -61,7 +61,7 @@
                     {% endif %}
                 </td>
                 {% for date in student.calendar %}
-                <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
+                <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}" data-stid="{{ student.person.id }}">
                     {% if date.sign %}
                         <strong>
                             {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
@@ -163,6 +163,89 @@
             {% endif %}
         </div>
 
+        {% if group_detail.not_active_students|length > 0 %}
+<div style="border-top: 1px solid #dddddd; margin-top: 15px; padding-top: 10px;">
+    <h4>Ученики, записанные в группу, но не посещающие занятия</h4>
+    <table id="journal_na" class="table table-bordered table-striped" style="margin-top: 15px;">
+                <tr>
+                    <th style="width: 15px">
+                    №
+                    </th>
+                    <th>
+                        Фамилия Имя
+                    </th>
+                    {% for date in group_detail.calendar %}
+                    <th class="hover-able {% if date.canceled %}canceled{% endif %} {% if not date.real_date %} text-error {% endif%} {% if date.profit == -1 %} profit-bad {% elif date.profit == 0 %} profit-normal {% elif date.profit == 1 %} profit-good {% endif %}">{{ date.date }}{% if date.canceled %} <br> <span style="margin-right: -55px">- отмена</span>{% endif %}</th>
+                    {% endfor %}
+                </tr>
+                {% for student in group_detail.not_active_students %}
+                <tr  data-stid="{{ student.person.id }}" class="student_row">
+                    <td style="width: 15px">{{ forloop.counter }}</td>
+                    <td {% if student.debt %} style="min-width: 200px; line-height: 1" {% else %} style="min-width: 150px; line-height: 1" {% endif %} class="fio_cell">
+                        <div class="dropdown sub-menu">
+                            <a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#">
+                            <!--b class="caret"></b-->
+                            <span {% if student.is_newbie %}class="text-info strong"{% endif %}>{{ student.person.last_name }} {{ student.person.first_name }}</span>
+                            </a>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                <li class="sub_menu_del">
+                                    <input id="cbd{{ forloop.counter }}" type="checkbox" name="accordion">
+                                    <label for="cbd{{ forloop.counter }}">Удалить занятия</label>
+                                    <div class="li-content">
+                                    <input class="datepicker" type="text" placeholder="начиная с" style="margin-left: 0 !important;" /><input type="text" placeholder="кол-во"><input data-stid="{{ student.person.id }}" type="button" value="Удалить" class="btn btn-small btn-primary del-btn" />
+                                    </div>
+                                </li>
+                                <li class="sub_menu_move">
+                                    <input id="cbm{{ forloop.counter }}" type="checkbox" name="accordion">
+                                    <label for="cbm{{ forloop.counter }}">Перенести занятия</label>
+                                    <div class="li-content">
+                                        <input class="datepicker" type="text" placeholder="с даты"/> <input class="datepicker" type="text" placeholder="на дату" /><input data-stid="{{ student.person.id }}" type="button" value="Перенести" class="btn btn-small btn-primary move-btn" />
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        {% if student.person.active == 0 %}
+                            <strong class="text-error">УДАЛЕН</strong>
+                        {% endif %}
+                        {% if student.debt %}
+    {#                        <strong data-id="{{ student.person.id }}" class="text-error debt-main">долг: {{ student.debt }}</strong>#}
+                            <strong data-id="{{ student.person.id }}" class="text-error">долг</strong>
+                        {% endif %}
+                    </td>
+                    {% for date in student.calendar %}
+                    <td class="hover-able {{ date.color }} {% if date.canceled %}canceled{% endif %}" data-date="{{ date.date }}" data-pass="{{ date.pass }}" data-pid="{{ date.pid }}" data-sign="{{ date.attended }}">
+                        {% if date.sign %}
+                            <strong>
+                                {% if date.sign > 0 and date.sign|slice:":2" != '--' %}
+                                    {% if date.sign_type == 's' %}
+                                        {{ date.sign }}
+                                    {% else %}
+                                        {{ date.sign }}
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #f00000">
+                                        {% if date.sign|slice:":2" == '--' %}
+                                            {{ date.sign|slice:"2:" }}
+                                        {% else %}
+                                            {{ date.sign|stringformat:"+d"|slice:"1:" }}
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </strong>
+                        {% else %}
+                            {{ date.sign }}
+                        {% endif %}
+                        {% if date.first %}
+                            <!--div class="circle circle-green"></div-->
+                            <img style="width: 15px; float: right; margin: -1px 0;" src="../static/img/baks.png">
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+    </table>
+</div>
+{% endif %}
         <!-- Форма выбора абонемента -->
         <div id="pass_menu" class="modal hide">
             <div>
@@ -231,7 +314,7 @@
                     {% for student in group_detail.students %}
                         <tr>
                             <td class="student_data" data-stid="{{ student.person.id }}">{{ student.person.last_name }} {{ student.person.first_name }}</td>
-                            <td class="lesson_data"></td>
+                            <td class="lesson_data" data-stid="{{ student.person.id }}"></td>
                         </tr>
 
                     {% endfor %}
