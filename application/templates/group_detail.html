@@ -23,22 +23,20 @@
 {% block body %}
     {% block content %}
     {% if not error %}
+
     <div class="journal-header">
         <div id="dateControl" class="dropdown">
-            <strong class="text-info">
-                Месяц:
-            </strong>
-                <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown">
-                    {{ control_data.constant.current_date_str }}
-                </a>
-                <b class="caret"></b>
+                {{ control_data.constant.current_date_str }}
+            </a>
+            <b class="caret"></b>
             <ul class="dropdown-menu usr">
                 {% for month in control_data.date_control %}
                     <li><a href="/group?id={{ group_detail.id }}&date={{ month.val }}" tabindex="-1">{{ month.name }}</a></li>
                 {% endfor %}
             </ul>
         </div>
-        <strong class="text-info">Группа: </strong>{{ group_detail.station}} {{ group_detail.days_str }} {{group_detail.time}} ({{ group_detail.name }})
+        <span style="margin: 0 15px">{{ group_detail.station}} {{ group_detail.days_str }} {{group_detail.time}} ({{ group_detail.name }})</span>
+        <span>{{ default_teachers }}</span>
     </div>
     <ul class="nav nav-tabs" id="navTab">
         <li class="active"><a id="journalNav" href="#journal-tc" data-toggle="tab">Ведомость</a></li>

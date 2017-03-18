@@ -173,7 +173,7 @@ class Groups(models.Model):
     all = BaseGroupManager()
     opened = OpenedGroupManager()
     closed = ClosedGroupsManager()
-    objects = opened
+    objects = OpenedGroupManager()
 
     name = models.CharField(max_length=100, verbose_name=u'Название группы')
     dance = models.ForeignKey(Dances, null=True, blank=True, verbose_name=u'Направление')

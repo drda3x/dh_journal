@@ -41,6 +41,10 @@
         #moveStudent .modal-body {
             text-align: center;
         }
+        .mk-base-info {
+            margin: 0 180px 15px 0;
+            display: inline-block;
+        }
     </style>
     <script type="text/javascript" src="../static/js/logic.js"></script>
 	<script type="text/javascript" src="../static/js/modal_popover.js"></script>
@@ -310,6 +314,9 @@
     </script>
 {% endblock %}
 {% block body %}
+    <div class="mk-base-info">
+        {{bonus_class.date}} {{bonus_class.hall.station}} {{teachers}}
+    </div>
 	<a id="editStudentBtn" href="#editStudent" role="button" class="btn" data-toggle="modal">Добавить</a>
 	<a id="deleteStudentBtn" href="#deleteStudent" role="button" class="btn" data-toggle="modal">Удалить</a>
     <a id="moveStudentBtn" href="#moveStudent" role="button" class="btn" data-toggle="modal">Перевести в другой мастер-класс</a>

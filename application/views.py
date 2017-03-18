@@ -979,6 +979,8 @@ class BonusClassView(BaseView):
         context['pass_types'] = mk.available_passes.all()
         context['future_classes'] = BonusClasses.objects.select_related().filter(Q(date__gte=now) | Q(pk=24)).order_by('date', 'time')
         context['within_group'] = mk.within_group.id if mk.within_group else None
+        context['bonus_class'] = mk
+        context['teachers'] = '-'.join(t.last_name for t in mk.teachers.all())
 
         return context
 
@@ -1422,6 +1424,7 @@ class GroupView(BaseView):
 
         context['teachers_cnt'] = xrange(len(group.orm.teachers.all()))
         context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))
+        context['default_teachers'] = '-'.join(t.last_name for t in group.orm.teachers.all())
         context['substitutions'] = json.dumps(dict((
             (key.strftime('%d.%m.%Y'), map(lambda x: x.pk, val))
             for key, val in group.substitutions.iteritems()
