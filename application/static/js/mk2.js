@@ -138,7 +138,6 @@ function sendRequest(_data, subAction, callback) {
                     '<td></td>' +
                     '<td></td>' +
                     '<td></td>' +
-                    '<td></td>' +
                     '<td class="center cp no-click"><input class="attendance" type="checkbox" /></td>' +
                     '<td class="center no-events no-click"><a data-class="add" class="add" href="#">Добавить</a></td>' +
                     '<td class="comment no-click" data-mem="[]"></td>' +

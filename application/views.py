@@ -781,7 +781,7 @@ class BonusClassView(BaseView):
                 request.POST['phone'],
                 request.POST['first_name'],
                 request.POST['last_name'],
-                request.POST['e_mail'],
+                request.POSTget('e_mail'),
                 request.POST.get('is_org')
             )
 
@@ -789,7 +789,7 @@ class BonusClassView(BaseView):
             _json = _add_student(
                 request.POST['gid'],
                 (request.POST['first_name'], request.POST['last_name'], request.POST['phone']),
-                request.POST['e_mail'],
+                request.POST.get('e_mail'),
                 request.POST.get('is_org'),
                 BonusClassList
             )

@@ -477,7 +477,7 @@ class Students(models.Model):
             last_name=self.last_name,
             phone=self.str_phone,
             raw_phone=self.phone,
-            e_mail=self.e_mail,
+            # e_mail=self.e_mail,
             org=self.org
         )
 
