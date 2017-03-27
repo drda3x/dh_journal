@@ -264,7 +264,7 @@ class BaseView(TemplateView):
 
 
 class IndexView(BaseView):
-    template_name = 'main_view.html'
+    template_name = 'base.html'
 
     class Url(object):
         """

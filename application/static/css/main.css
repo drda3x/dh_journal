@@ -29,3 +29,17 @@ body {
 .strong {
 	font-weight: bold;
 }
+
+.region {
+    background-color: #fff;
+} 
+.inline {
+    display: inline !important;
+}
+.nav-header .inline {
+    margin-left: 3px;
+}
+.sidebar-hide {
+    text-align: right;
+}
+

@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="DynamicTeacherApp">
     <head>
         <title>{% block title %}{% endblock %}</title>
+            <meta charset="UTF-8">
         <link rel="stylesheet" href="../static/bootstrap/css/bootstrap.css">
         <link rel="stylesheet" href="../static/css/main.css" />
         <link rel="stylesheet" href="../static/css/datepicker.css" />
         <link rel="stylesheet" href="../static/shortcard/short_card.css" />
         <link rel="stylesheet" href="../static/alert/alert.css" />
         <script type="text/javascript" src="../static/js/jquery.js"></script>
+        <script type="text/javascript" src="../static/js/angular.min.js"></script>
         <script type="text/javascript" src="../static/js/jquery.cookie.js"></script>
         <script type="text/javascript" src="../static/bootstrap/js/bootstrap.js"></script>
         <script type="text/javascript" src="../static/bootstrap/js/bootstrap-datepicker.js"></script>
@@ -28,13 +30,85 @@
                     }
                 }
             });
+            
+            var app = angular.module('DynamicTeacherApp', []);
         </script>
-        {% block head %}{% endblock %}
-    </head>
-    <body>
-        {% block body %}
-            {% block content %}
+        {% block head %}
+            {% block style%}
+            {% endblock %}
+            {% block script %}
             {% endblock %}
         {% endblock %}
+    </head>
+    <body >
+            {% block body %}
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="navbar">
+                <div class="navbar-inner">
+                    <div class="container-fluid">
+                        <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        </a>
+                        <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
+                        <div class="nav-collapse collapse">
+                            <div class="pull-right dropdown header-right" style="position: relative">
+                            <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">Василий Нестеров<b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="profile?uid=-100" id="userProfile" tabindex="-1">Профиль</a></li>
+                                <li><a href="logout" tabindex="-1">Выход</a></li>
+                            </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+            <div class="row-fluid">
+                 <div class="span2 well">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
+                    <li class="active"><a href="#">Волгоградский пр-т Пн-Ср 19:00 (Хастл-Начинающие)</a></li>
+                    <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
+                    <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
+                    <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
+                    <li class="divider"></li>
+                    <li class="nav-header">Открытые группы</li>
+                    <li class="nav-header">Начинающие <a href="#" class="inline">скрыть</a></li>
+                    <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
+                    <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
+                    <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
+
+                    <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
+                    <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
+                    <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
+
+                    <li class="divider"></li>
+
+                    <li class="nav-header">Закрытые группы</li>
+                    <li class="nav-header">Начинающие <a href="#" class="inline">показать</a></li>
+                    <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
+                    <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
+                    <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
+
+                    <li class="divider"></li>
+                    <li class="nav-header">Открытые уроки<a href="#" class="inline">показать</a></li>
+
+                    <li class="divider"></li>
+                    <li class="nav-header">Отчеты<a href="#" class="inline">Скрыть</a></li>
+                    <li><a href="#">Клубные карты</a></li>
+                    <li><a href="#">Финансы</a></li>
+                    <li><a href="#">Сампо</a></li>
+
+                </ul>
+            </div>
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+            {% endblock %}
     </body>
 </html>

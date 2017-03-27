@@ -1,81 +1,34 @@
 {% extends "base.html" %}
-
-{% block head %}
-
-    <link rel="stylesheet" href="../static/css/group_detail.css" />
-
+{% load i18n %}
+{% block style%}
     <style>
-
-    {% for color_class in passes_color_classes %}
-
-        .{{ color_class.name }} {
-            background-color: {{ color_class.val }} !important;
-        }
-
-    {% endfor %}
-
+        .profitgood {
+         background-color: #33ff99 !important;
+         }
+         .profitbad {
+         background-color: #fc4e3a !important;
+         }
+         .profitnormal {
+         background-color: #9aceeb !important;
+         }
     </style>
-
-    <script type="text/javascript" src="/static/js/matrix.js"></script>
-    <script type="text/javascript" src="/static/js/popover.js"></script>
 {% endblock %}
-
-{% block body %}
-    {% block content %}
-    {% if not error %}
-
-    <div class="journal-header">
-        <div id="dateControl" class="dropdown">
-                {{ control_data.constant.current_date_str }}
-            </a>
-            <b class="caret"></b>
-            <ul class="dropdown-menu usr">
-                {% for month in control_data.date_control %}
-                    <li><a href="/group?id={{ group_detail.id }}&date={{ month.val }}" tabindex="-1">{{ month.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-        <span style="margin: 0 15px">{{ group_detail.station}} {{ group_detail.days_str }} {{group_detail.time}} ({{ group_detail.name }})</span>
-        <span>{{ default_teachers }}</span>
+{% block script %}
+    <script type="text/javascript" src="../static/js/group_detail.js"></script>
+{% endblock %}
+{% block content %}
+            {% verbatim %}
+    <div class="span10 well" ng-controller="GroupCtrl">
+        <table class="table table-bordered region">
+            <tr>
+                <th>Фамилия Имя</th>
+                <th ng-repeat="date in dates" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date.profit)">{{date.date}}</th>
+            </tr>
+            <tr ng-repeat="student in students" ng-show="row == null || row == $index">
+                <td ng-dblclick="rowClick($index)">{{student.name}}</td>
+                <td ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-repeat="lesson in student.lessons track by $index">{{lesson}}</td>
+            </tr>
+        </table>
     </div>
-    <ul class="nav nav-tabs" id="navTab">
-        <li class="active"><a id="journalNav" href="#journal-tc" data-toggle="tab">Ведомость</a></li>
-        <li><a id="infoNav" href="#info" data-toggle="tab">Группа</a></li>
-        <li><a id="substNav" href="#subst" data-toggle="tab">Замены</a></li>
-    </ul>
-
-    <div class="tab-content">
-        <div class="tab-pane active" id="journal-tc">
-            {% include "component_journal.html" %}
-        </div>
-        <div class="tab-pane" id="info">
-            {% include "component_group_info.html" %}
-        </div>
-        <div id="subst" class="tab-pane">
-            {% include "component_substitutions.html" %}
-        </div>
-    </div>
-    {% endif %}
-    {% endblock %}
-    {% block script %}
-        {% if not error %}
-        <script type="text/javascript">
-
-            (function() {
-
-                $('#journalNav').click(function() {
-                    $('#infoLastLesson').show();
-                    $('#infoStartDate').hide();
-                });
-
-                $('#infoNav').click(function() {
-                    $('#infoLastLesson').hide();
-                    $('#infoStartDate').show();
-                });
-
-            })();
-        </script>
-        {% endif %}
-    {% endblock %}
-
+            {% endverbatim %}
 {% endblock %}
