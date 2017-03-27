@@ -169,10 +169,9 @@ class GroupLogic(object):
             arr.sort(key=lambda x: x.date)
 
             for p in phantom_passes:
-                #day_after_mk = p.bonus_class.date + timedelta(days=1)
-                last_group_lesson = self.orm.last_lesson + timedelta(days=0)
-                last_lesson_by_passes = arr[-1:].date
-                temp_date = max(last_group_lesson, last_lesson_by_passes )
+                last_group_lesson = self.orm.last_lesson
+                last_lesson_by_passes = arr[-1].date if len(arr) > 0 else dtdate(1900, 1, 1)
+                temp_date = max(p.bonus_class.date, last_group_lesson, last_lesson_by_passes )
 
                 phantom_lessons = [
                     self.PhantomLesson(pl.date(), p)
