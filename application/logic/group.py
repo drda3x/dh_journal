@@ -300,10 +300,11 @@ class GroupLogic(object):
         ))
 
         group_lessons_per_month = len(self.calendar)
+        min_lessons_to_compensation = 7
         compensation_to = [
             teacher
             for teacher, lessons in teacher_lessons_count.items()
-            if not teacher.assistant and lessons >= group_lessons_per_month
+            if not teacher.assistant and lessons >= min_lessons_to_compensation
         ]
 
         totals = dict()
