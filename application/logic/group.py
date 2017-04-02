@@ -299,7 +299,12 @@ class GroupLogic(object):
         ))
 
         group_lessons_per_month = len(self.calendar)
-        min_lessons_to_compensation = 7
+        standart_lessons_cnt = 8
+        min_lessons_to_compensation = 7 \
+            if group_lessons_per_month >= standart_lessons_cnt \
+            else (group_lessons_per_month - 1)
+
+
         compensation_to = [
             teacher
             for teacher, lessons in teacher_lessons_count.items()
