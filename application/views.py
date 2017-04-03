@@ -903,7 +903,9 @@ class BonusClassView(BaseView):
             return HttpResponse(json.dumps({'id': comment.id}))
 
         except Exception:
-            from traceback import format_exc; print format_exc()
+            from traceback import format_exc
+            print format_exc()
+
             return HttpResponseServerError('failed')
 
     def move(self, request):
@@ -1506,5 +1508,19 @@ class FinanceView(BaseView):
 
         context['finance_data'] = data
         context['sal'] = dict(sal)
+
+        return context
+
+
+class AdminCallsView(BaseView):
+    template_name = u'admin_calls.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AdminCallsView, self).get_context_data(**kwargs)
+
+        context['students_data'] = json.dumps([
+            s.__json__()
+            for s in Students.objects.all()[:10]
+        ])
 
         return context

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="DynamicTeachersApp">
     <head>
         <title>{% block title %}{% endblock %}</title>
         <link rel="stylesheet" href="../static/bootstrap/css/bootstrap.css">
@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="../static/css/datepicker.css" />
         <link rel="stylesheet" href="../static/shortcard/short_card.css" />
         <link rel="stylesheet" href="../static/alert/alert.css" />
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.3/angular.min.js"></script>
         <script type="text/javascript" src="../static/js/jquery.js"></script>
         <script type="text/javascript" src="../static/js/jquery.cookie.js"></script>
         <script type="text/javascript" src="../static/bootstrap/js/bootstrap.js"></script>
@@ -28,6 +29,9 @@
                     }
                 }
             });
+            
+            var dynamicTeacherApp = angular.module('DynamicTeachersApp', []);
+            
         </script>
         {% block head %}{% endblock %}
     </head>

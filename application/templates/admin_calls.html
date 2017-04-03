@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block head %}
+
+    <script type="text/javascript">
+        dynamicTeacherApp.controller("DayCallController", ["$scope", function($scope) {
+
+            $scope.students = {{students_data | safe}};
+
+            $scope.getReaction = function(student) {
+                console.log(student);
+            };
+
+            $scope.callResultOptions = [
+                {name: "-- позвонить --", value: 0, reaction: $scope.getReaction},
+                {name: "придет ..", value: 1},
+                {name: "не будет ходить", value: 2},
+                {name: "лист ожидания", value: 3}
+            ];
+
+            for(var i=$scope.students.length-1; i>=0; i--) {
+                $scope.students[i].callResult = $scope.callResultOptions[0]
+            }
+
+        }]);
+    </script>
+
+{% endblock %}
+
+{% block body %}
+    {% verbatim %}
+    <div class="container-fluid" ng-controller="DayCallController">
+        <div class="row-fluid" ng-controller="DayCallController">
+            <table class="table table-striped span12">
+                <tr>
+                    <th>Фамилия Имя</th>
+                    <th>Телефон</th>
+                    <th>Группа</th>
+                    <th>Причина звонка</th>
+                    <th></th>
+                </tr> 
+                <tr ng-repeat="student in students">
+                    <td>{{student.last_name}} {{student.first_name}}</td>
+                    <td>{{student.phone}}</td>
+                    <td>!!!some group!!!</td>
+                    <td>!!!some call reason!!!</td>
+                    <td>
+                        <select ng-options="res.name for res in callResultOptions" ng-model="student.callResult" ng-change="student.callResult.reaction(student)"></select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% endverbatim %}
+{% endblock %}
