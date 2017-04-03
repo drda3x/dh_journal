@@ -1515,8 +1515,26 @@ class FinanceView(BaseView):
 class AdminCallsView(BaseView):
     template_name = u'admin_calls.html'
 
+    @staticmethod
+    def serial(student, group, reason):
+        pass
+
     def get_context_data(self, **kwargs):
+        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+
         context = super(AdminCallsView, self).get_context_data(**kwargs)
+        call_list = []
+
+        tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
+        tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
+
+        for bcl_rec in BonusClassList.object.filter(group__in=tomorrow_bonus_class).order_by("group", "student__last_name"):
+            call_list.append(self.serial(bcl_rec.student, bcl_rec.group, u"Посещение ОУ"))
+
+        for grp_rec in GroupList.object.filter(group__in=tomorrow_new_groups).order_by("group", "student__last_name"):
+            call_list.append(self.serial(grp_rec.student, grp_rec.group, u"Посещение завтрашнего занятия в группе"))
+
+
 
         context['students_data'] = json.dumps([
             s.__json__()

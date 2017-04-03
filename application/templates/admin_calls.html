@@ -31,7 +31,7 @@
     {% verbatim %}
     <div class="container-fluid" ng-controller="DayCallController">
         <div class="row-fluid" ng-controller="DayCallController">
-            <table class="table table-striped span12">
+            <table class="table table-striped table-hover span12">
                 <tr>
                     <th>Фамилия Имя</th>
                     <th>Телефон</th>
@@ -42,8 +42,8 @@
                 <tr ng-repeat="student in students">
                     <td>{{student.last_name}} {{student.first_name}}</td>
                     <td>{{student.phone}}</td>
-                    <td>!!!some group!!!</td>
-                    <td>!!!some call reason!!!</td>
+                    <td>Волгоградский пр-т 19:00<br>Хастл-Начинающие<br>Кудрявцев-Кудрявцева</td>
+                    <td>Сгорает абонемент</td>
                     <td>
                         <select ng-options="res.name for res in callResultOptions" ng-model="student.callResult" ng-change="student.callResult.reaction(student)"></select>
                     </td>
