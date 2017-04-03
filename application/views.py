@@ -1452,7 +1452,15 @@ class FinanceView(BaseView):
         else:
             date1 = datetime.datetime.now().replace(day=1)
 
-        date1 = datetime.datetime(2017, 2, 1)
+        today = datetime.datetime.now()
+        month = today.month - 1
+        year = today.year
+
+        if month == 0:
+            month = 12
+            year -= 1
+
+        date1 = datetime.datetime(year, month, 1)
         date2 = get_last_day_of_month(date1)
 
         groups = Groups.all.filter(
@@ -1504,6 +1512,7 @@ class FinanceView(BaseView):
                 ({'name': u'ИТОГО', 'dance_hall': ''}, {'count': s1, 'compensation': s2})
             )
 
+        context['interval'] = '%s - %s' % (date1.strftime('%d.%m.%Y'), date2.strftime('%d.%m.%Y'))
         context['finance_data'] = data
         context['sal'] = dict(sal)
 
