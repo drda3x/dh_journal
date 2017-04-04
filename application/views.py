@@ -13,7 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Max
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -1519,6 +1519,10 @@ class AdminCallsView(BaseView):
     def serial(student, group, reason):
         pass
 
+    def get_list(self, qs, msg):
+        serial = lambda s: self.serial(s.student, s.group, msg)
+        return map(serial, qs)
+
     def get_context_data(self, **kwargs):
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 
@@ -1528,13 +1532,35 @@ class AdminCallsView(BaseView):
         tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
         tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
 
-        for bcl_rec in BonusClassList.object.filter(group__in=tomorrow_bonus_class).order_by("group", "student__last_name"):
-            call_list.append(self.serial(bcl_rec.student, bcl_rec.group, u"Посещение ОУ"))
+        call_list += self.get_list(
+            BonusClassList.objects.filter(group__in=tomorrow_bonus_class).order_by("group", "student__last_name"),
+            u"Посещение ОУ"
+        )
 
-        for grp_rec in GroupList.object.filter(group__in=tomorrow_new_groups).order_by("group", "student__last_name"):
-            call_list.append(self.serial(grp_rec.student, grp_rec.group, u"Посещение завтрашнего занятия в группе"))
+        call_list += self.get_list(
+            GroupList.objects.filter(group__in=tomorrow_new_groups).order_by("group", "student__last_name"),
+            u"Посещение завтрашнего занятия в группе"
+        )
 
+        tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
+        pre_lessons = Lessons.objects \
+            .filter(group__in=tomorrow_groups, date__lt=tomorrow) \
+            .values("group", "student") \
+            .annotate(max_date=Max("date"))
 
+        lesson = pre_lessons[0]
+        lessons_filter = Q(group=lesson['group'], student=lesson['student'], date=lesson['max_date'])
+        for lesson in pre_lessons[1:]:
+            lessons_filter |= Q(group=lesson['group'], student=lesson['student'], date=lesson['max_date'])
+
+        lessons = Lessons.objects.filter(lessons_filter)
+
+        call_list += self.get_list(
+            lessons.filter(status=Lessons.STATUSES['not_attended'], group_pass__lessons__gt=0),
+            u"Сгорает абонемент"
+        )
+
+        print len(lessons)
 
         context['students_data'] = json.dumps([
             s.__json__()
