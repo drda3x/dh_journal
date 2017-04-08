@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="DynamicTeachersApp">
     <head>
         <title>{% block title %}{% endblock %}</title>
         <link rel="stylesheet" href="../static/bootstrap/css/bootstrap.css">
@@ -30,7 +30,7 @@
                 }
             });
             
-     //       var dynamicTeacherApp = angular.module('DynamicTeachersApp', []);
+            var dynamicTeacherApp = angular.module('DynamicTeachersApp', []);
             
         </script>
         {% block head %}{% endblock %}
