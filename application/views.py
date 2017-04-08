@@ -1517,7 +1517,7 @@ class AdminCallsView(BaseView):
 
     @staticmethod
     def serial(student, group, reason):
-        pass
+        return [student.__json__(), group.__json__(), msg]
 
     def get_list(self, qs, msg):
         serial = lambda s: self.serial(s.student, s.group, msg)
@@ -1560,7 +1560,7 @@ class AdminCallsView(BaseView):
             u"Сгорает абонемент"
         )
 
-        print len(lessons)
+        context['call_list'] = call_list
 
         context['students_data'] = json.dumps([
             s.__json__()
