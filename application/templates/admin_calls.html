@@ -5,7 +5,7 @@
     <script type="text/javascript">
         dynamicTeacherApp.controller("DayCallController", ["$scope", function($scope) {
 
-            $scope.students = {{students_data | safe}};
+            $scope.students = {{call_list | safe}};
 
             $scope.getReaction = function(student) {
                 console.log(student);
@@ -21,7 +21,6 @@
             for(var i=$scope.students.length-1; i>=0; i--) {
                 $scope.students[i].callResult = $scope.callResultOptions[0]
             }
-
         }]);
     </script>
 
@@ -29,6 +28,7 @@
 
 {% block body %}
     {% verbatim %}
+    {{students}}
     <div class="container-fluid" ng-controller="DayCallController">
         <div class="row-fluid" ng-controller="DayCallController">
             <table class="table table-striped table-hover span12">
@@ -39,13 +39,13 @@
                     <th>Причина звонка</th>
                     <th></th>
                 </tr> 
-                <tr ng-repeat="student in students">
-                    <td>{{student.last_name}} {{student.first_name}}</td>
-                    <td>{{student.phone}}</td>
-                    <td>Волгоградский пр-т 19:00<br>Хастл-Начинающие<br>Кудрявцев-Кудрявцева</td>
-                    <td>Сгорает абонемент</td>
+                <tr ng-repeat="rec in students">
+                    <td>{{rec.student.last_name}} {{rec.student.first_name}}</td>
+                    <td>{{rec.student.phone}}</td>
+                    <td>{{rec.group.dance_hall.station}} {{rec.group.days}} {{rec.group.time}}<br>{{rec.group.name}}</td>
+                    <td>{{rec.reason}}</td>
                     <td>
-                        <select ng-options="res.name for res in callResultOptions" ng-model="student.callResult" ng-change="student.callResult.reaction(student)"></select>
+                        <select ng-options="res.name for res in callResultOptions" ng-model="rec.callResult" ng-change="student.callResult.reaction(student)"></select>
                     </td>
                 </tr>
             </table>

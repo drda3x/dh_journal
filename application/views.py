@@ -1517,7 +1517,11 @@ class AdminCallsView(BaseView):
 
     @staticmethod
     def serial(student, group, reason):
-        return [student.__json__(), group.__json__(), msg]
+        return {
+            'student': student.__json__(),
+            'group': group.__json__(),
+            'reason': reason
+        }
 
     def get_list(self, qs, msg):
         serial = lambda s: self.serial(s.student, s.group, msg)
@@ -1560,7 +1564,19 @@ class AdminCallsView(BaseView):
             u"Сгорает абонемент"
         )
 
-        context['call_list'] = call_list
+        """
+        Люди, которые перестали заниматься:
+            1. Определить что между последним занятием в группе и последним посещенным занятием больше двух занятий
+        Реализация:
+            1. Если дата последнего урока отстает от даты занятия группы на два дня и группа - завтра, то звонку - БЫТЬ!!!
+        """
+
+        call_list += self.get_list(
+            lessons.filter(group_pass__lessons=0),
+            u"Перестал ходить"
+        )
+
+        context['call_list'] = json.dumps(call_list)
 
         context['students_data'] = json.dumps([
             s.__json__()
