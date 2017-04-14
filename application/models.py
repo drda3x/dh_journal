@@ -336,7 +336,7 @@ class Groups(models.Model):
                 for dt in (days - canceled_lessons)
             ]
 
-            days.sort(key=lambda x: x['date'])
+            days.sort(key=lambda x: x['date'], reverse=count < 0)
 
         else:
             days = [
@@ -344,7 +344,7 @@ class Groups(models.Model):
                 for dt in days
             ]
 
-            days.sort()
+            days.sort(reverse=count < 0)
 
         return days[:abs(count)]
 

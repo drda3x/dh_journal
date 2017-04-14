@@ -1547,6 +1547,8 @@ class AdminCallsView(BaseView):
         )
 
         tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
+
+        #TODO добавить дату последнего звонка
         pre_lessons = Lessons.objects \
             .filter(group__in=tomorrow_groups, date__lt=tomorrow) \
             .values("group", "student") \
@@ -1564,16 +1566,16 @@ class AdminCallsView(BaseView):
             u"Сгорает абонемент"
         )
 
-        """
-        Люди, которые перестали заниматься:
-            1. Определить что между последним занятием в группе и последним посещенным занятием больше двух занятий
-        Реализация:
-            1. Если дата последнего урока отстает от даты занятия группы на два дня и группа - завтра, то звонку - БЫТЬ!!!
-        """
+        today = tomorrow - datetime.timedelta(days=1)
+
+        _lessons = [
+            lesson for lesson in lessons.filter(group_pass__lessons=0)
+            if lesson.group.get_calendar(-3, today)[-1].date() == lesson.date
+        ]
 
         call_list += self.get_list(
-            lessons.filter(group_pass__lessons=0),
-            u"Перестал ходить"
+            _lessons,
+            u"Перестал(a) ходить"
         )
 
         context['call_list'] = json.dumps(call_list)
