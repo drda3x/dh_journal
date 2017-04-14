@@ -325,9 +325,7 @@ class Groups(models.Model):
 
             return days, canceled_lessons
 
-        t = time.time()
         days, canceled_lessons = dates_calculator(count, date_from, clean)
-        print time.time() - t
 
         if not clean:
             days = [
