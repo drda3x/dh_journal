@@ -1,26 +1,162 @@
-{% extends "new_base.html" %}
+    {% extends "new_base.html" %}
 
 {% block head %}
-
+    <!-- TEST CASES
+        1. Необзвоненые люди со вчерашнего дня тоже попали в список
+        2. По одному человеку может выводиться несколько причин для звонка
+    -->
     <script type="text/javascript">
-        dynamicTeacherApp.controller("DayCallController", ["$scope", function($scope) {
-
+        dynamicTeacherApp.controller("DayCallController", ["$scope", "$timeout", function($scope, $timeout) {
             $scope.students = {{call_list | safe}};
 
             $scope.getReaction = function(student) {
-                console.log(student);
+                if (student.callResult.hasOwnProperty("reaction")) {
+                    student.callResult.reaction(student);
+                    currentStudent = student;
+                } 
             };
 
+            var modal = {};
+            modal.dayCommingModal = function(student) {
+                $("#datePickerModal").modal('toggle');
+
+                $scope.datePickerModalSubmit = function() {
+                    if($scope.modalState == 1) {
+                        date = $("#datePickerModal .datepicker").val()
+
+                         student.answer = {
+                            type: "comming_date", 
+                            val: date,
+                            userMessage: 'придет ' + date
+                        };
+
+                    } else if ($scope.modalState == 2) {
+
+                        student.answer = {
+                            type: "comming_date", 
+                            val: 'undesided',
+                            userMessage: 'Придет когда сможет' 
+                        };
+                    }
+
+                    $("#datePickerModal .datepicker").datepicker('hide').val(null);
+                    $("#datePickerModal").modal('hide');
+                    $scope.modalState = null;
+                };
+            };
+
+            modal.refusal = function(student) {
+                student.answer = {
+                    type: "refusal",
+                    userMessage: 'не будет ходить'
+                }
+            }
+
+            modal.makeNewCall = function(student) {
+                $("#waitingList").modal('toggle');
+
+                $scope.makeNewCallSubmit = function() {
+                    if($scope.modalState == 1) {
+                        date = $("#waitingList .datepicker").val();
+                        student.answer = {
+                            type: "waitListByDate",
+                            val: date,
+                            userMessage: 'Перезвонить ' + date
+                        }
+                    } else if ($scope.modalState == 2) {
+                        student.answer = {
+                            type: "waitListDefault",
+                            val: $scope.modalText,
+                            userMessage: $scope.modalText
+                        }
+                    }
+
+                    $("#waitingList").modal('hide');
+                }
+            }
+
+            modal.leaveComment = function(student) {
+                $("#commentWindow").modal('toggle');
+
+                $scope.saveComment = function() {
+                    student.answer = {
+                        type: 'comment',
+                        val: $scope.modalText,
+                        userMessage: $scope.modalText
+                    }
+
+                    $("#commentWindow").modal('hide');
+                }
+            }
+
             $scope.callResultOptions = [
-                {name: "-- позвонить --", value: 0, reaction: $scope.getReaction},
-                {name: "придет ..", value: 1},
-                {name: "не будет ходить", value: 2},
-                {name: "лист ожидания", value: 3}
+                {name: "-- позвонить --", value: 0},
+                {name: "придет на группу", value: 1, reaction: modal.dayCommingModal},  // Модальник с datepicker
+                {name: "не будет ходить", value: 2, reaction: modal.refusal},
+                {name: "добавить в лист ожидания", value: 3, reaction: modal.makeNewCall}, // Модальник с описанием чего ожидаем: группу в определенном месте, препода
+                {name: "другое", value: 4, reaction: modal.leaveComment} // Просто комент
             ];
 
-            for(var i=$scope.students.length-1; i>=0; i--) {
-                $scope.students[i].callResult = $scope.callResultOptions[0]
+            $("#datePickerModal .datepicker").datepicker({
+                format: 'dd.mm.yyyy', 
+                weekStart: 1
+            });
+
+            $("#waitingList .datepicker").datepicker({
+                format: 'dd.mm.yyyy', 
+                weekStart: 1
+            });
+
+            $(".modal").on('hidden', function() {
+                $(".datepicker").val(null);
+
+                $scope.modalText = '';
+                $scope.modalState = null;
+                resetCallResults();
+
+                $scope.$apply();
+            });
+
+            $scope.closeModals = function() {
+                $('.modal').modal('hide');
+                resetCallResults();
             }
+
+            $scope.checkIfHasAnswer = function(s) {
+                return s.answer != null;
+            }
+
+            $scope.clear = function(s) {
+                s.answer = null;
+                resetCallResults();
+            }
+
+            $scope.showClearFunc = function(s) {
+                if(s.answer != null) {
+                    s.showClearFuncVal = true;
+                }
+            }
+
+            $scope.hideClearFunc = function(s) {
+                s.showClearFuncVal = false;
+            }
+
+            $scope.setDPUndecided = function() {
+                 $("#datePickerModal .datepicker").val('придет когда сможет');  
+                 $("#datePickerModal .datepicker").trigger("changeDate", "придет когда сможет");
+            }
+
+            function resetCallResults() {
+                for(var i=$scope.students.length-1; i>=0; i--) {
+                    student = $scope.students[i];
+                    if (student.answer == null) {
+                        student.callResult = $scope.callResultOptions[0];
+                    }
+                }
+            }
+
+            resetCallResults();
+
         }]);
     </script>
 
@@ -30,7 +166,8 @@
     {% verbatim %}
     {{students}}
     <div class="container-fluid" ng-controller="DayCallController">
-        <div class="row-fluid" ng-controller="DayCallController">
+
+        <div class="row-fluid">
             <table class="table table-striped table-hover span12">
                 <tr>
                     <th>Фамилия Имя</th>
@@ -44,12 +181,69 @@
                     <td>{{rec.student.phone}}</td>
                     <td>{{rec.group.dance_hall.station}} {{rec.group.days}} {{rec.group.time}}<br>{{rec.group.name}}</td>
                     <td>{{rec.reason}}</td>
-                    <td>
-                        <select ng-options="res.name for res in callResultOptions" ng-model="rec.callResult" ng-change="student.callResult.reaction(student)"></select>
+                    <td ng-mouseenter="showClearFunc(rec)" ng-mouseleave="hideClearFunc(rec)">
+                        <select ng-hide="checkIfHasAnswer(rec)" ng-options="res.name for res in callResultOptions" ng-model="rec.callResult" ng-change="getReaction(rec)"></select>
+                        <div ng-show="checkIfHasAnswer(rec)">
+                            {{rec.answer.userMessage}} 
+                            <a ng-show="rec.showClearFuncVal" class="text-error" style="margin-left: 20px; font-size: 12pt; font-weight: bold;" href="" ng-click="clear(rec)">X</a>
+                        </div>
                     </td>
                 </tr>
             </table>
         </div>
+
+        <div id="datePickerModal" class="modal hide fade">
+            <div class="modal-header">
+                <h3>Введите дату</h3>
+            </div>
+            <div class="modal-body">
+                <label class="radio" for="modalState">
+                    <input type="radio" name="modalState" ng-model="modalState" ng-value="1" /> Дата
+                </label>
+                <input class="datepicker" type="text" placeholder="дата" ng-disabled="modalState!=1"/> 
+                <label class="radio" for="modalState">
+                    <input type="radio" name="modalState" ng-model="modalState" ng-value="2" /> Придет когда сможет 
+                </label>
+                {{modalState}}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="datePickerModalSubmit()">ОК</button>
+                <button class="btn" ng-click="closeModals()">Отмена</button>
+            </div>
+        </div>
+
+        <div id="waitingList" class="modal hide fade">
+            <div class="modal-header">
+                <h3>Лист ожидания</h3>
+            </div>
+            <div class="modal-body">
+                <label class="radio" for="">
+                    <input type="radio" name="modalState" ng-model="modalState" ng-value="1" /> Дата
+                </label> 
+                <input class="datepicker" type="text" placeholder="дата" ng-disabled="modalState!=1"/> 
+                <label class="radio" for="">
+                    <input type="radio" name="modalState" ng-model="modalState" ng-value="2" /> Другая причина
+                </label> 
+                <textarea id="" name="" rows="5" style="width: 95%; resize: none;" ng-disabled="modalState!=2" ng-model="modalText" placeholder="Иная причина звонка"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="makeNewCallSubmit()">ОК</button>
+                <button class="btn" ng-click="closeModals()">Отмена</button>
+            </div>
+        </div>
+
+        <div id="commentWindow" class="modal hide fade">
+            <div class="modal-header"><h3>Коментарий</h3></div>
+            <div class="modal-body">
+                <textarea id="" name="" rows="5" style="width: 95%; resize: none;" ng-model="modalText" placeholder="Иная причина звонка"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="saveComment()">ОК</button>
+                <button class="btn" ng-click="closeModals()">Отмена</button>
+            </div>
+        </div>
+
     </div>
+
     {% endverbatim %}
 {% endblock %}

@@ -316,7 +316,7 @@ class Groups(models.Model):
 
                     _days, _canceled_lessons = dates_calculator(
                         count + len(days),
-                        datetime.datetime(next_year, next_month, next_day),
+                        datetime.datetime(next_year, next_month, next_day.day),
                         clean=clean
                     )
 
@@ -985,3 +985,16 @@ class TeachersSubstitution(models.Model):
     class Meta:
         app_label = u'application'
         unique_together = ('date', 'group')
+
+class AdminCalls(models.Model):
+    date = models.DateField(verbose_name=u"Дата звонка")
+    student = models.ForeignKey("Students", verbose_name=u"Ученик")
+    group = models.ForeignKey("Groups", verbose_name=u"Группа")
+    group_pass = models.ForeignKey("GroupPasses", verbose_name=u"Абонемент", null=True, blank=True)
+    responce_type = models.CharField(max_length=150, verbose_name=u"Тип ответа")
+    caller = models.ForeignKey("User", verbose_name=u"Звонивший")
+    message = models.CharField(max_length=300, verbose_name=u"Текстовое сообщение", null=True, blank=True)
+    is_solved = BooleanField(verbose_name=u"Флаг о решении вопроса", default=False)
+
+    class Meta:
+        app_label = u'application'
