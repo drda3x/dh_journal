@@ -13,7 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
-from django.db.models import Sum, Q, Max
+from django.db.models import Sum, Q, Max, Count
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -1591,54 +1591,14 @@ class AdminCallsView(BaseView):
             issues
         )
 
-        #TODO добавить дату последнего звонка
-        pre_lessons = Lessons.objects \
-            .filter(Q(group__in=tomorrow_groups) | Q(group__in=today_groups), date__lt=tomorrow) \
-            .values("group", "student") \
-            .annotate(max_date=Max("date"))
-
-        lesson = pre_lessons[0]
-        lessons_filter = Q(group=lesson['group'], student=lesson['student'], date=lesson['max_date'])
-        for lesson in pre_lessons[1:]:
-            lessons_filter |= Q(group=lesson['group'], student=lesson['student'], date=lesson['max_date'])
-
-        lessons = Lessons.objects.filter(lessons_filter)
-
-        students_statistic = defaultdict(list)
-        for lesson in Lessons.objects.filter(Q(group__in=tomorrow_groups) | Q(group__in=today_groups)).order_by('-date'):
-            students_statistic[(lesson.student, lesson.group)].append(lesson)
-
-        fired_lessons = []
-        for key, val in students_statistic.iteritems():
-            student, group = key
-
-            for index, lesson in enumerate(val):
-                if lesson.date >= tomorrow:
-                    continue
-                elif lesson.status == Lessons.STATUSES['not_attended']:
-                    if index > 0:
-                        fired_lessons.append(lesson)
-                    break
-
-                else:
-                    break
-
         call_list += self.get_list(
-            fired_lessons,
+            self._get_fired_passes(tomorrow_groups, tomorrow, issues),
             u"Сгорает абонемент",
             issues
         )
 
-        _lessons = [
-            lesson for lesson in lessons.filter(group_pass__lessons=0)
-            if lesson.group.get_calendar(
-                -3,
-                today if today.weekday() not in map(int, lesson.group._days.split(',')) else today - datetime.timedelta(days=1)
-            )[-1].date() == lesson.date
-        ]
-
         call_list += self.get_list(
-            _lessons,
+            self._get_loosers(tomorrow_groups, tomorrow),
             u"Перестал(a) ходить",
             issues
         )
@@ -1664,7 +1624,67 @@ class AdminCallsView(BaseView):
             for s in Students.objects.all()[:10]
         ])
 
+
         return context
+
+    @staticmethod
+    def _get_fired_passes(groups, date, issues):
+        groups_last_lessons = [group.get_calendar(-2, date)[-1] for group in groups]
+        result = []
+
+        na_lessons = Lessons.objects.filter(
+            status=Lessons.STATUSES['not_attended'],
+            date__in=groups_last_lessons,
+            group_pass__lessons__gt=0
+        )
+
+        for lesson in na_lessons:
+            issue = issues.get((lesson.student, lesson.group, lesson.group_pass))
+
+            if issue is not None:
+                _qs = Lessons.objects.filter(
+                    group_pass=lesson.group_pass, date__range=[issue[-1].date, date]
+                ).exclude(status=Lessons.STATUSES['not_attended'])
+
+                if len(_qs) > 0:
+                    result.append(lesson)
+            else:
+                result.append(lesson)
+
+        return result
+
+    @staticmethod
+    def _get_loosers(groups, date):
+        group_cache = dict()
+        student_cache = dict()
+
+        def lesson_wrapper(group_id, student_id):
+            group = group_cache.get(group_id)
+
+            if not group:
+                group = group_cache[group_id] = Groups.objects.get(pk=group_id)
+
+            student = student_cache.get(student_id)
+
+            if not student:
+                student = student_cache[student_id] = Students.objects.get(pk=student_id)
+
+            wrapper = namedtuple('Lesson', ['group', 'student'])
+
+            return wrapper(group, student)
+
+        borders = dict(
+                       (group.id, map(lambda x: x.date(), group.get_calendar(-7, date)[-4:-1]))
+             for group in groups
+        )
+
+        lessons = [
+            lesson_wrapper(lesson['group'], lesson['student'])
+            for lesson in Lessons.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            if lesson['max_date'] in borders[int(lesson['group'])]
+        ]
+
+        return lessons
 
     def process_call(self, request, *args, **kwargs):
         request_data = json.loads(request.POST.get('data'))
