@@ -6,7 +6,7 @@
         2. По одному человеку может выводиться несколько причин для звонка
     -->
     <script type="text/javascript">
-        dynamicTeacherApp.controller("DayCallController", ["$scope", "$timeout", function($scope, $timeout) {
+        dynamicTeacherApp.controller("DayCallController", ["$scope", "$http", function($scope, $http) {
             $scope.students = {{call_list | safe}};
 
             $scope.getReaction = function(student) {
@@ -42,13 +42,21 @@
                     $("#datePickerModal .datepicker").datepicker('hide').val(null);
                     $("#datePickerModal").modal('hide');
                     $scope.modalState = null;
+                    sendData(student);
                 };
             };
 
             modal.refusal = function(student) {
-                student.answer = {
-                    type: "refusal",
-                    userMessage: 'не будет ходить'
+                $("#refusalWindow").modal("toggle");
+
+                $scope.refusalSubmit = function() {
+                    student.answer = {
+                        type: "refusal",
+                        userMessage: 'не будет ходить',
+                        val: 'do not come'
+                    }
+                    $scope.closeModals();
+                    sendData(student);
                 }
             }
 
@@ -72,6 +80,7 @@
                     }
 
                     $("#waitingList").modal('hide');
+                    sendData(student);
                 }
             }
 
@@ -86,6 +95,7 @@
                     }
 
                     $("#commentWindow").modal('hide');
+                    sendData(student);
                 }
             }
 
@@ -129,6 +139,7 @@
             $scope.clear = function(s) {
                 s.answer = null;
                 resetCallResults();
+                sendData(s);
             }
 
             $scope.showClearFunc = function(s) {
@@ -155,7 +166,27 @@
                 }
             }
 
+            function sendData(student) {
+                $.ajax({
+                    method: 'POST',
+                    url: '',
+                    data: {
+                        data: JSON.stringify({
+                            st_id: student.student.id,
+                            answer: student.answer,
+                            issue_id: student.issue_id,
+                            group_pass: student.group_pass.id,
+                            group_id: student.group.id
+                        }),
+                        action: 'process_call'    
+                    }
+                }).success(function() {
+                    console.log('success');
+                });
+            }
+
             resetCallResults();
+
 
         }]);
     </script>
@@ -164,7 +195,6 @@
 
 {% block body %}
     {% verbatim %}
-    {{students}}
     <div class="container-fluid" ng-controller="DayCallController">
 
         <div class="row-fluid">
@@ -204,7 +234,6 @@
                 <label class="radio" for="modalState">
                     <input type="radio" name="modalState" ng-model="modalState" ng-value="2" /> Придет когда сможет 
                 </label>
-                {{modalState}}
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" ng-click="datePickerModalSubmit()">ОК</button>
@@ -232,10 +261,18 @@
             </div>
         </div>
 
+        <div id="refusalWindow" class="modal hide fade">
+            <div class="modal-header"><h3> Подтвердите отказ от посещения занятий </h3></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="refusalSubmit()">ОК</button>
+                <button class="btn" ng-click="closeModals()">Отмена</button>
+            </div>
+        </div>
+
         <div id="commentWindow" class="modal hide fade">
             <div class="modal-header"><h3>Коментарий</h3></div>
             <div class="modal-body">
-                <textarea id="" name="" rows="5" style="width: 95%; resize: none;" ng-model="modalText" placeholder="Иная причина звонка"></textarea>
+                <textarea id="" name="" rows="5" style="width: 95%; resize: none;" ng-model="modalText" placeholder="Введите коментарий"></textarea>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" ng-click="saveComment()">ОК</button>

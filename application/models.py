@@ -383,6 +383,7 @@ class Groups(models.Model):
 
     def __json__(self):
         return dict(
+            id=self.pk,
             name=self.name,
             start_date=self.start_date.strftime('%d.%m.%Y') if self.start_date else u'',
             end_date=self.end_date.strftime('%d.%m.%Y') if self.end_date else u'',
@@ -990,11 +991,12 @@ class AdminCalls(models.Model):
     date = models.DateField(verbose_name=u"Дата звонка")
     student = models.ForeignKey("Students", verbose_name=u"Ученик")
     group = models.ForeignKey("Groups", verbose_name=u"Группа")
-    group_pass = models.ForeignKey("GroupPasses", verbose_name=u"Абонемент", null=True, blank=True)
+    group_pass = models.ForeignKey("Passes", verbose_name=u"Абонемент", null=True, blank=True)
     responce_type = models.CharField(max_length=150, verbose_name=u"Тип ответа")
     caller = models.ForeignKey("User", verbose_name=u"Звонивший")
-    message = models.CharField(max_length=300, verbose_name=u"Текстовое сообщение", null=True, blank=True)
-    is_solved = BooleanField(verbose_name=u"Флаг о решении вопроса", default=False)
+    message = models.ForeignKey("Comments", verbose_name=u"Коментарий", null=True, blank=True)
+    is_solved = models.BooleanField(verbose_name=u"Флаг о решении вопроса", default=False)
+    related_call = models.ForeignKey("AdminCalls", null=True, blank=True)
 
     class Meta:
         app_label = u'application'

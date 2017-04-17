@@ -22,13 +22,14 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution, AdminCalls
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 from collections import namedtuple, defaultdict
+from itertools import groupby
 
 
 def custom_proc(request):
@@ -372,7 +373,7 @@ class IndexView(BaseView):
                 'label': u'Отчеты',
                 'depth': str(depth),
                 'hideable': False,
-                'urls': [self.Url(u'Финансовый отчет', 'finance')]
+                'urls': [self.Url(u'Финансовый отчет', 'finance'), self.Url(u"Списки для обзвона", 'daycall')]
             })
 
         # Меню для других преподов
@@ -1516,41 +1517,74 @@ class AdminCallsView(BaseView):
     template_name = u'admin_calls.html'
 
     @staticmethod
-    def serial(student, group, reason):
-        return {
-            'student': student.__json__(),
-            'group': group.__json__(),
-            'reason': reason
-        }
+    def serial(student, group, reason, issues, group_pass=None):
 
-    def get_list(self, qs, msg):
-        serial = lambda s: self.serial(s.student, s.group, msg)
+        student_issues = issues.get((student, group, group_pass))
+
+        if student_issues:
+            _issue = list(student_issues)[-1]
+            return {
+                'student': student.__json__(),
+                'group': group.__json__(),
+                'answer': {
+                    'type': _issue.responce_type,
+                    'userMessage': _issue.message.text,
+                    'val': _issue.message.text
+                },
+                'group_pass': {
+                    'id': group_pass.pk if group_pass else None
+                },
+                'reason': reason,
+                'issue_id': _issue.pk
+            }
+
+        else:
+            return {
+                'student': student.__json__(),
+                'group': group.__json__(),
+                'reason': reason,
+                'group_pass': {
+                    'id': group_pass.pk if group_pass else None
+                }
+            }
+
+    def get_list(self, qs, msg, issues):
+        serial = lambda s: self.serial(s.student, s.group, msg, issues, s.group_pass if isinstance(s, Lessons) else None)
         return map(serial, qs)
 
     def get_context_data(self, **kwargs):
-        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
 
         context = super(AdminCallsView, self).get_context_data(**kwargs)
         call_list = []
 
         tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
         tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
+        tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
+        today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
+
+        issues = defaultdict(list)
+        for issue in AdminCalls.objects.filter(
+            Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        ).order_by('date'):
+            issues[(issue.student, issue.group, issue.group_pass)].append(issue)
 
         call_list += self.get_list(
             BonusClassList.objects.filter(group__in=tomorrow_bonus_class).order_by("group", "student__last_name"),
-            u"Посещение ОУ"
+            u"Посещение ОУ",
+            issues
         )
 
         call_list += self.get_list(
             GroupList.objects.filter(group__in=tomorrow_new_groups).order_by("group", "student__last_name"),
-            u"Посещение завтрашнего занятия в группе"
+            u"Посещение завтрашнего занятия в группе",
+            issues
         )
-
-        tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
 
         #TODO добавить дату последнего звонка
         pre_lessons = Lessons.objects \
-            .filter(group__in=tomorrow_groups, date__lt=tomorrow) \
+            .filter(Q(group__in=tomorrow_groups) | Q(group__in=today_groups), date__lt=tomorrow) \
             .values("group", "student") \
             .annotate(max_date=Max("date"))
 
@@ -1561,22 +1595,58 @@ class AdminCallsView(BaseView):
 
         lessons = Lessons.objects.filter(lessons_filter)
 
-        call_list += self.get_list(
-            lessons.filter(status=Lessons.STATUSES['not_attended'], group_pass__lessons__gt=0),
-            u"Сгорает абонемент"
-        )
+        students_statistic = defaultdict(list)
+        for lesson in Lessons.objects.filter(Q(group__in=tomorrow_groups) | Q(group__in=today_groups)).order_by('-date'):
+            students_statistic[(lesson.student, lesson.group)].append(lesson)
 
-        today = tomorrow - datetime.timedelta(days=1)
+        fired_lessons = []
+        for key, val in students_statistic.iteritems():
+            student, group = key
+
+            for index, lesson in enumerate(val):
+                if lesson.date >= tomorrow:
+                    continue
+                elif lesson.status == Lessons.STATUSES['not_attended']:
+                    if index > 0:
+                        fired_lessons.append(lesson)
+                    break
+
+                else:
+                    break
+
+        call_list += self.get_list(
+            fired_lessons,
+            u"Сгорает абонемент",
+            issues
+        )
 
         _lessons = [
             lesson for lesson in lessons.filter(group_pass__lessons=0)
-            if lesson.group.get_calendar(-3, today)[-1].date() == lesson.date
+            if lesson.group.get_calendar(
+                -3,
+                today if today.weekday() not in map(int, lesson.group._days.split(',')) else today - datetime.timedelta(days=1)
+            )[-1].date() == lesson.date
         ]
 
         call_list += self.get_list(
             _lessons,
-            u"Перестал(a) ходить"
+            u"Перестал(a) ходить",
+            issues
         )
+
+        for issue in AdminCalls.objects.filter(responce_type__in=["waitListByDate", "waitListDefault"]).exclude(pk__in=AdminCalls.objects.filter(
+            Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        ).values_list('pk', flat=True)):
+            if issue.responce_type == "waitListDefault" \
+                    or (issue.responce_type == "waitListByDate" \
+                        and datetime.datetime.strptime(issue.message.text.split()[-1], '%d.%m.%Y') == today):
+                call_list += self.get_list(
+                    [issue],
+                    u"Лист ожидания",
+                    {(issue.student, issue.group, None): [issue]}
+                )
+
+        call_list.sort(key=lambda x: (x['student']['last_name'], x['student']['first_name']))
 
         context['call_list'] = json.dumps(call_list)
 
@@ -1586,3 +1656,54 @@ class AdminCallsView(BaseView):
         ])
 
         return context
+
+    def process_call(self, request, *args, **kwargs):
+        request_data = json.loads(request.POST.get('data'))
+        issue_id = request_data.get('issue_id')
+
+        if issue_id is not None:
+            issue = AdminCalls.objects.filter(pk=issue_id)
+
+            if request_data['answer'] is not None:
+                comment = Comments(
+                    add_date = datetime.datetime.now(),
+                    student_id = request_data['st_id'],
+                    group_id=request_data['group_id'],
+                    text=request_data['answer']['userMessage']
+                )
+                comment.save()
+            else:
+                return HttpResponse(200)
+
+            new_issue = AdminCalls(
+                **issue.values('student_id', 'group_id', 'group_pass_id', 'responce_type', 'caller_id', 'is_solved')[0]
+            )
+            new_issue.date = datetime.datetime.today()
+            new_issue.responce_type = request_data['answer']['type'] if request_data['answer'] else None
+            new_issue.message = comment
+            new_issue.related_call = issue.first()
+            new_issue.save()
+        else:
+
+            comment = Comments(
+                add_date = datetime.datetime.now(),
+                student_id = request_data['st_id'],
+                group_id=request_data['group_id'],
+                text=request_data['answer']['userMessage']
+            )
+
+            comment.save()
+
+            new_issue = AdminCalls(
+                date=datetime.datetime.today(),
+                student_id=request_data['st_id'],
+                group_id=request_data['group_id'],
+                group_pass_id=request_data.get('group_pass'),
+                responce_type=request_data['answer']['type'],
+                message=comment,
+                caller=request.user
+            )
+            new_issue.save()
+
+        return HttpResponse(200)
+
