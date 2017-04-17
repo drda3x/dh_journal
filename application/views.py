@@ -1674,7 +1674,7 @@ class AdminCallsView(BaseView):
             return wrapper(group, student)
 
         borders = dict(
-                       (group.id, map(lambda x: x.date(), group.get_calendar(-7, date)[-3:-1]))
+            (group.id, map(lambda x: x.date(), group.get_calendar(-4, date)[-1:]))
              for group in groups
         )
 
