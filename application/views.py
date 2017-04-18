@@ -1576,7 +1576,8 @@ class AdminCallsView(BaseView):
         issues = defaultdict(list)
         for issue in AdminCalls.objects.filter(
             Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
-        ).order_by('date'):
+        ).order_by('date', 'id'):
+
             issues[(issue.student, issue.group, issue.group_pass)].append(issue)
 
         call_list += self.get_list(
@@ -1603,10 +1604,13 @@ class AdminCallsView(BaseView):
             issues
         )
 
+        _filter = []
         for issue in AdminCalls.objects.filter(responce_type__in=["waitListByDate", "waitListDefault"]).exclude(pk__in=AdminCalls.objects.filter(
             Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
-        ).values_list('pk', flat=True)):
-            if issue.responce_type == "waitListDefault" \
+        ).values_list('pk', flat=True)).order_by('-date', '-id'):
+            if (issue.student, issue.group) in _filter:
+                continue
+            elif issue.responce_type == "waitListDefault" \
                     or (issue.responce_type == "waitListByDate" \
                         and datetime.datetime.strptime(issue.message.text.split()[-1], '%d.%m.%Y') == today):
                 call_list += self.get_list(
@@ -1614,6 +1618,8 @@ class AdminCallsView(BaseView):
                     u"Лист ожидания",
                     {(issue.student, issue.group, None): [issue]}
                 )
+
+            _filter.append((issue.student, issue.group))
 
         call_list.sort(key=lambda x: (x['student']['last_name'], x['student']['first_name']))
 
