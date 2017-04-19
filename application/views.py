@@ -1641,7 +1641,15 @@ class AdminCallsView(BaseView):
         for lesson in na_lessons:
             issue = issues.get((lesson.student, lesson.group, lesson.group_pass))
 
-            if issue is not None:
+            real_lessons = Lessons.objects.filter(
+                group_pass=lesson.group_pass,
+                status__in=[Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
+            ).count()
+
+            if real_lessons >= lesson.group_pass.lessons_origin:
+                continue
+
+            elif issue is not None:
                 _qs = Lessons.objects.filter(
                     group_pass=lesson.group_pass, date__range=[issue[-1].date, date]
                 ).exclude(status=Lessons.STATUSES['not_attended'])
