@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
-    {% if user.teacher %}
+    {% if user.teacher or user.id == 28 %}
     <script type="text/javascript">
         $(document).ready(function() {
 

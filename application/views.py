@@ -377,8 +377,6 @@ class IndexView(BaseView):
             })
 
         elif user.id == 28:
-            groups = Groups.opened
-
             menu.append({
                 'label': u'Группы',
                 'depth': str(depth),
@@ -386,10 +384,10 @@ class IndexView(BaseView):
                 'urls': [
                     {
                         'label': level.name,
-                        'hideable': True,
+                        'hideable': False,
                         'depth': '%d_%d' % (depth, level_depth),
                         'urls': [
-                            GroupLogic(g) for g in groups.filter(level=level).exclude(teachers=user)
+                            GroupLogic(g) for g in Groups.opened.filter(level=level)
                         ]
                     } for level_depth, level in enumerate(GroupLevels.objects.filter(string_code='beginners'))
                 ]
