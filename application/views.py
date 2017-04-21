@@ -431,14 +431,15 @@ class IndexView(BaseView):
                 'urls': [g for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
-        #Общеклубное меню
-        depth += 1
-        menu.append({
-            'label': u'Клуб',
-            'depth': str(depth),
-            'hideable': False,
-            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
-        })
+        if user.id != 28:
+            #Общеклубное меню
+            depth += 1
+            menu.append({
+                'label': u'Клуб',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
+            })
 
         context['menu'] = menu
 
