@@ -377,6 +377,8 @@ class IndexView(BaseView):
             })
 
         elif user.id == 28:
+            groups = Groups.opened
+
             menu.append({
                 'label': u'Группы',
                 'depth': str(depth),
