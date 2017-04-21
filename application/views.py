@@ -279,7 +279,7 @@ class IndexView(BaseView):
         user = self.request.user
 
         #Если пользователь - админ сампо, отправляем его на другую вьюшку
-        if user.teacher:
+        if user.teacher or user.id == 28:
             return super(IndexView, self).get(self.request, *args, **kwargs)
 
         elif user.sampo_admin:
@@ -374,6 +374,23 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'urls': [self.Url(u'Финансовый отчет', 'finance'), self.Url(u"Списки для обзвона", 'daycall')]
+            })
+
+        elif user.id == 28:
+            menu.append({
+                'label': u'Группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [
+                    {
+                        'label': level.name,
+                        'hideable': True,
+                        'depth': '%d_%d' % (depth, level_depth),
+                        'urls': [
+                            GroupLogic(g) for g in groups.filter(level=level).exclude(teachers=user)
+                        ]
+                    } for level_depth, level in enumerate(GroupLevels.objects.filter(string_code='beginners'))
+                ]
             })
 
         # Меню для других преподов
