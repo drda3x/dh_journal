@@ -106,88 +106,27 @@ STATIC_URL = '/static/'
 
 # FIXTURE_DIRS = '/fixtures/'
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         # Include the default Django email handler for errors
-#         # This is what you'd get without configuring logging at all.
-#         'mail_admins': {
-#             'class': 'django.utils.log.AdminEmailHandler',
-#             'level': 'ERROR',
-#              # But the emails are plain text by default - HTML is nicer
-#             'include_html': True,
-#         },
-#         # Log to a text file that can be rotated by logrotate
-#         'logfile': {
-#             'class': 'logging.handlers.WatchedFileHandler',
-#             'filename': '/var/log/django/myapp.log'
-#         },
-#     },
-#     'loggers': {
-#         # Again, default Django configuration to email unhandled exceptions
-#         'django.request': {
-#             'handlers': ['mail_admins'],
-#             'level': 'ERROR',
-#             'propagate': True,
-#         },
-#         # Might as well log any errors anywhere else in Django
-#         'django': {
-#             'handlers': ['logfile'],
-#             'level': 'ERROR',
-#             'propagate': False,
-#         },
-#         # Your own app - this assumes all your logger names start with "myapp."
-#         'myapp': {
-#             'handlers': ['logfile'],
-#             'level': 'WARNING', # Or maybe INFO or DEBUG
-#             'propagate': False
-#         },
-#     },
-# }
 
-if DEBUG:
-    import logging
-    l = logging.getLogger('django.db.backends')
-    l.setLevel(logging.DEBUG)
-    l.addHandler(logging.StreamHandler())
+#if DEBUG:
+#    import logging
+#    l = logging.getLogger('django.db.backends')
+#    l.setLevel(logging.DEBUG)
+#    l.addHandler(logging.StreamHandler())
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },'console': {
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-        },
+        }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },'django.db.backends.mysql': {
-            'level': 'DEBUG',
+        'django.db.backends': {
             'handlers': ['console'],
+            'level': 'DEBUG',
         },
-    #     '': {
-    #         # this sets root level logger to log debug and higher level
-    #         # logs to console. All other loggers inherit settings from
-    #         # root level logger.
-    #         'handlers': ['console'],
-    #         'level': 'DEBUG',
-    #         'propagate': False, # this tells logger to send logging message
-    #                             # to its parent (will send if set to True)
-    #     },
     }
 }
 

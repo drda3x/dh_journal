@@ -1591,8 +1591,6 @@ class AdminCallsView(BaseView):
         tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
         today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
 
-        print tomorrow
-
         issues = defaultdict(list)
         for issue in AdminCalls.objects.all(
             #Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
@@ -1621,6 +1619,33 @@ class AdminCallsView(BaseView):
         call_list += self.get_list(
             self._get_loosers(tomorrow_groups, tomorrow),
             u"Перестал(a) ходить",
+            issues
+        )
+
+        students = GroupList.objects.filter(
+            group__in=tomorrow_groups,
+            active=True
+        ).exclude(
+            student_id__in=Lessons.objects.filter(
+                group__in=tomorrow_groups,
+            ).values_list('pk', flat=True)
+        ).exclude(
+            student_id__in=AdminCalls.objects.filter(
+                responce_type='refusal'
+            ).values_list('student__id', flat=True)
+        )
+
+        list(students)
+        raw_input()
+
+        existed = [(s['student']['id'], s['group']['id']) for s in call_list]
+        _students_clean = [
+            s for s in students if (s.student.pk, s.group.pk) not in existed
+        ]
+
+        call_list += self.get_list(
+            _students_clean,
+            'Hи разу не появлялся(лась)',
             issues
         )
 
