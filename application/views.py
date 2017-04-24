@@ -1573,9 +1573,11 @@ class AdminCallsView(BaseView):
         tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
         today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
 
+        print tomorrow
+
         issues = defaultdict(list)
-        for issue in AdminCalls.objects.filter(
-            Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        for issue in AdminCalls.objects.all(
+            #Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
         ).order_by('date', 'id'):
 
             issues[(issue.student, issue.group, issue.group_pass)].append(issue)
@@ -1633,18 +1635,23 @@ class AdminCallsView(BaseView):
 
         return context
 
-    @staticmethod
-    def _get_fired_passes(groups, date, issues):
+    def _get_fired_passes(self, groups, date, issues):
         groups_last_lessons = [group.get_calendar(-2, date)[-1] for group in groups]
         result = []
+        _filter = []
 
         na_lessons = Lessons.objects.filter(
             status=Lessons.STATUSES['not_attended'],
             date__in=groups_last_lessons,
             group_pass__lessons__gt=0
-        )
+        ).order_by('-date')
 
         for lesson in na_lessons:
+            if (lesson.student, lesson.group) in _filter:
+                continue
+
+            _filter.append((lesson.student, lesson.group))
+
             issue = issues.get((lesson.student, lesson.group, lesson.group_pass))
 
             real_lessons = Lessons.objects.filter(
@@ -1660,15 +1667,14 @@ class AdminCallsView(BaseView):
                     group_pass=lesson.group_pass, date__range=[issue[-1].date, date]
                 ).exclude(status=Lessons.STATUSES['not_attended'])
 
-                if len(_qs) > 0:
+                if len(_qs) > 0 and self.check_relevant(lesson, issue[-1], date - datetime.timedelta(days=1)):
                     result.append(lesson)
             else:
                 result.append(lesson)
 
         return result
 
-    @staticmethod
-    def _get_loosers(groups, date):
+    def _get_loosers(self, groups, date):
         group_cache = dict()
         student_cache = dict()
 
@@ -1699,6 +1705,23 @@ class AdminCallsView(BaseView):
         ]
 
         return lessons
+
+    @staticmethod
+    def check_relevant(lesson, issue, date):
+        if issue is not None:
+            if issue.responce_type in ('comming_date', 'waitListByDate'):
+                try:
+                    s_date = issue.message.text.split()
+                    _date = datetime.datetime.strptime(s_date[-1], '%d.%m.%Y').date()
+                    return _date < date
+                except UnicodeEncodeError:
+                    return False
+
+            elif issue.responce_type == 'refusal':
+                return False
+
+            else:
+                return True
 
     def process_call(self, request, *args, **kwargs):
         request_data = json.loads(request.POST.get('data'))
