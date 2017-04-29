@@ -1606,10 +1606,20 @@ class AdminCallsView(BaseView):
             issues
         )
 
+        call_list += self.get_list(
+            self._not_come_yet(tomorrow, tomorrow_groups, tomorrow_new_groups),
+            u"Записался(лась) и не ходит",
+            issues
+        )
+
         _filter = []
-        for issue in AdminCalls.objects.filter(responce_type__in=["waitListByDate", "waitListDefault"]).exclude(pk__in=AdminCalls.objects.filter(
-            Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        for issue in AdminCalls.objects.filter(
+            responce_type__in=["waitListByDate", "waitListDefault"]
+        ).exclude(
+            pk__in=AdminCalls.objects.filter(
+                Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
         ).values_list('pk', flat=True)).order_by('-date', '-id'):
+
             if (issue.student, issue.group) in _filter:
                 continue
             elif issue.responce_type == "waitListDefault" \
@@ -1636,6 +1646,10 @@ class AdminCallsView(BaseView):
         return context
 
     def _get_fired_passes(self, groups, date, issues):
+        u"""
+        Сгорающие абонементы
+        """
+
         groups_last_lessons = [group.get_calendar(-2, date)[-1] for group in groups]
         result = []
         _filter = []
@@ -1674,7 +1688,26 @@ class AdminCallsView(BaseView):
 
         return result
 
+    def _not_come_yet(self, date, groups, tomorrow_new_groups):
+        people = GroupList.objects.filter(
+            group__in=groups
+        ).exclude(
+            student_id__in=Lessons.objects.filter(group__in=groups).values_list('student_id', flat=True)
+        ).exclude(
+            group__in=tomorrow_new_groups
+        ).exclude(
+            student_id__in=AdminCalls.objects.filter(
+                responce_type__in=["refusal"]
+            ).values_list('student_id', flat=True)
+        )
+
+        return people
+
     def _get_loosers(self, groups, date):
+        u"""
+        Люди, которые перестали ходиь на группы
+        """
+
         group_cache = dict()
         student_cache = dict()
 
@@ -1715,7 +1748,7 @@ class AdminCallsView(BaseView):
                     _date = datetime.datetime.strptime(s_date[-1], '%d.%m.%Y').date()
                     return _date < date
                 except UnicodeEncodeError:
-                    return False
+                    return True
 
             elif issue.responce_type == 'refusal':
                 return False
