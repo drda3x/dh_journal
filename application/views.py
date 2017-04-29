@@ -1588,7 +1588,10 @@ class AdminCallsView(BaseView):
 
         tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
         tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
-        tomorrow_groups = Groups.opened.filter(_days__contains=str(tomorrow.weekday()))
+        tomorrow_groups = Groups.opened.filter(
+            _days__contains=str(tomorrow.weekday()),
+            end_date__gt=tomorrow
+        )
         today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
 
         print tomorrow
