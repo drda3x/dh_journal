@@ -275,13 +275,16 @@ class Groups(models.Model):
     def get_calendar(self, count, date_from=None, clean=True):
 
         def dates_calculator(count, date_from=None, clean=True):
+
             start_date = date_from if date_from else self.start_date
             start_date = start_date.date() if isinstance(start_date, datetime.datetime) else start_date
 
             days = set(
                 dt
                 for dt in calendar.itermonthdates(start_date.year, start_date.month)
-                if ((count >= 0 and dt >= start_date) or (count < 0 and dt <= start_date)) and dt.weekday() in self.days_nums
+                if ((count >= 0 and dt >= start_date) or (count < 0 and dt <= start_date))
+                    and dt.weekday() in self.days_nums
+                    and dt.month == start_date.month
             )
 
             try:
