@@ -1589,12 +1589,10 @@ class AdminCallsView(BaseView):
         tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
         tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
         tomorrow_groups = Groups.opened.filter(
+            Q(end_date__gt=tomorrow) | Q(end_date=None),
             _days__contains=str(tomorrow.weekday()),
-            end_date__gt=tomorrow
         )
         today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
-
-        print tomorrow
 
         issues = defaultdict(list)
         for issue in AdminCalls.objects.all(
@@ -1711,7 +1709,8 @@ class AdminCallsView(BaseView):
 
     def _not_come_yet(self, date, groups, tomorrow_new_groups):
         people = GroupList.objects.filter(
-            group__in=groups
+            group__in=groups,
+            active=True
         ).exclude(
             student_id__in=Lessons.objects.filter(group__in=groups).values_list('student_id', flat=True)
         ).exclude(
