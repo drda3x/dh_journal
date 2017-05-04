@@ -324,61 +324,61 @@ class IndexView(BaseView):
                 ]
             })
 
-            #depth += 1
-            #menu.append({
-            #    'label': u'Замены',
-            #    'depth': str(depth),
-            #    'hideable': True,
-            #    'urls': [
-            #        g.__json__()
-            #        for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
-            #    ]
-            #})
+            depth += 1
+            menu.append({
+                'label': u'Замены',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [
+                    g.__json__()
+                    for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
+                ]
+            })
 
-            ## Группы других преподавателей
-            #depth += 1
-            #menu.append({
-            #    'label': u'Остальные группы',
-            #    'depth': str(depth),
-            #    'hideable': False,
-            #    'urls': [
-            #        {
-            #            'label': level.name,
-            #            'hideable': True,
-            #            'depth': '%d_%d' % (depth, level_depth),
-            #            'urls': [
-            #                g.__json__() for g in groups.filter(level=level).exclude(teachers=user)
-            #            ]
-            #        } for level_depth, level in enumerate(GroupLevels.objects.all())
-            #    ]
-            #})
+            # Группы других преподавателей
+            depth += 1
+            menu.append({
+                'label': u'Остальные группы',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [
+                    {
+                        'label': level.name,
+                        'hideable': True,
+                        'depth': '%d_%d' % (depth, level_depth),
+                        'urls': [
+                            g.__json__() for g in groups.filter(level=level).exclude(teachers=user)
+                        ]
+                    } for level_depth, level in enumerate(GroupLevels.objects.all())
+                ]
+            })
 
-            ##Мастер-классы
-            #depth += 1
-            #menu.append({
-            #    'label': u'Мастер-классы',
-            #    'depth': str(depth),
-            #    'hideable': True,
-            #    'url_pattern': 'mk',
-            #    'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory')]
-            #})
+            #Мастер-классы
+            depth += 1
+            menu.append({
+                'label': u'Мастер-классы',
+                'depth': str(depth),
+                'hideable': True,
+                'url_pattern': 'mk',
+                'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory').__json__()]
+            })
 
-            ##Закрытые группы
-            #depth += 1
-            #menu.append({
-            #    'label': u'Закрытые группы',
-            #    'depth': str(depth),
-            #    'hideable': True,
-            #    'urls': [g.__json__() for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
-            #})
+            #Закрытые группы
+            depth += 1
+            menu.append({
+                'label': u'Закрытые группы',
+                'depth': str(depth),
+                'hideable': True,
+                'urls': [g.__json__() for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
+            })
 
-            #depth += 1
-            #menu.append({
-            #    'label': u'Отчеты',
-            #    'depth': str(depth),
-            #    'hideable': False,
-            #    'urls': [self.Url(u'Финансовый отчет', 'finance')]
-            #})
+            depth += 1
+            menu.append({
+                'label': u'Отчеты',
+                'depth': str(depth),
+                'hideable': False,
+                'urls': [self.Url(u'Финансовый отчет', 'finance').__json__()]
+            })
 
         # Меню для других преподов
         else:
@@ -418,7 +418,7 @@ class IndexView(BaseView):
                 'label': u'Закрытые группы',
                 'depth': str(depth),
                 'hideable': True,
-                'urls': [g.__json__() for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
+                'urls': [g.__json__() for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
             })
 
         #Общеклубное меню
@@ -427,7 +427,7 @@ class IndexView(BaseView):
             'label': u'Клуб',
             'depth': str(depth),
             'hideable': False,
-            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
+            'urls': map(lambda x: x.__json__(), [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')])
         })
 
         context['menu'] = json.dumps(menu)
