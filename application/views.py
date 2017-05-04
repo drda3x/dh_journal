@@ -13,7 +13,7 @@ from auth import check_auth, log_out
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.utils.timezone import make_aware
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Max, Count
 from django.utils.functional import cached_property
 
 from application.logic.student import add_student as _add_student, remove_student as _remove_student, edit_student as _edit_student
@@ -22,13 +22,14 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution, AdminCalls
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 from collections import namedtuple, defaultdict
+from itertools import groupby
 
 
 def custom_proc(request):
@@ -219,7 +220,6 @@ class BaseView(TemplateView):
     """
 
     abstract = True
-    user = None
 
     def get_authenticated_user(self, request):
 
@@ -238,7 +238,7 @@ class BaseView(TemplateView):
 
         if user:
             self.request = request
-            self.request.user = self.user = user
+            self.request.user = user
             return super(BaseView, self).dispatch(request, *args, **kwargs)
 
         else:
@@ -282,7 +282,7 @@ class IndexView(BaseView):
         user = self.request.user
 
         #Если пользователь - админ сампо, отправляем его на другую вьюшку
-        if user.teacher:
+        if user.teacher or user.id == 28:
             return super(IndexView, self).get(self.request, *args, **kwargs)
 
         elif user.sampo_admin:
@@ -1512,7 +1512,308 @@ class FinanceView(BaseView):
                 ({'name': u'ИТОГО', 'dance_hall': ''}, {'count': s1, 'compensation': s2})
             )
 
+        context['interval'] = '%s - %s' % (date1.strftime('%d.%m.%Y'), date2.strftime('%d.%m.%Y'))
         context['finance_data'] = data
         context['sal'] = dict(sal)
 
         return context
+
+
+class AdminCallsView(BaseView):
+    template_name = u'admin_calls.html'
+
+    @staticmethod
+    def serial(student, group, reason, issues, group_pass=None):
+
+        student_issues = issues.get((student, group, group_pass))
+
+        if student_issues:
+            _issue = list(student_issues)[-1]
+            return {
+                'student': student.__json__(),
+                'group': group.__json__(),
+                'answer': {
+                    'type': _issue.responce_type,
+                    'userMessage': _issue.message.text,
+                    'val': _issue.message.text,
+                    'date': _issue.date.strftime('%d.%m.%Y')
+                },
+                'group_pass': {
+                    'id': group_pass.pk if group_pass else None
+                },
+                'reason': reason,
+                'issue_id': _issue.pk
+            }
+
+        else:
+            return {
+                'student': student.__json__(),
+                'group': group.__json__(),
+                'reason': reason,
+                'group_pass': {
+                    'id': group_pass.pk if group_pass else None
+                }
+            }
+
+    def get_list(self, qs, msg, issues):
+        serial = lambda s: self.serial(s.student, s.group, msg, issues, s.group_pass if isinstance(s, Lessons) else None)
+        return map(serial, qs)
+
+    def get_context_data(self, **kwargs):
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+
+        context = super(AdminCallsView, self).get_context_data(**kwargs)
+        call_list = []
+
+        tomorrow_bonus_class = BonusClasses.objects.filter(date=tomorrow)
+        tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
+        tomorrow_groups = Groups.opened.filter(
+            Q(end_date__gt=tomorrow) | Q(end_date=None),
+            _days__contains=str(tomorrow.weekday()),
+        )
+        today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
+
+        issues = defaultdict(list)
+        for issue in AdminCalls.objects.all(
+            #Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        ).order_by('date', 'id'):
+
+            issues[(issue.student, issue.group, issue.group_pass)].append(issue)
+
+        call_list += self.get_list(
+            BonusClassList.objects.filter(group__in=tomorrow_bonus_class).order_by("group", "student__last_name"),
+            u"Посещение ОУ",
+            issues
+        )
+
+        call_list += self.get_list(
+            GroupList.objects.filter(group__in=tomorrow_new_groups).order_by("group", "student__last_name"),
+            u"Посещение завтрашнего занятия в группе",
+            issues
+        )
+
+        call_list += self.get_list(
+            self._get_fired_passes(tomorrow_groups, tomorrow, issues),
+            u"Сгорает абонемент",
+            issues
+        )
+
+        call_list += self.get_list(
+            self._get_loosers(tomorrow_groups, tomorrow),
+            u"Перестал(a) ходить",
+            issues
+        )
+
+        call_list += self.get_list(
+            self._not_come_yet(tomorrow, tomorrow_groups, tomorrow_new_groups),
+            u"Записался(лась) и не ходит",
+            issues
+        )
+
+        _filter = []
+        for issue in AdminCalls.objects.filter(
+            responce_type__in=["waitListByDate", "waitListDefault"]
+        ).exclude(
+            pk__in=AdminCalls.objects.filter(
+                Q(group__in=tomorrow_groups) | Q(group__in=tomorrow_new_groups)
+        ).values_list('pk', flat=True)).order_by('-date', '-id'):
+
+            if (issue.student, issue.group) in _filter:
+                continue
+            elif issue.responce_type == "waitListDefault" \
+                    or (issue.responce_type == "waitListByDate" \
+                        and datetime.datetime.strptime(issue.message.text.split()[-1], '%d.%m.%Y') == today):
+                call_list += self.get_list(
+                    [issue],
+                    u"Лист ожидания",
+                    {(issue.student, issue.group, None): [issue]}
+                )
+
+            _filter.append((issue.student, issue.group))
+
+        call_list.sort(key=lambda x: (x['student']['last_name'], x['student']['first_name']))
+
+        context['call_list'] = json.dumps(call_list)
+
+        context['students_data'] = json.dumps([
+            s.__json__()
+            for s in Students.objects.all()[:10]
+        ])
+
+
+        return context
+
+    def _get_fired_passes(self, groups, date, issues):
+        u"""
+        Сгорающие абонементы
+        """
+
+        groups_last_lessons = [group.get_calendar(-2, date)[-1] for group in groups]
+        result = []
+        _filter = []
+
+        _f = Q()
+
+        for _g in groups:
+            _f |= Q(group=_g, date=_g.get_calendar(-2, date)[-1])
+
+        na_lessons = Lessons.objects.filter(
+            _f,
+            status=Lessons.STATUSES['not_attended'],
+            group_pass__lessons__gt=0
+        ).order_by('-date')
+
+        for lesson in na_lessons:
+            if (lesson.student, lesson.group) in _filter:
+                continue
+
+            _filter.append((lesson.student, lesson.group))
+
+            issue = issues.get((lesson.student, lesson.group, lesson.group_pass))
+
+            real_lessons = Lessons.objects.filter(
+                group_pass=lesson.group_pass,
+                status__in=[Lessons.STATUSES['attended'], Lessons.STATUSES['not_attended']]
+            ).count()
+
+            if real_lessons >= lesson.group_pass.lessons_origin:
+                continue
+
+            elif issue is not None:
+                _qs = Lessons.objects.filter(
+                    group_pass=lesson.group_pass, date__range=[issue[-1].date, date]
+                ).exclude(status=Lessons.STATUSES['not_attended'])
+
+                if len(_qs) > 0 and self.check_relevant(lesson, issue[-1], date - datetime.timedelta(days=1)):
+                    result.append(lesson)
+            else:
+                result.append(lesson)
+
+        return result
+
+    def _not_come_yet(self, date, groups, tomorrow_new_groups):
+        people = GroupList.objects.filter(
+            group__in=groups,
+            active=True
+        ).exclude(
+            student_id__in=Lessons.objects.filter(group__in=groups).values_list('student_id', flat=True)
+        ).exclude(
+            group__in=tomorrow_new_groups
+        ).exclude(
+            student_id__in=AdminCalls.objects.filter(
+                responce_type__in=["refusal"]
+            ).values_list('student_id', flat=True)
+        )
+
+        return people
+
+    def _get_loosers(self, groups, date):
+        u"""
+        Люди, которые перестали ходиь на группы
+        """
+
+        group_cache = dict()
+        student_cache = dict()
+
+        def lesson_wrapper(group_id, student_id):
+            group = group_cache.get(group_id)
+
+            if not group:
+                group = group_cache[group_id] = Groups.objects.get(pk=group_id)
+
+            student = student_cache.get(student_id)
+
+            if not student:
+                student = student_cache[student_id] = Students.objects.get(pk=student_id)
+
+            wrapper = namedtuple('Lesson', ['group', 'student'])
+
+            return wrapper(group, student)
+
+        borders = dict(
+            (group.id, map(lambda x: x.date(), group.get_calendar(-4, date)[-1:]))
+             for group in groups
+        )
+
+        lessons = [
+            lesson_wrapper(lesson['group'], lesson['student'])
+            for lesson in Lessons.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            if lesson['max_date'] in borders[int(lesson['group'])]
+                and not Debts.objects.filter(student_id=lesson['student'], group_id=lesson['group'], date__gt=lesson['max_date']).exists()
+        ] + [
+            lesson_wrapper(debt['group'], debt['student'])
+            for debt in Debts.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            if debt['max_date'] in borders[int(debt['group'])]
+                and not Lessons.objects.filter(student_id=debt['student'], group_id=debt['group'], date__gt=debt['max_date']).exists()
+        ]
+
+        return lessons
+
+    @staticmethod
+    def check_relevant(lesson, issue, date):
+        if issue is not None:
+            if issue.responce_type in ('comming_date', 'waitListByDate'):
+                try:
+                    s_date = issue.message.text.split()
+                    _date = datetime.datetime.strptime(s_date[-1], '%d.%m.%Y').date()
+                    return _date < date
+                except UnicodeEncodeError:
+                    return True
+
+            elif issue.responce_type == 'refusal':
+                return False
+
+            else:
+                return True
+
+    def process_call(self, request, *args, **kwargs):
+        request_data = json.loads(request.POST.get('data'))
+        issue_id = request_data.get('issue_id')
+
+        if issue_id is not None:
+            issue = AdminCalls.objects.filter(pk=issue_id)
+
+            if request_data['answer'] is not None:
+                comment = Comments(
+                    add_date = datetime.datetime.now(),
+                    student_id = request_data['st_id'],
+                    group_id=request_data['group_id'],
+                    text=request_data['answer']['userMessage']
+                )
+                comment.save()
+            else:
+                return HttpResponse(200)
+
+            new_issue = AdminCalls(
+                **issue.values('student_id', 'group_id', 'group_pass_id', 'responce_type', 'caller_id', 'is_solved')[0]
+            )
+            new_issue.date = datetime.datetime.today()
+            new_issue.responce_type = request_data['answer']['type'] if request_data['answer'] else None
+            new_issue.message = comment
+            new_issue.related_call = issue.first()
+            new_issue.save()
+        else:
+
+            comment = Comments(
+                add_date = datetime.datetime.now(),
+                student_id = request_data['st_id'],
+                group_id=request_data['group_id'],
+                text=request_data['answer']['userMessage']
+            )
+
+            comment.save()
+
+            new_issue = AdminCalls(
+                date=datetime.datetime.today(),
+                student_id=request_data['st_id'],
+                group_id=request_data['group_id'],
+                group_pass_id=request_data.get('group_pass'),
+                responce_type=request_data['answer']['type'],
+                message=comment,
+                caller=request.user
+            )
+            new_issue.save()
+
+        return HttpResponse(200)
+

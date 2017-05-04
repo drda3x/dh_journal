@@ -527,7 +527,7 @@ def process_lesson(request):
                     else:
                         pt = PassTypes.all.get(pk=_pt)
                         st = Students.objects.get(pk=p['student_id'])
-                        lessons_count = p.get('lcnt', None)
+                        lessons_count = p.get('lcnt', 1)
                         skips_count = p.get('scnt', None)
                         lessons_exist = map(lambda dt: get_student_lesson_status(st, group, dt)['pass'], group.get_calendar(lessons_count, date))
                         if lessons_count > 1 and any(lessons_exist):

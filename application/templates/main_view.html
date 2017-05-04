@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
-    {% if user.teacher %}
+    {% if user.teacher or user.id == 28 %}
     <script type="text/javascript">
         $(document).ready(function() {
 
@@ -134,7 +134,7 @@
             </div>
         </div>
     </div>
-    {% if user.teacher %}
+    {% if user.teacher or user.id == 28 %}
     <div style="padding-top: 20px; margin: 35px" class="container-fluid">
         <div class="row-fluid">
             <div class="span2">

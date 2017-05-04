@@ -11,7 +11,7 @@ from django.contrib.auth.models import User as UserOrigin, UserManager
 from project.settings import FILE_STORAGE
 
 
-from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names, MONTH_PARENT_FORM, WEEK
+from application.utils.date_api import get_count_of_weekdays_per_interval, get_week_days_names, MONTH_PARENT_FORM, WEEK, get_last_day_of_month
 from application.utils.phones import get_string_val
 
 calendar = calendar_origin.Calendar()
@@ -273,47 +273,83 @@ class Groups(models.Model):
             return self.teacher_leader or self.teacher_follower
 
     def get_calendar(self, count, date_from=None, clean=True):
-        start_date = date_from if date_from else self.start_date
-        days = calendar.itermonthdays2(start_date.year, start_date.month)
 
-        cur_month_days = map(
-            lambda _d: datetime.datetime(start_date.year, start_date.month, _d[0]),
-            filter(lambda day: day[0] and day[0] >= start_date.day and day[1] in self.days_nums, days)
-        )
+        def dates_calculator(count, date_from=None, clean=True):
 
-        try:
-            canceled_lessons = CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True)
+            start_date = date_from if date_from else self.start_date
+            start_date = start_date.date() if isinstance(start_date, datetime.datetime) else start_date
 
-        except CanceledLessons.DoesNotExist:
-            canceled_lessons = []
-
-        if clean:
-            cur_month_days = filter(lambda day: day.date() not in canceled_lessons, cur_month_days)
-
-        if len(cur_month_days) < count:
-            next_month = start_date.month + 1 if start_date.month < 12 else 1
-            next_year = start_date.year if start_date.month < 12 else start_date.year + 1
-
-            cur_month_days += self.get_calendar(
-                count - len(cur_month_days),
-                datetime.datetime(next_year, next_month, 1),
-                clean=clean
+            days = set(
+                dt
+                for dt in calendar.itermonthdates(start_date.year, start_date.month)
+                if ((count >= 0 and dt >= start_date) or (count < 0 and dt <= start_date))
+                    and dt.weekday() in self.days_nums
+                    and dt.month == start_date.month
             )
 
-        res = cur_month_days[:count]
+            try:
+                if count >= 0:
+                    canceled_lessons = set(CanceledLessons.objects.filter(group=self, date__gte=start_date).values_list('date', flat=True))
+                else:
+                    canceled_lessons = set(CanceledLessons.objects.filter(group=self, date__lte=start_date).values_list('date', flat=True))
+            except CanceledLessons.DoesNotExist:
+                canceled_lessons = set()
+
+            if clean:
+                days -= canceled_lessons
+
+            if len(days) < abs(count):
+                if count > 0:
+                    next_month = start_date.month + 1 if start_date.month < 12 else 1
+                    next_year = start_date.year if start_date.month < 12 else start_date.year + 1
+
+                    _days, _canceled_lessons = dates_calculator(
+                        count - len(days),
+                        datetime.datetime(next_year, next_month, 1),
+                        clean=clean
+                    )
+
+                    days |= _days
+                    canceled_lessons |= _canceled_lessons
+
+                else:
+                    next_month = start_date.month - 1 if start_date.month > 1 else 12
+                    next_year = start_date.year if start_date.month > 1 else start_date.year - 1
+                    next_day = get_last_day_of_month(datetime.date(next_year, next_month, 1))
+
+                    _days, _canceled_lessons = dates_calculator(
+                        count + len(days),
+                        datetime.datetime(next_year, next_month, next_day.day),
+                        clean=clean
+                    )
+
+                    days |= _days
+                    canceled_lessons |= _canceled_lessons
+
+            return days, canceled_lessons
+
+        days, canceled_lessons = dates_calculator(count, date_from, clean)
 
         if not clean:
+            days = [
+                {'date': datetime.datetime.combine(dt, datetime.datetime.min.time()), 'canceled': True}
+                for dt in canceled_lessons
+            ] + [
+                {'date': datetime.datetime.combine(dt, datetime.datetime.min.time()), 'canceled': False}
+                for dt in (days - canceled_lessons)
+            ]
 
-            _res = []
+            days.sort(key=lambda x: x['date'], reverse=count < 0)
 
-            for r in res:
-                _res.append(
-                    {'date': r, 'canceled': r.date() in canceled_lessons} if not isinstance(r, dict) else r
-                )
+        else:
+            days = [
+                datetime.datetime.combine(dt, datetime.datetime.min.time())
+                for dt in days
+            ]
 
-            res = _res
+            days.sort(reverse=count < 0)
 
-        return res
+        return days[:abs(count)]
 
     @property
     def start_datetime(self):
@@ -350,6 +386,7 @@ class Groups(models.Model):
 
     def __json__(self):
         return dict(
+            id=self.pk,
             name=self.name,
             start_date=self.start_date.strftime('%d.%m.%Y') if self.start_date else u'',
             end_date=self.end_date.strftime('%d.%m.%Y') if self.end_date else u'',
@@ -358,8 +395,8 @@ class Groups(models.Model):
             teacher_follower=self.teacher_follower.__json__() if self.teacher_follower else {},
             is_opened=self.is_opened,
             is_settable=self.is_settable,
-            days=self.days,
-            available_passes=self.available_passes,
+            days= '-'.join(self.days),
+            available_passes=map(lambda x: x.__json__(), self.available_passes.all()),
             dance_hall=self.dance_hall.__json__()
         )
 
@@ -952,3 +989,17 @@ class TeachersSubstitution(models.Model):
     class Meta:
         app_label = u'application'
         unique_together = ('date', 'group')
+
+class AdminCalls(models.Model):
+    date = models.DateField(verbose_name=u"Дата звонка")
+    student = models.ForeignKey("Students", verbose_name=u"Ученик")
+    group = models.ForeignKey("Groups", verbose_name=u"Группа")
+    group_pass = models.ForeignKey("Passes", verbose_name=u"Абонемент", null=True, blank=True)
+    responce_type = models.CharField(max_length=150, verbose_name=u"Тип ответа")
+    caller = models.ForeignKey("User", verbose_name=u"Звонивший")
+    message = models.ForeignKey("Comments", verbose_name=u"Коментарий", null=True, blank=True)
+    is_solved = models.BooleanField(verbose_name=u"Флаг о решении вопроса", default=False)
+    related_call = models.ForeignKey("AdminCalls", null=True, blank=True)
+
+    class Meta:
+        app_label = u'application'
