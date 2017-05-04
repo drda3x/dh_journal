@@ -319,6 +319,7 @@ class IndexView(BaseView):
                 'label':u'Мои группы',
                 'depth': str(depth),
                 'hideable': False,
+                'type': 'groups',
                 'urls': [
                     g.__json__() for g in groups.filter(teachers=user)
                 ]
@@ -329,6 +330,7 @@ class IndexView(BaseView):
                 'label': u'Замены',
                 'depth': str(depth),
                 'hideable': True,
+                'type': 'groups',
                 'urls': [
                     g.__json__()
                     for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
@@ -341,11 +343,13 @@ class IndexView(BaseView):
                 'label': u'Остальные группы',
                 'depth': str(depth),
                 'hideable': False,
+                'type': 'header',
                 'urls': [
                     {
                         'label': level.name,
                         'hideable': True,
                         'depth': '%d_%d' % (depth, level_depth),
+                        'type': 'groups',
                         'urls': [
                             g.__json__() for g in groups.filter(level=level).exclude(teachers=user)
                         ]
@@ -354,14 +358,15 @@ class IndexView(BaseView):
             })
 
             #Мастер-классы
-            depth += 1
-            menu.append({
-                'label': u'Мастер-классы',
-                'depth': str(depth),
-                'hideable': True,
-                'url_pattern': 'mk',
-                'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory').__json__()]
-            })
+            #depth += 1
+            #menu.append({
+            #    'label': u'Мастер-классы',
+            #    'depth': str(depth),
+            #    'hideable': True,
+            #    'url_pattern': 'mk',
+            #    'type': 'header',
+            #    'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(date__gte=context['now']).order_by('-date')] + [self.Url(u'-- все прошедшие классы', 'bkhistory').__json__()]
+            #})
 
             #Закрытые группы
             depth += 1
@@ -369,6 +374,7 @@ class IndexView(BaseView):
                 'label': u'Закрытые группы',
                 'depth': str(depth),
                 'hideable': True,
+                'type': 'groups',
                 'urls': [g.__json__() for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
             })
 
@@ -377,6 +383,7 @@ class IndexView(BaseView):
                 'label': u'Отчеты',
                 'depth': str(depth),
                 'hideable': False,
+                'type': 'urls',
                 'urls': [self.Url(u'Финансовый отчет', 'finance').__json__()]
             })
 
@@ -387,6 +394,7 @@ class IndexView(BaseView):
                 'label': u'Группы',
                 'depth': str(depth),
                 'hideable': False,
+                'type': 'groups',
                 'urls': [
                     g.__json__() for g in Groups.opened.filter(teachers=user)
                 ]
@@ -397,6 +405,7 @@ class IndexView(BaseView):
                 'label': u'Замены',
                 'depth': str(depth),
                 'hideable': True,
+                'type': 'groups',
                 'urls': [
                     g.__json__()
                     for g in Groups.objects.filter(pk__in=substitutions_qs).exclude(teachers=user)
@@ -409,6 +418,7 @@ class IndexView(BaseView):
                 'label': u'Мастер-классы',
                 'depth': str(depth),
                 'hideable': True,
+                'type': 'groups',
                 'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')]
             })
 
@@ -418,6 +428,7 @@ class IndexView(BaseView):
                 'label': u'Закрытые группы',
                 'depth': str(depth),
                 'hideable': True,
+                'type': 'groups',
                 'urls': [g.__json__() for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
             })
 
@@ -427,6 +438,7 @@ class IndexView(BaseView):
             'label': u'Клуб',
             'depth': str(depth),
             'hideable': False,
+            'type': 'urls',
             'urls': map(lambda x: x.__json__(), [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')])
         })
 

@@ -34,9 +34,33 @@
             var app = angular.module('DynamicTeacherApp', []);
             
             app.controller("sideBarCtrl", ["$scope", function($scope) {
-                $scope.abc = '{{menu | safe}}';
-            }]);
+                menuData = {{menu | safe}};
+                $scope.sidebar_menu = processSideBarHeader(menuData);
+            
+                function processSideBarHeader(menuData) {
+                    var result = [];
 
+                    for (var i=0, j=menuData.length; i<j; i++) {
+                        var elem = menuData[i];
+                        result.push({label: elem.label, type: 'header'});
+
+                        for (var k=0, l=elem.urls.length; k<l; k++) {
+                            var urlElem = elem.urls[k];
+
+                            if (urlElem.type == 'header') {
+                                result.concat(processSideBarHeader(urlElem));
+                            } else if (elem.type == 'groups') {
+                                result.push({label: urlElem.dance_hall.station + urlElem.days + urlElem.time, type: 'link'});
+                            } else if (elem.type = 'urls') {
+                                result.push({label: urlElem.label, type: 'link'});
+                            } else {
+                            }
+                        }
+                    }
+
+                    return result;
+                }
+            }]);
         </script>
         {% block head %}
             {% block style%}
@@ -75,10 +99,13 @@
             </div>
             {% if user.id != None %}            
                 {% verbatim %}
-                    {{abc}}
                     <div class="row-fluid" ng-controller="sideBarCtrl">
                         <div class="span2 well">
                         <ul class="nav nav-list">
+                            <li class="nav-header" ng-repeat="menu_elem in sidebar_menu track by $index">
+                                {{menu_elem}}
+                            </li>
+                           <!-- 
                             <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
                             <li class="active"><a href="#">Волгоградский пр-т Пн-Ср 19:00 (Хастл-Начинающие)</a></li>
                             <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
@@ -111,7 +138,7 @@
                             <li><a href="#">Клубные карты</a></li>
                             <li><a href="#">Финансы</a></li>
                             <li><a href="#">Сампо</a></li>
-
+                            -->
                         </ul>
                     </div>
                 {% endverbatim %}
