@@ -1380,6 +1380,7 @@ class GroupView(IndexView):
             )
         }
 
+        import pudb; pudb.set_trace()  # XXX BREAKPOINT
         day_balance, totals = group.calc_money()
         _request_date = request_date.date() if request_date else None
         students = [
@@ -1406,14 +1407,15 @@ class GroupView(IndexView):
             bad_profit = normal_profit = good_profit = []
 
         real_group_calendar = [k['date'].date() for k in group.calcked_calendar]
-        context['group_detail'] = {
-            'id': group.id,
-            'name': group.name,
-            'days': group.days,
-            'days_str': '-'.join(group.orm.days),
-            'station': group.orm.dance_hall.station,
-            'time': group.orm.time,
-            'start_date': group.start_date,
+        context['group_detail'] = json.dumps({
+            'group_data': group.__json__(),
+            #'id': group.id,
+            #'name': group.name,
+            #'days': group.days,
+            #'days_str': '-'.join(group.orm.days),
+            #'station': group.orm.dance_hall.station,
+            #'time': group.orm.time,
+            #'start_date': group.start_date,
             'students': students,
             'active_students': filter(lambda s: s['lessons_count'] > 0, students),
             'not_active_students': filter(lambda s: s['lessons_count'] == 0, students),
@@ -1429,7 +1431,7 @@ class GroupView(IndexView):
             } for i in group.calendar],
             'moneys': day_balance,
             'money_total': totals
-        }
+        })
 
         salary = defaultdict(list)
         for i in day_balance:

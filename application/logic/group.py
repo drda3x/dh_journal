@@ -261,7 +261,7 @@ class GroupLogic(object):
                 #     max(buf['balance'] / (teachers), 0),
                 #     1
                 # )
-                buf['date'] = day
+                buf['date'] = day.strftime('%d.%m.%Y')
                 buf['canceled'] = self.canceled_lessons
 
                 total += buf['day_total']
@@ -273,11 +273,11 @@ class GroupLogic(object):
 
                 for t in today_teachers:
                     if t.assistant:
-                        buf['salary'][t] = self.ASSISTANT_SALARY
+                        buf['salary'][t.pk] = self.ASSISTANT_SALARY
                     elif assistants:
-                        buf['salary'][t] = buf['balance'] - self.ASSISTANT_SALARY * assistants
+                        buf['salary'][t.pk] = buf['balance'] - self.ASSISTANT_SALARY * assistants
                     else:
-                        buf['salary'][t] = buf['balance'] / len(today_teachers)
+                        buf['salary'][t.pk] = buf['balance'] / len(today_teachers)
 
             else:
                 buf['day_total'] = ''
@@ -325,7 +325,7 @@ class GroupLogic(object):
         # )
         totals['next_month_balance'] = -1000
         totals['salary'] = dict([
-            (teacher, {"count": 0, "compensation": 0})
+            (int(teacher.pk), {"count": 0, "compensation": 0})
             for teacher in teachers
         ])
 
