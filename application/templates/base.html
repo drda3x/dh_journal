@@ -36,6 +36,37 @@
             app.controller("sideBarCtrl", ["$scope", function($scope) {
                 menuData = {{menu | safe}};
                 $scope.sidebar_menu = processSideBarHeader(menuData);
+                $scope.current_group = parseInt('{{group.id}}');
+
+                $scope.isActive = (function() {
+                    var current_group = '{{group.id}}';
+
+                    return function(elem) {
+                        if (elem.hasOwnProperty('url') && elem.url.match(/[0-9]+/, '') == current_group) {
+                            return true
+                        } else {
+                            return false
+                        }
+                    }
+                })();
+
+                $scope.isHeader = function(elem) {
+                    return elem.type == 'header';
+                }
+
+                $scope.calcClasses = function(elem) {
+                    var classes = [];
+
+                    if ($scope.isHeader(elem)) {
+                        classes.push('nav-header');
+                    }
+
+                    if ($scope.isActive(elem)) {
+                        classes.push('active');
+                    }
+                    
+                    return classes;
+                }
             
                 function processSideBarHeader(menuData) {
                     var result = [];
@@ -46,15 +77,7 @@
 
                         for (var k=0, l=elem.urls.length; k<l; k++) {
                             var urlElem = elem.urls[k];
-
-                            if (urlElem.type == 'header') {
-                                result.concat(processSideBarHeader(urlElem));
-                            } else if (elem.type == 'groups') {
-                                result.push({label: urlElem.dance_hall.station + urlElem.days + urlElem.time, type: 'link'});
-                            } else if (elem.type = 'urls') {
-                                result.push({label: urlElem.label, type: 'link'});
-                            } else {
-                            }
+                            result.push({label: urlElem.label, url: urlElem.url, type: 'link'})
                         }
                     }
 
@@ -102,43 +125,10 @@
                     <div class="row-fluid" ng-controller="sideBarCtrl">
                         <div class="span2 well">
                         <ul class="nav nav-list">
-                            <li class="nav-header" ng-repeat="menu_elem in sidebar_menu track by $index">
-                                {{menu_elem}}
+                            <li ng-class="calcClasses(menu_elem)" ng-repeat="menu_elem in sidebar_menu track by $index">
+                                <span ng-if="isHeader(menu_elem)">{{menu_elem.label}}</span>
+                                <a ng-if="!isHeader(menu_elem)" href="{{menu_elem.url}}">{{menu_elem.label}}</a>
                             </li>
-                           <!-- 
-                            <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
-                            <li class="active"><a href="#">Волгоградский пр-т Пн-Ср 19:00 (Хастл-Начинающие)</a></li>
-                            <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
-                            <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
-                            <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
-                            <li class="divider"></li>
-                            <li class="nav-header">Открытые группы</li>
-                            <li class="nav-header">Начинающие <a href="#" class="inline">скрыть</a></li>
-                            <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
-                            <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
-                            <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
-
-                            <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
-                            <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
-                            <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
-
-                            <li class="divider"></li>
-
-                            <li class="nav-header">Закрытые группы</li>
-                            <li class="nav-header">Начинающие <a href="#" class="inline">показать</a></li>
-                            <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
-                            <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
-                            <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
-
-                            <li class="divider"></li>
-                            <li class="nav-header">Открытые уроки<a href="#" class="inline">показать</a></li>
-
-                            <li class="divider"></li>
-                            <li class="nav-header">Отчеты<a href="#" class="inline">Скрыть</a></li>
-                            <li><a href="#">Клубные карты</a></li>
-                            <li><a href="#">Финансы</a></li>
-                            <li><a href="#">Сампо</a></li>
-                            -->
                         </ul>
                     </div>
                 {% endverbatim %}

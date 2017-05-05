@@ -267,16 +267,26 @@ class BaseView(TemplateView):
 class IndexView(BaseView):
     template_name = 'base.html'
 
-    class Url(object):
+    class Url(dict):
         """
         Класс для создания обыкновенных ссылок на странице
         """
-        def __init__(self, label, url):
-            self.label = label
-            self.url = url
+        def __init__(self, *args):
 
-        def __json__(self):
-            return self.__dict__
+            if len(args) == 1:
+                if isinstance(args[0], Groups):
+                    group_repr = args[0].__json__()
+                    self['label'] = '%s %s %s %s' % (
+                        group_repr['dance_hall']['station'],
+                        group_repr['days'],
+                        group_repr['time'],
+                        group_repr['name']
+                    )
+
+                    self['url'] = 'group?id=%d' % group_repr['id']
+
+            else:
+                self['label'], self['url'] = args
 
     def get(self, *args, **kwargs):
         user = self.request.user
@@ -319,9 +329,8 @@ class IndexView(BaseView):
                 'label':u'Мои группы',
                 'depth': str(depth),
                 'hideable': False,
-                'type': 'groups',
                 'urls': [
-                    g.__json__() for g in groups.filter(teachers=user)
+                    self.Url(g) for g in groups.filter(teachers=user)
                 ]
             })
 
@@ -330,10 +339,8 @@ class IndexView(BaseView):
                 'label': u'Замены',
                 'depth': str(depth),
                 'hideable': True,
-                'type': 'groups',
                 'urls': [
-                    g.__json__()
-                    for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
+                    self.Url(g) for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
                 ]
             })
 
@@ -343,7 +350,6 @@ class IndexView(BaseView):
                 'label': u'Остальные группы',
                 'depth': str(depth),
                 'hideable': False,
-                'type': 'header',
                 'urls': [
                     {
                         'label': level.name,
@@ -351,7 +357,7 @@ class IndexView(BaseView):
                         'depth': '%d_%d' % (depth, level_depth),
                         'type': 'groups',
                         'urls': [
-                            g.__json__() for g in groups.filter(level=level).exclude(teachers=user)
+                            self.Url(g) for g in groups.filter(level=level).exclude(teachers=user)
                         ]
                     } for level_depth, level in enumerate(GroupLevels.objects.all())
                 ]
@@ -375,7 +381,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'type': 'groups',
-                'urls': [g.__json__() for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
+                'urls': [self.Url(g) for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
             depth += 1
@@ -384,7 +390,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'type': 'urls',
-                'urls': [self.Url(u'Финансовый отчет', 'finance').__json__()]
+                'urls': [self.Url(u'Финансовый отчет', 'finance')]
             })
 
         # Меню для других преподов
@@ -396,7 +402,7 @@ class IndexView(BaseView):
                 'hideable': False,
                 'type': 'groups',
                 'urls': [
-                    g.__json__() for g in Groups.opened.filter(teachers=user)
+                    self.Url(g) for g in Groups.opened.filter(teachers=user)
                 ]
             })
 
@@ -407,20 +413,19 @@ class IndexView(BaseView):
                 'hideable': True,
                 'type': 'groups',
                 'urls': [
-                    g.__json__()
-                    for g in Groups.objects.filter(pk__in=substitutions_qs).exclude(teachers=user)
+                    self.Url(g) for g in Groups.objects.filter(pk__in=substitutions_qs).exclude(teachers=user)
                 ]
             })
 
             #Мастер-классы
-            depth += 1
-            menu.append({
-                'label': u'Мастер-классы',
-                'depth': str(depth),
-                'hideable': True,
-                'type': 'groups',
-                'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')]
-            })
+            #depth += 1
+            #menu.append({
+            #    'label': u'Мастер-классы',
+            #    'depth': str(depth),
+            #    'hideable': True,
+            #    'type': 'groups',
+            #    'urls': [b.__json__() for b in BonusClasses.objects.select_related().filter(teachers=user).order_by('-date')]
+            #})
 
             #Закрытые группы
             depth += 1
@@ -429,7 +434,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'type': 'groups',
-                'urls': [g.__json__() for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history').__json__()]
+                'urls': [self.Url(g) for g in Groups.closed.filter(teachers=user).order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
         #Общеклубное меню
@@ -439,7 +444,7 @@ class IndexView(BaseView):
             'depth': str(depth),
             'hideable': False,
             'type': 'urls',
-            'urls': map(lambda x: x.__json__(), [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')])
+            'urls': [self.Url(u'Клубные карты', 'clubcards'), self.Url(u'САМПО', 'sampo')]
         })
 
         context['menu'] = json.dumps(menu)
@@ -1258,7 +1263,7 @@ class PrintView(BaseView):
         return context
 
 
-class GroupView(BaseView):
+class GroupView(IndexView):
     template_name = 'group_detail.html'
 
     def rest_process_subst(self, *args, **kwargs):
@@ -1431,6 +1436,7 @@ class GroupView(BaseView):
             for k, v in i['salary'].iteritems():
                 salary[k].append(v)
 
+        context['group'] = self.group
         context['salary'] = salary.items()
 
         context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
