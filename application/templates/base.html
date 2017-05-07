@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{%load verbatim%}
 <html ng-app="DynamicTeacherApp">
     <head>
         <title>{% block title %}{% endblock %}</title>
@@ -32,6 +33,11 @@
             });
             
             var app = angular.module('DynamicTeacherApp', []);
+            
+            app.controller("sideBarCtrl", ["$scope", function($scope) {
+                $scope.abc = 'Hello world';
+            }]);
+
         </script>
         {% block head %}
             {% block style%}
@@ -53,58 +59,63 @@
                         <span class="icon-bar"></span>
                         </a>
                         <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
-                        <div class="nav-collapse collapse">
-                            <div class="pull-right dropdown header-right" style="position: relative">
-                            <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">Василий Нестеров<b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="profile?uid=-100" id="userProfile" tabindex="-1">Профиль</a></li>
-                                <li><a href="logout" tabindex="-1">Выход</a></li>
-                            </ul>
+                        {% if user.id %}
+                            <div class="nav-collapse collapse">
+                                <div class="pull-right dropdown header-right" style="position: relative">
+                                    <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{user.last_name}} {{user.first_name}}<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="profile?uid=-100" id="userProfile" tabindex="-1">Профиль</a></li>
+                                    <li><a href="logout" tabindex="-1">Выход</a></li>
+                                </ul>
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 </div>
             </div>
             {% if user.id != None %}            
-            <div class="row-fluid">
-                 <div class="span2 well">
-                <ul class="nav nav-list">
-                    <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
-                    <li class="active"><a href="#">Волгоградский пр-т Пн-Ср 19:00 (Хастл-Начинающие)</a></li>
-                    <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
-                    <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
-                    <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
-                    <li class="divider"></li>
-                    <li class="nav-header">Открытые группы</li>
-                    <li class="nav-header">Начинающие <a href="#" class="inline">скрыть</a></li>
-                    <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
-                    <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
-                    <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
+                {% verbatim %}
+                    <div class="row-fluid" ng-controller="sideBarCtrl">
+                        {{abc}}
+                        <div class="span2 well">
+                        <ul class="nav nav-list">
+                            <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
+                            <li class="active"><a href="#">Волгоградский пр-т Пн-Ср 19:00 (Хастл-Начинающие)</a></li>
+                            <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
+                            <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
+                            <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
+                            <li class="divider"></li>
+                            <li class="nav-header">Открытые группы</li>
+                            <li class="nav-header">Начинающие <a href="#" class="inline">скрыть</a></li>
+                            <li><a href="#">Волгоградский пр-т Пн-Ср 20:30 (Хастл-Продолжающие)</a></li>
+                            <li><a href="#">Шаболовская Вт-Чт 19:00 (ДнД beginner)</a></li>
+                            <li><a href="#">Шаболовская Вт-Чт 20:30 (ДнД main)</a></li>
 
-                    <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
-                    <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
-                    <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
 
-                    <li class="divider"></li>
+                            <li class="divider"></li>
 
-                    <li class="nav-header">Закрытые группы</li>
-                    <li class="nav-header">Начинающие <a href="#" class="inline">показать</a></li>
-                    <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
-                    <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
-                    <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Закрытые группы</li>
+                            <li class="nav-header">Начинающие <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Продолжающие <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Конкурсные <a href="#" class="inline">показать</a></li>
+                            <li class="nav-header">Без уровня <a href="#" class="inline">показать</a></li>
 
-                    <li class="divider"></li>
-                    <li class="nav-header">Открытые уроки<a href="#" class="inline">показать</a></li>
+                            <li class="divider"></li>
+                            <li class="nav-header">Открытые уроки<a href="#" class="inline">показать</a></li>
 
-                    <li class="divider"></li>
-                    <li class="nav-header">Отчеты<a href="#" class="inline">Скрыть</a></li>
-                    <li><a href="#">Клубные карты</a></li>
-                    <li><a href="#">Финансы</a></li>
-                    <li><a href="#">Сампо</a></li>
+                            <li class="divider"></li>
+                            <li class="nav-header">Отчеты<a href="#" class="inline">Скрыть</a></li>
+                            <li><a href="#">Клубные карты</a></li>
+                            <li><a href="#">Финансы</a></li>
+                            <li><a href="#">Сампо</a></li>
 
-                </ul>
-            </div>
+                        </ul>
+                    </div>
+                {% endverbatim %}
             {%endif%}
                 {% block content %}
                 {% endblock %}

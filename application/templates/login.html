@@ -7,14 +7,14 @@
 {% block content %}
 
     <div class="container">
-
-        {% if login_failed %}
-            <p class="text-error">Неверное имя пользователя или пароль</p>
-        {% endif %}
-
-        <form method='post' class="form-signin well">
-            {% csrf_token %}
+        <form method='post' class="form-signin well" action="">
             <h4 class="form-signin-heading">Вход в систему</h4>
+
+            {% if login_failed %}
+                <p class="text-error">Неверное имя пользователя или пароль</p>
+            {% endif %}
+
+            {% csrf_token %}
             <input id="username" name="username" type="text" placeholder="username or e-mail" class="input-block-level">
             <input id="password" name="password" type="password" placeholder="password" class="input-block-level">
             <input type="submit" class="btn btn-large btn-primary" value="Войти в систему" />
