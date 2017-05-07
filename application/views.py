@@ -1556,7 +1556,8 @@ class AdminCallsView(BaseView):
                 'answer': {
                     'type': _issue.responce_type,
                     'userMessage': _issue.message.text,
-                    'val': _issue.message.text
+                    'val': _issue.message.text,
+                    'date': _issue.date.strftime('%d.%m.%Y')
                 },
                 'group_pass': {
                     'id': group_pass.pk if group_pass else None
@@ -1673,9 +1674,14 @@ class AdminCallsView(BaseView):
         result = []
         _filter = []
 
+        _f = Q()
+
+        for _g in groups:
+            _f |= Q(group=_g, date=_g.get_calendar(-2, date)[-1])
+
         na_lessons = Lessons.objects.filter(
+            _f,
             status=Lessons.STATUSES['not_attended'],
-            date__in=groups_last_lessons,
             group_pass__lessons__gt=0
         ).order_by('-date')
 
@@ -1755,6 +1761,12 @@ class AdminCallsView(BaseView):
             lesson_wrapper(lesson['group'], lesson['student'])
             for lesson in Lessons.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
             if lesson['max_date'] in borders[int(lesson['group'])]
+                and not Debts.objects.filter(student_id=lesson['student'], group_id=lesson['group'], date__gt=lesson['max_date']).exists()
+        ] + [
+            lesson_wrapper(debt['group'], debt['student'])
+            for debt in Debts.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            if debt['max_date'] in borders[int(debt['group'])]
+                and not Lessons.objects.filter(student_id=debt['student'], group_id=debt['group'], date__gt=debt['max_date']).exists()
         ]
 
         return lessons

@@ -214,7 +214,7 @@
                     <td ng-mouseenter="showClearFunc(rec)" ng-mouseleave="hideClearFunc(rec)">
                         <select ng-hide="checkIfHasAnswer(rec)" ng-options="res.name for res in callResultOptions" ng-model="rec.callResult" ng-change="getReaction(rec)"></select>
                         <div ng-show="checkIfHasAnswer(rec)">
-                            {{rec.answer.userMessage}} 
+                            <div class="text-info" style="font-size: 10pt; font-weight: bold;"> {{rec.answer.date}} </div> {{rec.answer.userMessage}} 
                             <a ng-show="rec.showClearFuncVal" class="text-error" style="margin-left: 20px; font-size: 12pt; font-weight: bold;" href="" ng-click="clear(rec)">X</a>
                         </div>
                     </td>
