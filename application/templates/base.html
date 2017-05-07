@@ -66,7 +66,7 @@
                 </div>
                 </div>
             </div>
-            
+            {% if user.id != None %}            
             <div class="row-fluid">
                  <div class="span2 well">
                 <ul class="nav nav-list">
@@ -105,6 +105,7 @@
 
                 </ul>
             </div>
+            {%endif%}
                 {% block content %}
                 {% endblock %}
             </div>

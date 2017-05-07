@@ -219,6 +219,7 @@ class BaseView(TemplateView):
     """
 
     abstract = True
+    user = None
 
     def get_authenticated_user(self, request):
 
@@ -237,7 +238,7 @@ class BaseView(TemplateView):
 
         if user:
             self.request = request
-            self.request.user = user
+            self.request.user = self.user = user
             return super(BaseView, self).dispatch(request, *args, **kwargs)
 
         else:
