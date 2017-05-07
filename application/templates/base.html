@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{%load verbatim%}
 <html ng-app="DynamicTeacherApp">
     <head>
         <title>{% block title %}{% endblock %}</title>
@@ -35,7 +34,7 @@
             var app = angular.module('DynamicTeacherApp', []);
             
             app.controller("sideBarCtrl", ["$scope", function($scope) {
-                $scope.abc = 'Hello world';
+                $scope.abc = '{{menu | safe}}';
             }]);
 
         </script>
@@ -76,8 +75,8 @@
             </div>
             {% if user.id != None %}            
                 {% verbatim %}
+                    {{abc}}
                     <div class="row-fluid" ng-controller="sideBarCtrl">
-                        {{abc}}
                         <div class="span2 well">
                         <ul class="nav nav-list">
                             <li class="nav-header">Мои группы <a href="#" class="inline">cкрыть меню</a> </li>
