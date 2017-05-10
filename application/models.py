@@ -19,7 +19,7 @@ calendar = calendar_origin.Calendar()
 class User(UserOrigin):
 
     def __unicode__(self):
-        return '%s %s' % (self.last_name, self.first_name)
+        return u'%s %s' % (self.last_name, self.first_name)
 
     objects = UserManager
     teacher = models.BooleanField(verbose_name=u'Преподаватель', default=False)
@@ -47,6 +47,9 @@ class User(UserOrigin):
             photo=self.photo.url,
             video=self.video
         )
+
+    def __repr__(self):
+        return self.__unicode__()
 
     class Meta:
         app_label = u'application'
@@ -564,6 +567,22 @@ class Comments(models.Model):
     group = models.ForeignKey(Groups, null=True, blank=True)
     bonus_class = models.ForeignKey(BonusClasses, null=True, blank=True)
     text = models.TextField(max_length=100, verbose_name=u'Текст коментария')
+
+    def __json__(self, values=None):
+        result = dict(
+            add_date=self.add_date.strftime('%d.%m.%Y %H:%M:%S'),
+            student=self.student.__json__(),
+            group=self.group.__json__() if self.group else None,
+            bonus_class=self.bonus_class.__json__() if self.bonus_class else None,
+            text=self.text
+        )
+
+        if values is not None:
+            return dict(
+                (k,v) for k, v in result if k in values
+            )
+        else:
+            return result
 
     class Meta:
         app_label = u'application'

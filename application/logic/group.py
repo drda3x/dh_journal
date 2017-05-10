@@ -267,18 +267,18 @@ class GroupLogic(object):
                 total += buf['day_total']
                 total_rent += buf['dance_hall']
 
-                buf['salary'] = dict.fromkeys(teachers, 0)
+                buf['salary'] = dict.fromkeys(map(str, teachers), 0)
                 today_teachers = self.substitutions[day]
                 assistants = len(filter(lambda x: x.assistant, today_teachers))
 
                 for t in today_teachers:
+                    key = t
                     if t.assistant:
-                        buf['salary'][t.pk] = self.ASSISTANT_SALARY
+                        buf['salary'][str(key)] = self.ASSISTANT_SALARY
                     elif assistants:
-                        buf['salary'][t.pk] = buf['balance'] - self.ASSISTANT_SALARY * assistants
+                        buf['salary'][str(key)] = buf['balance'] - self.ASSISTANT_SALARY * assistants
                     else:
-                        buf['salary'][t.pk] = buf['balance'] / len(today_teachers)
-
+                        buf['salary'][str(key)] = buf['balance'] / len(today_teachers)
             else:
                 buf['day_total'] = ''
                 buf['open_lesson'] = ''
@@ -288,7 +288,7 @@ class GroupLogic(object):
                 buf['half_balance'] = ''
                 buf['date'] = ''
                 buf['canceled'] = self.canceled_lessons
-                buf['salary'] = dict.fromkeys(teachers, '')
+                buf['salary'] = dict.fromkeys(map(str, teachers), '')
 
             saldo.append(buf)
 
@@ -325,13 +325,13 @@ class GroupLogic(object):
         # )
         totals['next_month_balance'] = -1000
         totals['salary'] = dict([
-            (int(teacher.pk), {"count": 0, "compensation": 0})
+            (str(teacher), {"count": 0, "compensation": 0})
             for teacher in teachers
         ])
 
         for i in (_i for _i in saldo if type(_i['day_total']) != str ):
             for k in totals['salary'].iterkeys():
-                totals['salary'][k]['count'] += i['salary'][k]
+                totals['salary'][str(k)]['count'] += i['salary'][str(k)]
 
         try:
             if sorted(set(self.calendar) - set(self.canceled_lessons))[-1] <= self.orm.last_lesson:
@@ -349,7 +349,7 @@ class GroupLogic(object):
                 for teacher, salary in totals['salary'].iteritems():
                     compensation_value = min_month_salary - salary['count']
                     if compensation_value > 0 and teacher in compensation_to:
-                        totals['salary'][teacher]['compensation'] = compensation_value
+                        totals['salary'][str(teacher)]['compensation'] = compensation_value
 
         except IndexError:
             pass

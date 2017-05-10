@@ -1380,17 +1380,16 @@ class GroupView(IndexView):
             )
         }
 
-        import pudb; pudb.set_trace()  # XXX BREAKPOINT
         day_balance, totals = group.calc_money()
         _request_date = request_date.date() if request_date else None
         students = [
             {
-                'person': s['student'],
+                'person': s['student'].__json__(),
                 'is_newbie': s['student'].pk in group.newbies,
                 'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
                 'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
-                'last_comment': s['last_comment'],
+                'last_comment': s['last_comment'].__json__() if s['last_comment'] else None,
                 'lessons_count': len([
                     l for l in s['lessons'] if l is not None or (_request_date or group.orm.start_date) >= now.date()
                 ])
@@ -1419,7 +1418,7 @@ class GroupView(IndexView):
             'students': students,
             'active_students': filter(lambda s: s['lessons_count'] > 0, students),
             'not_active_students': filter(lambda s: s['lessons_count'] == 0, students),
-            'last_lesson': group.last_lesson,
+            'last_lesson': group.last_lesson.strftime('%d.%m.%Y'),
             'calendar': [{
                 'date': i.strftime('%d.%m.%Y'),
                 'canceled': i in group.canceled_lessons,
@@ -1430,8 +1429,10 @@ class GroupView(IndexView):
                      else None
             } for i in group.calendar],
             'moneys': day_balance,
-            'money_total': totals
+            #'money_total': totals
         })
+
+        print context['group_detail']
 
         salary = defaultdict(list)
         for i in day_balance:
