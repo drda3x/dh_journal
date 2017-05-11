@@ -42,6 +42,38 @@
                         return 'profitnormal';
                     }
                 };
+
+                $scope.salary = (function(data) {
+                    var _buf = [];
+
+                    function findList(name) {
+                        for(var i=0, j=_buf.length; i<j; i++) {
+                            if(_buf[i][0] == name) {
+                                return _buf[i];
+                            }
+                        }
+
+                        return null;
+                    }
+                    
+                    for(var i=0, j=data.moneys.length; i<j; i++) {
+                        var rec = data.moneys[i];
+                    
+                        var teachers = Object.keys(rec.salary);
+                        for(var k=0, m=teachers.length; k<m; k++) {
+                            var salList = findList(teachers[k]),
+                                _teacher = teachers[k];
+                            if(!salList) {
+                                _buf.push([_teacher, rec.salary[_teacher]]);
+                            } else {
+                                salList.push(rec.salary[_teacher]);
+                            }
+                        }
+                    }
+
+                    return _buf
+
+                })($scope.data);
                 
                 $scope.column = null;
                 $scope.columnClick = function(index) {
@@ -76,7 +108,7 @@
     <div class="span10 well" ng-controller="GroupCtrl">
         <div class="row-fulid">
             <div ng-class="{span4: column!=null}" >
-                <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null)">
+                <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
                     <tr>
                         <th>Фамилия Имя</th>
                         <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
@@ -92,6 +124,25 @@
                             <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
                             <input type="checkbox" ng-show="column!=null && lesson.pass" />
                         </td>
+                    </tr>
+                    <tr ng-mouseover="rowIndexCache(null)">
+                        <td style="border-top: 3px solid"><strong>Всего за день</strong></td>
+                        <td ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}" style="border-top: 3px solid" ng-repeat="money_rec in data.moneys">{{money_rec.day_total}}</td>
+                    </tr>
+                    <tr ng-mouseover="rowIndexCache(null)">
+                        <td><strong>Аренда зала</strong></td>
+                        <td ng-repeat="money_rec in data.moneys" ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}">{{money_rec.dance_hall}}</td>
+                    </tr>
+                    <tr ng-mouseover="rowIndexCache(null)">
+                        <td><strong>% клуба</strong></td>
+                        <td ng-repeat="money_rec in data.moneys" ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}">{{money_rec.club}}</td>
+                    </tr>
+                    <tr ng-mouseover="rowIndexCache(null)">
+                        <td><strong>Итого</strong></td>
+                        <td ng-repeat="money_rec in data.moneys" ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}">{{money_rec.balance}}</td>
+                    </tr>
+                    <tr ng-repeat="sal in salary">
+                        <td ng-repeat="val in sal track by $index" ng-class="{highlight: !column && (hoveredColumn==$index-1 || hoveredRow==rowIndex)}">{{val}}</td>
                     </tr>
                 </table>
             </div>

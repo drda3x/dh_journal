@@ -406,3 +406,9 @@ html, body {
 /*.canceled {*/
     /*background-color: #979997 !important;*/
 /*}*/
+
+.day-buttons button {
+    display: block;
+    width: 100%;
+    margin: 7px 0;
+}
