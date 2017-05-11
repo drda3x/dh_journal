@@ -11,6 +11,11 @@
          .profitnormal {
          background-color: #9aceeb !important;
          }
+
+         {% for typ in passes_color_classes%}
+             .{{typ.name}} { background-color: {{typ.val}}; }
+         {% endfor %}
+
     </style>
 
     <script type="text/javascript" src="/static/js/matrix.js"></script>
@@ -18,6 +23,54 @@
 {% endblock %}
 {% block script %}
     <script type="text/javascript" src="../static/js/group_detail.js"></script>
+
+    <script type="text/javascript">
+
+        (function() {
+            "use strict";
+
+            app.controller("GroupCtrl", ["$scope", function($scope) {
+                $scope.dates = [
+                    {date: '04.03.2017', profit: 0 },
+                    {date: '05.03.2017', profit: 1 },
+                    {date: '11.03.2017', profit: -1},
+                    {date: '12.03.2017', profit: 0 },
+                    {date: '18.03.2017', profit: 1 },
+                    {date: '19.03.2017', profit: 0 },
+                    {date: '25.03.2017', profit: -1},
+                    {date: '26.03.2017', profit: 0 }           
+                ];
+
+                $scope.data = {{group_detail | safe}};
+
+                $scope.getProfit = function(val) {
+                    if(val < 0) {
+                        return 'profitbad';
+                    } else if(val > 0) {
+                        return 'profitgood';
+                    } else {
+                        return 'profitnormal';
+                    }
+                };
+                
+                $scope.column = null;
+                $scope.columnClick = function(index) {
+                    if ($scope.row == null) {
+                        $scope.column = index;
+                    }
+                }
+
+                $scope.row = null;
+                $scope.rowClick = function(index) {
+                    if ($scope.column == null) {
+                        $scope.row = index;
+                    }
+                }
+
+                $scope.abc = 112211
+            }]); 
+        })();
+    </script>
 {% endblock %}
 {% block content %}
             {% verbatim %}
@@ -25,11 +78,11 @@
         <table class="table table-bordered region">
             <tr>
                 <th>Фамилия Имя</th>
-                <th ng-repeat="date in dates" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date.profit)">{{date.date}}</th>
+                <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
             </tr>
-            <tr ng-repeat="student in students" ng-show="row == null || row == $index">
-                <td ng-dblclick="rowClick($index)">{{student.name}}</td>
-                <td ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-repeat="lesson in student.lessons track by $index">{{lesson}}</td>
+            <tr ng-repeat="student in data.students" ng-show="row == null || row == $index">
+                <td ng-dblclick="rowClick($index)">{{student.person.last_name}} {{student.person.first_name}}</td>
+                <td ng-click="columnClick($index)" ng-show="column == null || column==$index" class="{{lesson.color}}" ng-repeat="lesson in student.calendar track by $index">{{lesson.sign}}</td>
             </tr>
         </table>
     </div>
