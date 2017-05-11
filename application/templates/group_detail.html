@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block style%}
+    <link rel="stylesheet" href="/static/css/group_detail.css">
     <style>
         .profitgood {
          background-color: #33ff99 !important;
@@ -30,17 +31,6 @@
             "use strict";
 
             app.controller("GroupCtrl", ["$scope", function($scope) {
-                $scope.dates = [
-                    {date: '04.03.2017', profit: 0 },
-                    {date: '05.03.2017', profit: 1 },
-                    {date: '11.03.2017', profit: -1},
-                    {date: '12.03.2017', profit: 0 },
-                    {date: '18.03.2017', profit: 1 },
-                    {date: '19.03.2017', profit: 0 },
-                    {date: '25.03.2017', profit: -1},
-                    {date: '26.03.2017', profit: 0 }           
-                ];
-
                 $scope.data = {{group_detail | safe}};
 
                 $scope.getProfit = function(val) {
@@ -60,6 +50,16 @@
                     }
                 }
 
+                $scope.hoveredColumn = null;
+                $scope.columnIndexCache = function(index) {
+                    $scope.hoveredColumn = index;
+                }
+
+                $scope.hoveredRow = null;
+                $scope.rowIndexCache = function(index) {
+                    $scope.hoveredRow = index;
+                }
+
                 $scope.row = null;
                 $scope.rowClick = function(index) {
                     if ($scope.column == null) {
@@ -67,7 +67,6 @@
                     }
                 }
 
-                $scope.abc = 112211
             }]); 
         })();
     </script>
@@ -75,16 +74,47 @@
 {% block content %}
             {% verbatim %}
     <div class="span10 well" ng-controller="GroupCtrl">
-        <table class="table table-bordered region">
-            <tr>
-                <th>Фамилия Имя</th>
-                <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
-            </tr>
-            <tr ng-repeat="student in data.students" ng-show="row == null || row == $index">
-                <td ng-dblclick="rowClick($index)">{{student.person.last_name}} {{student.person.first_name}}</td>
-                <td ng-click="columnClick($index)" ng-show="column == null || column==$index" class="{{lesson.color}}" ng-repeat="lesson in student.calendar track by $index">{{lesson.sign}}</td>
-            </tr>
-        </table>
+        <div class="row-fulid">
+            <div ng-class="{span4: column!=null}" >
+                <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null)">
+                    <tr>
+                        <th>Фамилия Имя</th>
+                        <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
+                    </tr>
+                    <tr ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
+                        <td ng-dblclick="rowClick($index)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
+                        <td ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
+                            ng-mouseover="columnIndexCache($index)" 
+                            ng-click="columnClick($index)" 
+                            ng-show="column == null || column==$index" class="{{lesson.color}}" 
+                            ng-repeat="lesson in student.calendar track by $index">
+                            <strong ng-show="column==null">{{lesson.sign}}</strong>
+                            <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
+                            <input type="checkbox" ng-show="column!=null && lesson.pass" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="span6" ng-show="column!=null">
+                <div class="row-fulid day-buttons">
+                  <div class="span7">
+                  <button class="btn btn-danger">Отменить занятие</button>
+                  <button class="btn btn-primary" ng-click="columnClick(null)">Вернуться к ведомости</button>
+                  </div>
+                </div>
+                <div class="row-fulid day-buttons">
+                  <div class="span7">
+                    <button class="btn btn-success">Сохранить и проставить пропуски</button>
+                    <button class="btn btn-primary">Сохранить без пропусков</button>
+                  </div>
+                </div>
+                <div class="row-fulid day-buttons">
+                  <div class="span7">
+                    <button class="btn btn-danger">Удалить все отметки</button>
+                  </div>
+                </div>
+            </div>
+        </div>
     </div>
             {% endverbatim %}
 {% endblock %}

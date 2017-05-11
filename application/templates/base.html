@@ -42,7 +42,7 @@
                     var current_group = '{{group.id}}';
 
                     return function(elem) {
-                        if (elem.hasOwnProperty('url') && elem.url.match(/[0-9]+/, '') == current_group) {
+                        if (elem.hasOwnProperty('url') && elem.url != undefined && elem.url.match(/[0-9]+/, '') == current_group) {
                             return true
                         } else {
                             return false
