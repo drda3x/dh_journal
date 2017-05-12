@@ -104,6 +104,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = '/home/nesterov/My_projects/dancehustle/static'
+
 # FIXTURE_DIRS = '/fixtures/'
 
 # LOGGING = {

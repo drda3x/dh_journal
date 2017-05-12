@@ -396,6 +396,7 @@ class Groups(models.Model):
             time=self.time_repr,
             teacher_leader=self.teacher_leader.__json__() if self.teacher_leader else {},
             teacher_follower=self.teacher_follower.__json__() if self.teacher_follower else {},
+            teachers=[t.__json__() for t in self.teachers.all()],
             is_opened=self.is_opened,
             is_settable=self.is_settable,
             days= '-'.join(self.days),

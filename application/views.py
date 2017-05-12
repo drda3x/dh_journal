@@ -283,7 +283,7 @@ class IndexView(BaseView):
                         group_repr['name']
                     )
 
-                    self['url'] = 'group?id=%d' % group_repr['id']
+                    self['url'] = 'group/%d' % group_repr['id']
 
             else:
                 self['label'], self['url'] = args
@@ -448,6 +448,9 @@ class IndexView(BaseView):
         })
 
         context['menu'] = json.dumps(menu)
+
+        #TODO надо проверить, что с доменом тоже будет работать
+        context['host'] = self.request.get_host()
 
         return context
 
@@ -1347,14 +1350,13 @@ class GroupView(IndexView):
             return elem
 
         now = datetime.datetime.now()
-        date_format = '%d%m%Y'
+        date_format = '%m%Y'
+        _, group_id, request_date = (self.request.path.split('/')[1:] + [None] * 3)[:3]
 
-        try:
-            request_date = datetime.datetime.strptime(self.request.GET['date'], date_format)
-        except KeyError:
-            request_date = None
+        if request_date:
+            request_date = datetime.datetime.strptime(request_date, date_format)
 
-        self.group = group = GroupLogic(int(self.request.GET['id']), request_date)
+        self.group = group = GroupLogic(int(group_id), request_date)
 
         forward_month = (get_last_day_of_month(now) + datetime.timedelta(days=1)).date()
         if group.last_lesson_ever:
@@ -1366,19 +1368,19 @@ class GroupView(IndexView):
         context['passes_color_classes'] = [
             dict(name=n, val=v) for n, v in get_color_classes()
         ]
-        context['control_data'] = {
+        context['control_data'] = json.dumps({
             'constant': {
                 'current_date_str': '%s %d' % (MONTH_RUS[group.date_1.month], group.date_1.year),
                 'current_date_numval': group.date_1.strftime(date_format)
             },
             'date_control': map(
-                lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': d.strftime(date_format)},
+                lambda d: {'name': '%s %d' % (MONTH_RUS[d.month], d.year), 'val': "%s/%s" % (group_id, d.strftime(date_format))},
                 filter(
                     lambda x1: x1 >= border,
                     map(lambda x: get_month_offset(forward_month, x), xrange(0, 8))
                 )
             )
-        }
+        })
 
         day_balance, totals = group.calc_money()
         _request_date = request_date.date() if request_date else None
