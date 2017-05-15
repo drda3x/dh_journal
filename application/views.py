@@ -1391,7 +1391,7 @@ class GroupView(IndexView):
                 'calendar': map(self.get_detail_repr, s['lessons']),  #get_student_calendar(s, group, date_from, dates_count, '%d.%m.%Y'),
                 'debt': len(s['debts']) > 0,
                 'pass_remaining': s['pass_remaining'],
-                'last_comment': s['last_comment'].__json__() if s['last_comment'] else None,
+                'comments': map(lambda x: x.__json__(), s['comments'] if s['comments'] else []),
                 'lessons_count': len([
                     l for l in s['lessons'] if l is not None or (_request_date or group.orm.start_date) >= now.date()
                 ])

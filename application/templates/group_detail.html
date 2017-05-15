@@ -108,10 +108,45 @@
                 }
 
                 $scope.row = null;
-                $scope.rowClick = function(index) {
+                $scope.selected_student = null;
+
+                $scope.rowClick = function(index, student_rec) {
+                    $scope.new_comment = null;
+
                     if ($scope.column == null) {
                         $scope.row = index;
-                    }
+                        
+                        if($scope.row == null) {
+                            return;
+                        }
+
+                        $scope.selected_student = student_rec
+                        $scope.selected_student = {
+                            first_name: student_rec.person.first_name,
+                            last_name: student_rec.person.last_name,
+                            phone: student_rec.person.phone,
+                            org: student_rec.person.org,
+                            comments: student_rec.comments
+                        }
+
+                        $scope.saveStudent = function() {
+                            student_rec.person.first_name = $scope.selected_student.first_name;
+                            student_rec.person.last_name = $scope.selected_student.last_name;
+                            student_rec.person.phone = $scope.selected_student.phone;
+                            student_rec.person.org = $scope.selected_student.org;
+                        }
+
+                        $scope.saveComment = function() {
+                            student_rec.comments.push({
+                                add_date: moment().format("DD.MM.YYYY h:mm:ss"),
+                                text: $scope.new_comment
+                            });
+
+                            $scope.selected_student.comments = student_rec.comments;
+                            $scope.new_comment = null;
+                        }
+
+                    } 
                 }
 
             }]); 
@@ -148,8 +183,8 @@
                         <th>Фамилия Имя</th>
                         <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
                     </tr>
-                    <tr ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
-                        <td ng-dblclick="rowClick($index)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
+                    <tr ng-show="row==null || $index==row" ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
+                        <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
                         <td ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
                             ng-click="columnClick($index)" 
@@ -160,35 +195,35 @@
                             <input type="checkbox" ng-model="lesson.attended" ng-show="column!=null && lesson.pass" />
                         </td>
                     </tr>
-                    <tr ng-mouseover="rowIndexCache(null)">
+                    <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null" >
                         <td ng-mouseover="columnIndexCache(null)" style="border-top: 3px solid"><strong>Всего за день</strong></td>
                         <td ng-class="{highlight: !column && hoveredColumn==$index}" 
                             style="border-top: 3px solid" 
                             ng-repeat="money_rec in data.moneys"
                             ng-show="column == null || column==$index">{{money_rec.day_total}}</td>
                     </tr>
-                    <tr ng-mouseover="rowIndexCache(null)">
+                    <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null">
                         <td ng-mouseover="columnIndexCache(null)"><strong>Аренда зала</strong></td>
                         <td ng-mouseover="columnIndexCache($index)" 
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
                             ng-show="column == null || column==$index">{{money_rec.dance_hall}}</td>
                     </tr>
-                    <tr ng-mouseover="rowIndexCache(null)">
+                    <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null">
                         <td ng-mouseover="columnIndexCache(null)"><strong>% клуба</strong></td>
                         <td ng-mouseover="columnIndexCache($index)"  
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
                             ng-show="column == null || column==$index">{{money_rec.club}}</td>
                     </tr>
-                    <tr ng-mouseover="rowIndexCache(null)">
+                    <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null">
                         <td ng-mouseover="columnIndexCache(null)"><strong>Итого</strong></td>
                         <td ng-mouseover="columnIndexCache($index)"  
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
                             ng-show="column == null || column==$index">{{money_rec.balance}}</td>
                     </tr>
-                    <tr ng-repeat="sal in salary">
+                    <tr ng-repeat="sal in salary" ng-show="row==null">
                         <td ng-mouseover="columnIndexCache((($index > 0) ? $index-1:null))" 
                             ng-repeat="val in sal track by $index" 
                             ng-class="[{highlight: !column && hoveredColumn==$index-1 && $index>0}, {textstrong: $index==0}]"
@@ -216,6 +251,35 @@
                 </div>
             </div>
         </div>
+            <div class="row-fulid" ng-show="row!=null">
+               <div class="span3">
+                   <form action="">
+                       <fieldset>
+                            <legend>Редактирование</legend>
+                           <input ng-model="selected_student.last_name" type="text" placeholder="Фамилия">
+                           <input ng-model="selected_student.first_name" type="text" placeholder="Имя">
+                           <input ng-model="selected_student.phone" type="text" placeholder="Телефон">
+                           <label for="" class="checkbox">
+                               ОРГ
+                               <input ng-model="selectes_student.org" type="checkbox">
+                           </label>
+                       </fieldset>
+                   </form>
+                   
+                  <button class="btn btn-primary" ng-click="saveStudent()">Сохранить</button>
+                  <button class="btn btn-danger" ng-click="rowClick(null)">Отмена</button>
+               </div>
+               <div class="span6 offset1">
+                   <legend>Коментарии</legend>
+                   <div ng-show="selected_student.comments.length > 0" class="region coment-main">
+                       <div class="coment row-fulid" ng-repeat="comment in selected_student.comments"><div class="text-info" style="font-weight: bold;">{{comment.add_date}}</div>{{comment.text}}</div>
+                   </div>
+                   <textarea class="span12 coment-add" id="" name="" cols="50" rows="3" style="resize: none;" placeholder="Введите коментарий" ng-model="new_comment"></textarea>
+                  <button class="btn btn-primary" ng-click="saveComment()">Сохранить</button>
+                  <button class="btn btn-danger" ng-click="rowClick(null)">Отмена</button>
+               </div>
+           </div>
+        <div class="row"></div>
     </div>
             {% endverbatim %}
 {% endblock %}

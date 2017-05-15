@@ -209,7 +209,7 @@ class GroupLogic(object):
                     debts = debts,
                     lessons=_net,
                     pass_remaining=self.all_available_lessons.get(student.pk, 0) + sum([p.lessons for p in phantom_passes], 0),
-                    last_comment=comments[-1] if comments else None
+                    comments=comments
                 )
             )
 
