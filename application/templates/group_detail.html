@@ -48,6 +48,8 @@
 
                 })($scope.data.group_data.teachers);
 
+                $scope.passes = {{pass_detail | safe}};
+
                 $scope.getProfit = function(val) {
                     if(val < 0) {
                         return 'profitbad';
@@ -148,6 +150,36 @@
 
                     } 
                 }
+                
+                $scope.processPayment = function(lesson, student) {
+                    if(!$scope.column) {
+                        return;
+                    }
+
+                    if(lesson.pass) {
+                        lesson.attended = !lesson.attended;
+                    } else {
+                        $scope.paymentModal = {
+                            student: student.person.last_name + ' ' + student.person.first_name
+                        }
+
+                        $scope.savePayment = function(pass) {
+                            lesson.pass = true;
+                            lesson.attended = true;
+                            lesson.color = pass.html_color_class;
+                        }
+                    }
+                }
+
+                $scope.paymentChange = function(pass) {
+                    pass._lessons = pass.lessons;
+                    pass._skips = pass.skips;
+                }
+
+                $scope.resetModal = function() {
+                    $scope.paymentModal = null;
+                    $scope.selectedPass = null;
+                }
 
             }]); 
         })();
@@ -187,12 +219,12 @@
                         <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
                         <td ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
-                            ng-click="columnClick($index)" 
+                            ng-click="processPayment(lesson, student); columnClick($index)" 
                             ng-show="column == null || column==$index" class="{{lesson.color}}" 
                             ng-repeat="lesson in student.calendar track by $index">
                             <strong ng-show="column==null">{{lesson.sign}}</strong>
                             <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
-                            <input type="checkbox" ng-model="lesson.attended" ng-show="column!=null && lesson.pass" />
+                            <input type="checkbox" ng-model="lesson.attended" ng-show="column!=null && lesson.pass" ng-click="processPayment(lesson, student)" />
                         </td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null" >
@@ -280,6 +312,42 @@
                </div>
            </div>
         <div class="row"></div>
+        
+        <div class="modal" ng-hide="!paymentModal">
+            <div class="modal-header">
+                {{paymentModal.student}}
+            </div>
+            <div class="modal-body">
+
+                <form class="form-horizontal">
+                    <div class="controll-group">
+                        <label class="control-label" for="paymentChoise">Тип абонемента:</label>
+                        <div class="controls">
+                            <select id="paymentChoise" id="paymentChoise" ng-model="selectedPass" ng-change="paymentChange(selectedPass)">
+                                <option ng-repeat="pass in passes" ng-value="pass">{{pass.name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="controll-group">
+                        <label class="control-label" for="lessons">Кол-во уроков: </label>
+                        <div class="controls">
+                            <input type="text" id="lessons" ng-model="selectedPass._lessons">
+                        </div>
+                    </div>
+                    <div class="controll-group">
+                        <label class="control-label" for="skips">Кол-во пропусков:</label>
+                        <div class="controls">
+                            <input type="text" id="skips" ng-model="selectedPass._skips">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" ng-click="savePayment(selectedPass)">Сохранить</button>
+              <button class="btn" ng-click="resetModal()">Отмена</button>
+            </div>
+        </div>
+
     </div>
             {% endverbatim %}
 {% endblock %}

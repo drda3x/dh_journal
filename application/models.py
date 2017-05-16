@@ -628,10 +628,11 @@ class PassTypes(models.Model):
 
     def __json__(self):
         return dict(
+            id=int(self.pk),
             name=self.name,
-            prise=self.prise,
-            lessons=self.lessons,
-            skips=self.skips,
+            prise=float(self.prise),
+            lessons=int(self.lessons),
+            skips=int(self.skips),
             color=self.color,
             oneGroupPass=self.one_group_pass
         )

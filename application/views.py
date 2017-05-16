@@ -121,7 +121,10 @@ def group_detail_view(request):
         ]
 
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
-        context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        context['pass_detail'] = json.dumps([
+            p.__json__()
+            for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+        ])
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:
@@ -1434,8 +1437,6 @@ class GroupView(IndexView):
             #'money_total': totals
         })
 
-        print context['group_detail']
-
         salary = defaultdict(list)
         for i in day_balance:
             for k, v in i['salary'].iteritems():
@@ -1444,7 +1445,10 @@ class GroupView(IndexView):
         context['group'] = self.group
         context['salary'] = salary.items()
 
-        context['pass_detail'] = PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence').values()
+        context['pass_detail'] = [
+            p.__json__()
+            for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence')
+        ]
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:
@@ -1452,6 +1456,8 @@ class GroupView(IndexView):
 
         for det in context['pass_detail']:
             det['html_color_class'] = self.html_color_classes[det['color']]
+
+        context['pass_detail'] = json.dumps(context['pass_detail'])
 
         context['teachers_cnt'] = xrange(len(group.orm.teachers.all()))
         context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))

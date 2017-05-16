@@ -423,3 +423,7 @@ html, body {
    border-radius: 5px;
        padding: 5px;
 }
+
+.form-horizontal .controll-group {
+    padding: 7px 0;
+}
