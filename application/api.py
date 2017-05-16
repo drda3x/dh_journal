@@ -686,7 +686,7 @@ def process_lesson(request):
                     group=group,
             )):
                 if _pass.check_date(date):
-                     _pass.cancel_lesson(date)
+                    _pass.cancel_lesson(date)
 
                 for lesson in _pass.lessons:
                     if delete_debt(group, _pass.orm_object.student, lesson.date):

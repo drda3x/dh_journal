@@ -40,9 +40,8 @@ class BasePass(object):
 
     def check_date(self, date):
         try:
-
-            max_date = Lessons.objects.filter(group_pass=self.orm_object).aggregate(Max('date'))
-            return self.orm_object.start_date <= date.date() <= max_date['date__max']
+            max_date = Lessons.objects.filter(group_pass=self.orm_object).order_by('date').latest("date")
+            return self.orm_object.start_date <= date.date() <= max_date.date
 
         except TypeError:
             pass
@@ -222,7 +221,8 @@ class BasePass(object):
         lessons = Lessons.objects.filter(group_pass=self.orm_object, date__gte=date).order_by('date')
         first_lesson = lessons.first()
 
-        if first_lesson.date == date:
+        if first_lesson.date == date.date():
+            date1 =  self.orm_object.group.get_calendar(len(lessons), date)[-1]
             first_lesson.date = self.orm_object.group.get_calendar(len(lessons), date)[-1]
             self.check_pass_crossing(first_lesson.date, response_processor)
             first_lesson.status = Lessons.STATUSES['not_processed']
