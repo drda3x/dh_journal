@@ -43,7 +43,7 @@ class BasePass(object):
             max_date = Lessons.objects.filter(group_pass=self.orm_object).order_by('date').latest("date")
             return self.orm_object.start_date <= date.date() <= max_date.date
 
-        except TypeError:
+        except (TypeError, Lessons.DoesNotExist):
             pass
 
     def check_lessons_count(self):
