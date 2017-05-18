@@ -145,6 +145,7 @@
                             student_rec.person.last_name = $scope.selected_student.last_name;
                             student_rec.person.phone = $scope.selected_student.phone;
                             student_rec.person.org = $scope.selected_student.org;
+                            student_rec.just_added = false;
                         }
 
                         $scope.saveComment = function() {
@@ -160,7 +161,7 @@
                     } 
                 }
                 
-                $scope.processPayment = function(lesson, student) {
+                $scope.processPayment = function(lesson, student, is_newbie) {
                     if($scope.column == null) {
                         return;
                     }
@@ -169,13 +170,22 @@
                         lesson.attended = !lesson.attended;
                     } else {
                         $scope.paymentModal = {
-                            student: student.person.last_name + ' ' + student.person.first_name
+                            student: student,//.person,
+                            is_newbie: is_newbie
                         }
 
                         $scope.savePayment = function(pass) {
-                            lesson.pass = true;
-                            lesson.attended = true;
-                            lesson.color = pass.html_color_class;
+                            student.just_added = false;
+                            
+                            var cnt = pass.lessons;
+
+                            _.map(student.calendar, function(lesson, index) {
+                                if(cnt-- > 0 && index >= $scope.column) {
+                                    lesson.pass = true;
+                                    lesson.attended = index == $scope.column;
+                                    lesson.color = pass.html_color_class;
+                                }
+                            });
                         }
                     }
                 }
@@ -217,12 +227,24 @@
                             first_name: null,
                             last_name: null,
                             phone: null
-                        }
+                        },
+                        just_added: true
                     };
 
                     $scope.data.students.push(new_student);
 
                     $scope.rowClick($scope.data.students.length-1, new_student);
+
+                    if($scope.column != null) {
+                        $scope.processPayment(new_student.calendar[$scope.column], new_student, true);
+                    }
+                }
+
+                $scope.checkStudents = function() {
+                    var student = _.last($scope.data.students);
+                    if(student.hasOwnProperty('just_added') && student.just_added) {
+                        $scope.data.students.pop();
+                    }
                 }
 
                 $('body').keydown(function(event) {
@@ -238,7 +260,8 @@
                                 $scope.column = $scope.hoveredColumn;
                             }
                         } else if(event.keyCode==27) {
-                            $scope.column = null;
+                            $scope.columnClick(null);
+                            $scope.rowClick(null);
                         } else {
                             console.log(event.keyCode);
                         }
@@ -283,7 +306,7 @@
                         <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
                         <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
-                            ng-click="processPayment(lesson, student); columnClick($index)" 
+                            ng-click="processPayment(lesson, student, false); columnClick($index)" 
                             ng-show="column == null || column==$index" class="{{lesson.color}}" 
                             ng-repeat="lesson in student.calendar track by $index">
                             <strong ng-show="column==null">{{lesson.sign}}</strong>
@@ -381,7 +404,7 @@
                    </form>
                    
                   <button class="btn btn-primary" ng-click="saveStudent()">Сохранить</button>
-                  <button class="btn btn-danger" ng-click="rowClick(null)">Отмена</button>
+                  <button class="btn btn-danger" ng-click="checkStudents(); rowClick(null)">Отмена</button>
                </div>
                <div class="span6 offset1">
                    <legend>Коментарии</legend>
@@ -390,16 +413,38 @@
                    </div>
                    <textarea class="span12 coment-add" id="" name="" cols="50" rows="3" style="resize: none;" placeholder="Введите коментарий" ng-model="new_comment"></textarea>
                   <button class="btn btn-primary" ng-click="saveComment()">Сохранить</button>
-                  <button class="btn btn-danger" ng-click="rowClick(null)">Отмена</button>
+                  <button class="btn btn-danger" ng-click="checkStudents(); rowClick(null)">Отмена</button>
                </div>
            </div>
         <div class="row"></div>
         
         <div class="modal" ng-hide="!paymentModal">
             <div class="modal-header">
-                {{paymentModal.student}}
+               {{paymentModal.student.person.last_name}} {{paymentModal.student.person.first_name}} 
             </div>
             <div class="modal-body">
+
+                <form class="form-horizontal" ng-show="paymentModal.is_newbie">
+                    <div class="controll-group">
+                        <label class="control-label" for="paymentChoise">Фамилия:</label>
+                        <div class="controls">
+                            <input type="text" id="surname" ng-model="paymentModal.student.person.last_name">
+                        </div>
+                    </div>
+                    <div class="controll-group">
+                        <label class="control-label" for="lessons">Имя: </label>
+                        <div class="controls">
+                            <input type="text" id="lessons" ng-model="paymentModal.student.person.first_name">
+                        </div>
+                    </div>
+                    <div class="controll-group">
+                        <label class="control-label" for="skips">Телефон:</label>
+                        <div class="controls">
+                            <input type="text" id="skips" ng-model="paymentModal.student.person.phone">
+                        </div>
+                    </div>
+                    <legend></legend>
+                </form>
 
                 <form class="form-horizontal">
                     <div class="controll-group">
@@ -425,8 +470,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-primary" ng-click="savePayment(selectedPass); resetModal()">Сохранить</button>
-              <button class="btn" ng-click="resetModal()">Отмена</button>
+              <button class="btn btn-primary" ng-click="savePayment(selectedPass); checkStudents(); resetModal()">Сохранить</button>
+              <button class="btn" ng-click="checkStudents(); resetModal()">Отмена</button>
             </div>
         </div>
 
