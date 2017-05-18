@@ -36,6 +36,15 @@
             "use strict";
 
             app.controller("GroupCtrl", ["$scope", function($scope) {
+                $scope.teachers = {{teachers | safe}};
+
+                $scope.teachers[-1] = {
+                    id: -1,
+                    last_name: '--небыло--'
+                }
+
+                var substitutions_origin = {{substitutions | safe}};
+                $scope.substitutions = _.map(substitutions_origin, _.clone);
                 $scope.data = {{group_detail | safe}};
                 $scope.control_data = {{control_data | safe}};
                 $scope.data.group_data.teachers_repr = (function(arr) {
@@ -152,7 +161,7 @@
                 }
                 
                 $scope.processPayment = function(lesson, student) {
-                    if(!$scope.column) {
+                    if($scope.column == null) {
                         return;
                     }
 
@@ -181,6 +190,61 @@
                     $scope.selectedPass = null;
                 }
 
+                $scope.selectTeacher = function(day_subst, teacherIndex, teacher) {
+                    day_subst[teacherIndex] = teacher.id;
+                }
+
+                $scope.addStudent = function() {
+                    var new_student = {
+                        calendar: _.map($scope.data.calendar, function() {
+                            return {
+                                attended: false,
+                                canceled: false,
+                                color: "",
+                                first: false,
+                                last: false,
+                                pass: false,
+                                sign: "",
+                                sign_type: ""
+                            }
+                        }),
+                        coments: [],
+                        debt: false,
+                        is_newbie: true,
+                        lessons_count: 0,
+                        pass_remaining: 0,
+                        person: {
+                            first_name: null,
+                            last_name: null,
+                            phone: null
+                        }
+                    };
+
+                    $scope.data.students.push(new_student);
+
+                    $scope.rowClick($scope.data.students.length-1, new_student);
+                }
+
+                $('body').keydown(function(event) {
+                    $scope.$apply(function(){
+                        if(event.keyCode==39) {
+                            $scope.hoveredColumn = ($scope.hoveredColumn == null) ? 0 : $scope.hoveredColumn + 1;
+                            $scope.hoveredColumn = ($scope.hoveredColumn > $scope.data.calendar.length-1) ? $scope.data.calendar.length-1 : $scope.hoveredColumn;
+                        } else if(event.keyCode==37) {
+                            $scope.hoveredColumn = ($scope.hoveredColumn == null) ? $scope.data.calendar.length-1 : $scope.hoveredColumn - 1;
+                            $scope.hoveredColumn = ($scope.hoveredColumn < 0) ? 0 : $scope.hoveredColumn;
+                        } else if(event.keyCode==13) {
+                            if($scope.hoveredColumn != null) {
+                                $scope.column = $scope.hoveredColumn;
+                            }
+                        } else if(event.keyCode==27) {
+                            $scope.column = null;
+                        } else {
+                            console.log(event.keyCode);
+                        }
+                    });
+                });
+
             }]); 
         })();
     </script>
@@ -202,7 +266,7 @@
                         <li ng-repeat="dt in control_data.date_control"><a href="http://{%endverbatim%}{{host}}/group/{%verbatim%}{{dt.val}}">{{dt.name}}</a></li>
                     </ul>
                 </div>
-                <button class="btn btn-primary">Добавить</button>
+                <button class="btn btn-primary" ng-click="addStudent()">Добавить</button>
                 <button class="btn btn-primary">Удалить</button>
                 <button class="btn btn-primary">Перенести занятия</button>
                 <button class="btn btn-primary">Перевести в другую группу</button>
@@ -217,7 +281,7 @@
                     </tr>
                     <tr ng-show="row==null || $index==row" ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
                         <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
-                        <td ng-class="{highlight: !column && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
+                        <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
                             ng-click="processPayment(lesson, student); columnClick($index)" 
                             ng-show="column == null || column==$index" class="{{lesson.color}}" 
@@ -264,6 +328,24 @@
                 </table>
             </div>
             <div class="span6" ng-show="column!=null">
+                <div class="row-fulid">
+                    <div class="span6">
+                     <h4>Преподаватели</h4>
+                     <table class="region table table-bordered">
+                         <tr ng-repeat="day_subst in substitutions" ng-show="$index == column" >
+                             <td ng-repeat="cur_teacher in day_subst" ng-init="teacherIndex = $index" style="border-top: none">
+                                 <select>
+                                     <option ng-repeat="teacher in teachers" 
+                                             ng-selected="cur_teacher==teacher.id" 
+                                             ng-click="selectTeacher(day_subst, teacherIndex, teacher)">
+                                            {{teacher.last_name}} {{teacher.first_name}}
+                                     </option>
+                                 </select>
+                             </td>
+                         </tr>
+                     </table>
+                  </div>
+                </div>
                 <div class="row-fulid day-buttons">
                   <div class="span7">
                   <button class="btn btn-danger">Отменить занятие</button>
@@ -343,7 +425,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-primary" ng-click="savePayment(selectedPass)">Сохранить</button>
+              <button class="btn btn-primary" ng-click="savePayment(selectedPass); resetModal()">Сохранить</button>
               <button class="btn" ng-click="resetModal()">Отмена</button>
             </div>
         </div>

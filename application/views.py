@@ -1460,7 +1460,9 @@ class GroupView(IndexView):
         context['pass_detail'] = json.dumps(context['pass_detail'])
 
         context['teachers_cnt'] = xrange(len(group.orm.teachers.all()))
-        context['teachers'] = User.objects.filter(Q(teacher=True) | Q(assistant=True))
+        context['teachers'] = json.dumps(dict(
+            (u.pk, u.__json__()) for u in User.objects.filter(Q(teacher=True) | Q(assistant=True))
+        ))
         context['default_teachers'] = '-'.join(t.last_name for t in group.orm.teachers.all())
         context['substitutions'] = json.dumps(dict((
             (key.strftime('%d.%m.%Y'), map(lambda x: x.pk, val))

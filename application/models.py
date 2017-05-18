@@ -41,10 +41,11 @@ class User(UserOrigin):
 
     def __json__(self):
         return dict(
+            id=self.pk,
             first_name=self.first_name,
             last_name=self.last_name,
             about=self.about,
-            photo=self.photo.url,
+            photo=self.photo.url if self.photo else None,
             video=self.video
         )
 
