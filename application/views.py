@@ -1434,7 +1434,7 @@ class GroupView(IndexView):
                      else None
             } for i in group.calendar],
             'moneys': day_balance,
-            #'money_total': totals
+            'money_total': totals
         })
 
         salary = defaultdict(list)

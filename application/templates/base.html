@@ -35,6 +35,13 @@
             });
             
             var app = angular.module('DynamicTeacherApp', []);
+
+            app.filter('makePositive', function() {
+                return function(num) { 
+                    var _num = parseFloat(num);
+                    return (isNaN(_num)) ? num : Math.abs(_num); 
+                }
+            });
             
             app.controller("sideBarCtrl", ["$scope", function($scope) {
                 menuData = {{menu | safe}};
@@ -113,8 +120,8 @@
                                 <div class="pull-right dropdown header-right" style="position: relative">
                                     <a class="navbar-link dropdown-toggle" href="#" data-toggle="dropdown" role="button" type="button">{{user.last_name}} {{user.first_name}}<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    <li><a href="profile?uid=-100" id="userProfile" tabindex="-1">Профиль</a></li>
-                                    <li><a href="logout" tabindex="-1">Выход</a></li>
+                                    <li><a href="http://{{host}}/profile?uid=-100" id="userProfile" tabindex="-1">Профиль</a></li>
+                                    <li><a href="http://{{host}}/logout" tabindex="-1">Выход</a></li>
                                 </ul>
                                 </div>
                             </div>

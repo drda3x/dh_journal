@@ -428,3 +428,8 @@ html, body {
 .form-horizontal .controll-group {
     padding: 7px 0;
 }
+
+.redsign {
+    color: #b94a48 !important;
+    font-weight: bold !important;
+}
