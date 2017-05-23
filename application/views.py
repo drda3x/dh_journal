@@ -1591,6 +1591,7 @@ class AdminCallsView(BaseView):
         tomorrow_new_groups = Groups.objects.filter(start_date=tomorrow)
         tomorrow_groups = Groups.opened.filter(
             Q(end_date__gt=tomorrow) | Q(end_date=None),
+            start_date__lt=tomorrow,
             _days__contains=str(tomorrow.weekday()),
         )
         today_groups = Groups.opened.filter(_days__contains=str(today.weekday()))
@@ -1714,17 +1715,24 @@ class AdminCallsView(BaseView):
         return result
 
     def _not_come_yet(self, date, groups, tomorrow_new_groups):
+        _lessons = set(Lessons.objects.filter(group__in=groups).values_list('student_id', 'group_id'))
+        _calls = set(AdminCalls.objects.filter(group__in=groups, responce_type__in=["refusal"]).values_list('student_id', 'group_id'))
+        _union = _lessons | _calls
+
+        if len(_union) > 0:
+            _filter = (lambda x: Q(student_id=x[0], group_id=x[1]))(_union.pop())
+
+            for _student, _group in _union:
+                _filter |= Q(student_id=_student, group_id=_group)
+
+        else:
+            _filter = Q()
+
         people = GroupList.objects.filter(
             group__in=groups,
             active=True
         ).exclude(
-            student_id__in=Lessons.objects.filter(group__in=groups).values_list('student_id', flat=True)
-        ).exclude(
-            group__in=tomorrow_new_groups
-        ).exclude(
-            student_id__in=AdminCalls.objects.filter(
-                responce_type__in=["refusal"]
-            ).values_list('student_id', flat=True)
+            _filter
         )
 
         return people
