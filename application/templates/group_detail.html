@@ -201,7 +201,8 @@
                  </tr>
                  <tr>
                     <td>На следующий месяц</td>
-                    <td>{{data.money_total.next_month_balance}}</td>
+                    <td ng-show="data.money_total.next_month_balance > 0">{{data.money_total.next_month_balance}}</td>
+                    <td ng-hide="data.money_total.next_month_balance > 0">0</td>
                  </tr>
               </tbody></table>
            </div>
