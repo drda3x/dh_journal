@@ -1717,7 +1717,9 @@ class AdminCallsView(BaseView):
     def _not_come_yet(self, date, groups, tomorrow_new_groups):
         _lessons = set(Lessons.objects.filter(group__in=groups).values_list('student_id', 'group_id'))
         _calls = set(AdminCalls.objects.filter(group__in=groups, responce_type__in=["refusal"]).values_list('student_id', 'group_id'))
-        _union = _lessons | _calls
+        _debts = set(Debts.objects.filter(group__in=groups).values_list('student_id', 'group_id'))
+
+        _union = _lessons | _calls | _debts
 
         if len(_union) > 0:
             _filter = (lambda x: Q(student_id=x[0], group_id=x[1]))(_union.pop())
@@ -1761,7 +1763,7 @@ class AdminCallsView(BaseView):
             return wrapper(group, student)
 
         borders = dict(
-            (group.id, map(lambda x: x.date(), group.get_calendar(-4, date)[-1:]))
+            (group.id, [x.date() for x in group.get_calendar(-4, date)[-1:]])
              for group in groups
         )
 
