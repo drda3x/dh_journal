@@ -262,7 +262,7 @@ class GroupLogic(object):
                 #     1
                 # )
                 buf['date'] = day.strftime('%d.%m.%Y')
-                buf['canceled'] = self.canceled_lessons
+                buf['canceled'] = [i.strftime('%d.%m.%Y') for i in self.canceled_lessons]
 
                 total += buf['day_total']
                 total_rent += buf['dance_hall']
@@ -287,7 +287,7 @@ class GroupLogic(object):
                 buf['balance'] = ''
                 buf['half_balance'] = ''
                 buf['date'] = ''
-                buf['canceled'] = self.canceled_lessons
+                buf['canceled'] = [i.strftime('%d.%m.%Y') for i in self.canceled_lessons]
                 buf['salary'] = dict.fromkeys([i.pk for i in teachers], '')
 
             saldo.append(buf)

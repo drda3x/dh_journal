@@ -18,6 +18,10 @@
              font-weight: bold;
          }
 
+         .nomargin {
+             margin-left: 0 !important;
+         }
+
          {% for typ in passes_color_classes%}
              .{{typ.name}} { background-color: {{typ.val}}; }
          {% endfor %}
@@ -26,12 +30,24 @@
 
     <script type="text/javascript" src="{% static "js/matrix.js" %}"></script>
     <script type="text/javascript" src="{% static "js/popover.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/group_detail.js" %}"></script>
+    <script type="text/javascript">
+        window.pageInit(
+            {{group_detail | safe}}, 
+            {{control_data | safe}},
+            {{pass_detail | safe}},
+            {{substitutions | safe}},
+            {{teachers | safe}}
+        )
+    </script>
 {% endblock %}
 {% block script %}
 {% endblock %}
 {% block content %}
             {% verbatim %}
-    <div class="span10 well" ng-controller="GroupCtrl">
+            <div ng-class="{span10: toggleSideBar_local, span12: !toggleSideBar_local, nomargin: !toggleSideBar_local}" class="well" ng-controller="GroupCtrl">
+            <a href="" ng-show="!toggleSideBar_local" ng-click="setSideBarStatus(true)">показать меню</a>
         <h4 class="row-fulid">
             {{data.group_data.dance_hall.station}} {{data.group_data.days}} {{data.group_data.time}}({{data.group_data.name}}) {{data.group_data.teachers_repr}}
         </h4>
@@ -57,10 +73,12 @@
                 <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
                     <tr>
                         <th>Фамилия Имя</th>
+                        <th ng-show="!toggleSideBar_local">Телефон</th>
                         <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
                     </tr>
                     <tr ng-show="(row==null && (checkActive(student) || column != null)) || $index==row" ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
                         <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>
+                        <td ng-show="!toggleSideBar_local" ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.phone}}</td>
                         <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
                             ng-click="processPayment(lesson, student, false); columnClick($index)" 
@@ -72,7 +90,8 @@
                         </td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null" >
-                        <td ng-mouseover="columnIndexCache(null)" style="border-top: 3px solid"><strong>Всего за день</strong></td>
+                        <td ng-show="toggleSideBar_local" ng-mouseover="columnIndexCache(null)" style="border-top: 3px solid"><strong>Всего за день</strong></td>
+                        <td colspan="2" ng-show="!toggleSideBar_local" ng-mouseover="columnIndexCache(null)" style="border-top: 3px solid"><strong>Всего за день</strong></td>
                         <td ng-class="{highlight: !column && hoveredColumn==$index}" 
                             style="border-top: 3px solid" 
                             ng-repeat="money_rec in data.moneys"
@@ -80,7 +99,8 @@
                             ng-show="column == null || column==$index">{{money_rec.day_total}}</td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null">
-                        <td ng-mouseover="columnIndexCache(null)"><strong>Аренда зала</strong></td>
+                        <td ng-show="toggleSideBar_local" ng-mouseover="columnIndexCache(null)"><strong>Аренда зала</strong></td>
+                        <td colspan="2" ng-show="!toggleSideBar_local" ng-mouseover="columnIndexCache(null)"><strong>Аренда зала</strong></td>
                         <td ng-mouseover="columnIndexCache($index)" 
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
@@ -88,7 +108,8 @@
                             ng-show="column == null || column==$index">{{money_rec.dance_hall}}</td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null">
-                        <td ng-mouseover="columnIndexCache(null)"><strong>% клуба</strong></td>
+                        <td ng-show="toggleSideBar_local" ng-mouseover="columnIndexCache(null)"><strong>% клуба</strong></td>
+                        <td colspan="2" ng-show="!toggleSideBar_local" colspan="{{getColspan(null)}}" ng-mouseover="columnIndexCache(null)"><strong>% клуба</strong></td>
                         <td ng-mouseover="columnIndexCache($index)"  
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
@@ -96,7 +117,8 @@
                             ng-show="column == null || column==$index">{{money_rec.club}}</td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null">
-                        <td ng-mouseover="columnIndexCache(null)"><strong>Итого</strong></td>
+                        <td ng-show="toggleSideBar_local" ng-mouseover="columnIndexCache(null)"><strong>Итого</strong></td>
+                        <td colspan="2" ng-show="!toggleSideBar_local" colspan="{{getColspan(null)}}" ng-mouseover="columnIndexCache(null)"><strong>Итого</strong></td>
                         <td ng-mouseover="columnIndexCache($index)"  
                             ng-repeat="money_rec in data.moneys" 
                             ng-class="{highlight: !column && hoveredColumn==$index}"
@@ -104,11 +126,13 @@
                             ng-show="column == null || column==$index">{{money_rec.balance}}</td>
                     </tr>
                     <tr ng-repeat="sal in salary" ng-show="row==null && column==null">
+                        <td class="textstrong" ng-show="toggleSideBar">{{sal[0]}}</td>
+                        <td class="textstrong" ng-hide="toggleSideBar" colspan="2">{{sal[0]}}</td>
                         <td ng-mouseover="columnIndexCache((($index > 0) ? $index-1:null))" 
-                            ng-repeat="val in sal track by $index" 
-                            ng-class="[{highlight: !column && hoveredColumn==$index-1 && $index>0}, {textstrong: $index==0}]"
+                            ng-repeat="val in sal | slice:1 track by $index" 
+                            ng-class="[{highlight: !column && hoveredColumn==$index}]"
                             ng-click="columnClick($index-1)"
-                            ng-show="column == null || column==$index-1 || $index==0">{{val}}</td>
+                            ng-show="column == null || column==$index">{{val}}</td>
                     </tr>
                 </table>
             </div>
@@ -285,14 +309,4 @@
 
     {% endverbatim %}
 
-    <script type="text/javascript" src="{% static "js/group_detail.js" %}"></script>
-    <script type="text/javascript">
-        window.pageInit(
-            {{group_detail | safe}}, 
-            {{control_data | safe}},
-            {{pass_detail | safe}},
-            {{substitutions | safe}},
-            {{teachers | safe}}
-        )
-    </script>
 {% endblock %}

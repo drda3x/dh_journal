@@ -353,12 +353,13 @@ class IndexView(BaseView):
                 'label': u'Остальные группы',
                 'depth': str(depth),
                 'hideable': False,
+                'type': 'urls',
                 'urls': [
                     {
                         'label': level.name,
                         'hideable': True,
                         'depth': '%d_%d' % (depth, level_depth),
-                        'type': 'groups',
+                        'type': 'urls',
                         'urls': [
                             self.Url(g) for g in groups.filter(level=level).exclude(teachers=user)
                         ]

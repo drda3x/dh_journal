@@ -1,7 +1,7 @@
 (function() {
     "use strict";
     window.pageInit = function(group_data, control_data, passes, substitutions, teachers) {
-        app.controller("GroupCtrl", ["$scope", function($scope) {
+        app.controller("GroupCtrl", ["$scope", "$rootScope", function($scope, $rootScope) {
             $scope.teachers = teachers;
 
             $scope.teachers[-1] = {
@@ -233,6 +233,21 @@
             $scope.checkSign = function(sign) {
                 var num = parseFloat(sign);
                 return (isNaN(num)) ? true : num > 0;
+            }
+
+            $scope.setSideBarStatus = function(val) {
+                $rootScope.toggleSideBar = val;
+            }
+            $scope.setSideBarStatus(true);
+
+            $rootScope.$watch(function(obj) {
+                return obj.toggleSideBar;
+            }, function(val) {
+                $scope.toggleSideBar_local = val;
+            });
+
+            $scope.getColspan = function(index) {
+                return ($scope.toggleSideBar_local && (index==null || index != 0)) ? 1 : 2;
             }
 
             $('body').keydown(function(event) {
