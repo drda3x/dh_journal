@@ -18,12 +18,14 @@ scp $1/app.tar.gz u48649@u48649.netangels.ru:~/buffer/
 # Перезапись исходников
 echo Распаковка файлов и перезапуск сервера
 ssh u48649@u48649.netangels.ru << EOF
-rm -rf ~/teacher.dancehustle.ru/www/application
-tar -xf ~/buffer/app.tar.gz -C ~/teacher.dancehustle.ru/www
+rm -rf ~/dev.teacher.dancehustle.ru/www/application
+tar -xf ~/buffer/app.tar.gz -C ~/dev.teacher.dancehustle.ru/www
 rm -rf ~/buffer/*
+rm -rf ~/dev.teacher.dancehustle.ru/www/static/*
 # Запуск сервера
 source ~/python/bin/activate
-python ~/teacher.dancehustle.ru/www/manage.py migrate
+python ~/dev.teacher.dancehustle.ru/www/manage.py collectstatic --noinput
+python ~/dev.teacher.dancehustle.ru/www/manage.py migrate
 pkill -u u48649 -f django-wrapper.fcgi
 exit
 EOF
