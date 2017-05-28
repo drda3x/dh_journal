@@ -1767,14 +1767,21 @@ class AdminCallsView(BaseView):
              for group in groups
         )
 
+        active_students_filter = None
+        for record in GroupList.objects.filter(group__in=groups, active=True):
+            if not active_students_filter:
+                active_students_filter = Q(student=record.student, group=record.group)
+            else:
+                active_students_filter |= Q(student=record.student, group=record.group)
+
         lessons = [
             lesson_wrapper(lesson['group'], lesson['student'])
-            for lesson in Lessons.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            for lesson in Lessons.objects.filter(active_students_filter).values('group', 'student').annotate(max_date=Max('date'))
             if lesson['max_date'] <= borders[int(lesson['group'])]
                 and not Debts.objects.filter(student_id=lesson['student'], group_id=lesson['group'], date__gt=lesson['max_date']).exists()
         ] + [
             lesson_wrapper(debt['group'], debt['student'])
-            for debt in Debts.objects.filter(group__in=groups).values('group', 'student').annotate(max_date=Max('date'))
+            for debt in Debts.objects.filter(active_students_filter).values('group', 'student').annotate(max_date=Max('date'))
             if debt['max_date'] <= borders[int(debt['group'])]
                 and not Lessons.objects.filter(student_id=debt['student'], group_id=debt['group'], date__gt=debt['max_date']).exists()
         ]
