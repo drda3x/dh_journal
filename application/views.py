@@ -1273,6 +1273,10 @@ class PrintView(BaseView):
 class GroupView(IndexView):
     template_name = 'group_detail.html'
 
+    @staticmethod
+    def check_available_days(days, dt1, dt2, cnt):
+        return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
+
     def process_lesson(self, request):
         try:
             json_data = json.loads(request.POST['data'])
@@ -1281,7 +1285,9 @@ class GroupView(IndexView):
 
             for lesson in json_data['lessons']:
                 if lesson['type'] == 'just_added':
-                    if Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).count() == 0:
+                    nearest_lesson = Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).first()
+
+                    if not nearest_lesson or self.check_available_days(group.days, date.date(), nearest_lesson.date, int(lesson['lessons_cnt'])):
                         pass_type = PassTypes.objects.get(pk=lesson['pass_type_id'])
                         new_pass = Passes(
                             student_id=lesson['student_id'],
@@ -1289,30 +1295,26 @@ class GroupView(IndexView):
                             start_date=date,
                             pass_type=pass_type,
                             opener=request.user,
+                            lessons=int(lesson['lessons_cnt']),
+                            skips=int(lesson['skips_cnt']),
                             creation_date=datetime.datetime.now().date()
                         )
 
                         new_pass.save()
 
-                        processed = True
-                        for lesson_date in group.get_calendar(new_pass.lessons, date):
-                            new_lesson = Lessons(
-                                student_id=lesson['student_id'],
-                                group=group,
-                                date=lesson_date,
-                                group_pass=new_pass,
-                                status=Lessons.STATUSES['not_processed'] if not processed else Lessons.STATUSES['attended']
-                            )
+                        wrapped_pass = PassLogic.wrap(new_pass)
+                        wrapped_pass.create_lessons(date, new_pass.lessons)
 
-                            processed = False
-
-                            new_lesson.save()
+                        if date.date() <= datetime.datetime.now().date():
+                            wrapped_pass.set_lesson_attended(date)
 
                 elif lesson['type'] == 'pass':
-                    if json_data['setMisses'] or lesson['attended'] == True:
-                        l = Lessons.objects.get(group=group, student_id=lesson['student_id'], date=date)
-                        l.status = Lessons.STATUSES['attended'] if lesson['attended'] else Lessons.STATUSES['not_attended']
-                        l.save()
+                    lesson_pass = PassLogic.wrap(Passes.objects.get(pk=lesson['pid']))
+
+                    if lesson['attended']:
+                        lesson_pass.set_lesson_attended(date, group=group)
+                    elif json_data['setMisses']:
+                        lesson_pass.set_lesson_not_attended(date)
 
         except Exception:
             from traceback import format_exc

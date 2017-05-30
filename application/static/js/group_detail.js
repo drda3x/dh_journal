@@ -162,6 +162,8 @@
                                 lesson.color = pass.html_color_class;
                                 lesson.type = 'just_added';
                                 lesson.pass_type_id = pass.id;
+                                lesson.lessons_cnt = pass._lessons;
+                                lesson.skips_cnt = pass._skips;
                                 cnt--;
                             }
                         });
@@ -253,7 +255,7 @@
                 return ($scope.toggleSideBar_local && (index==null || index != 0)) ? 1 : 2;
             }
 
-            $scope.saveWithoutMisses = function() {
+            $scope.saveLessons = function(setMisses) {
                 var lessons = _.map($scope.data.students, function(student) {
                     var lesson = _.clone(student.calendar[$scope.column]);
                     lesson.student_id = student.person.id;
@@ -266,10 +268,8 @@
                     date: $scope.data.calendar[$scope.column].date,
                     lessons: lessons,
                     teachers: $scope.substitutions[$scope.column],
-                    setMisses: false
+                    setMisses: setMisses
                 }
-                
-                console.log(json);
                 sendData(json, 'process_lesson');
             }
 
