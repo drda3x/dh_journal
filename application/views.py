@@ -1273,6 +1273,59 @@ class PrintView(BaseView):
 class GroupView(IndexView):
     template_name = 'group_detail.html'
 
+    def process_lesson(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            group = Groups.all.get(pk=json_data['group_id'])
+            date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
+
+            for lesson in json_data['lessons']:
+                if lesson['type'] == 'just_added':
+                    if Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).count() == 0:
+                        pass_type = PassTypes.objects.get(pk=lesson['pass_type_id'])
+                        new_pass = Passes(
+                            student_id=lesson['student_id'],
+                            group=group,
+                            start_date=date,
+                            pass_type=pass_type,
+                            opener=request.user,
+                            creation_date=datetime.datetime.now().date()
+                        )
+
+                        new_pass.save()
+
+                        processed = True
+                        for lesson_date in group.get_calendar(new_pass.lessons, date):
+                            new_lesson = Lessons(
+                                student_id=lesson['student_id'],
+                                group=group,
+                                date=lesson_date,
+                                group_pass=new_pass,
+                                status=Lessons.STATUSES['not_processed'] if not processed else Lessons.STATUSES['attended']
+                            )
+
+                            processed = False
+
+                            new_lesson.save()
+
+                elif lesson['type'] == 'pass':
+                    if json_data['setMisses'] or lesson['attended'] == True:
+                        l = Lessons.objects.get(group=group, student_id=lesson['student_id'], date=date)
+                        l.status = Lessons.STATUSES['attended'] if lesson['attended'] else Lessons.STATUSES['not_attended']
+                        l.save()
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
+
+        return HttpResponse()
+
+# 1. Только добавили
+# 2. Отмечание занятия
+
+
     def rest_process_subst(self, *args, **kwargs):
         """
         REST method for process teachers substitutions
@@ -1304,6 +1357,7 @@ class GroupView(IndexView):
     def get_detail_repr(self, obj):
         if isinstance(obj, GroupLogic.CanceledLesson):
             return {
+                'type': 'canceled',
                 'pass': False,
                 'color': '',
                 'sign': '',
@@ -1313,6 +1367,7 @@ class GroupView(IndexView):
 
         elif isinstance(obj, GroupLogic.PhantomLesson):
             return {
+                'type': 'pass',
                 'pass': True,
                 'sign': '',
                 'sign_type': 's',
@@ -1325,6 +1380,7 @@ class GroupView(IndexView):
 
         elif isinstance(obj, Lessons):
             return {
+                'type': 'pass',
                 'pass': True,
                 'sign': obj.sign,
                 'sign_type': 's' if isinstance(obj.sign, str) else 'n',
@@ -1337,6 +1393,7 @@ class GroupView(IndexView):
 
         else:
             return {
+                'type': None,
                 'pass': False,
                 'color': 'text-error' if isinstance(obj, Debts) else '',
                 'sign': 'долг' if isinstance(obj, Debts) else '',

@@ -448,7 +448,6 @@ def delete_debt(group, student, date):
         return False
 
 
-@auth_decorator
 def process_lesson(request):
 
     """
@@ -462,13 +461,14 @@ def process_lesson(request):
 
         group = Groups.all.get(pk=json_data['group_id'])
         date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
-        data = json_data.get('checked', [])
         data1 = json_data.get('unchecked', [])
         canceled = json_data.get('canceled', [])
         teachers = map(int, json_data.get('teachers', []))
 
-        new_passes = filter(lambda p: isinstance(p, dict), data)
-        old_passes = filter(lambda p: isinstance(p, int), data)
+        data = json_data.get('lessons', [])
+
+        new_passes = filter(lambda p: p['type'] == 'just_added', data)
+        old_passes = filter(lambda p: p['type'] == 'pass', data)
 
         attended_passes = []
         attended_passes_ids = []

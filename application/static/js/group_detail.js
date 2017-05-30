@@ -142,7 +142,7 @@
                     return;
                 }
 
-                if (lesson.pass) {
+                if (lesson.type == 'pass') {
                     lesson.attended = !lesson.attended;
                 } else {
                     $scope.paymentModal = {
@@ -156,10 +156,13 @@
                         var cnt = pass.lessons;
 
                         _.map(student.calendar, function(lesson, index) {
-                            if (cnt-- > 0 && index >= $scope.column) {
+                            if (cnt > 0 && index >= $scope.column) {
                                 lesson.pass = true;
                                 lesson.attended = index == $scope.column;
                                 lesson.color = pass.html_color_class;
+                                lesson.type = 'just_added';
+                                lesson.pass_type_id = pass.id;
+                                cnt--;
                             }
                         });
                     }
@@ -248,6 +251,43 @@
 
             $scope.getColspan = function(index) {
                 return ($scope.toggleSideBar_local && (index==null || index != 0)) ? 1 : 2;
+            }
+
+            $scope.saveWithoutMisses = function() {
+                var lessons = _.map($scope.data.students, function(student) {
+                    var lesson = _.clone(student.calendar[$scope.column]);
+                    lesson.student_id = student.person.id;
+
+                    return lesson;
+                });
+
+                var json = {
+                    group_id: $scope.data.group_data.id,
+                    date: $scope.data.calendar[$scope.column].date,
+                    lessons: lessons,
+                    teachers: $scope.substitutions[$scope.column],
+                    setMisses: false
+                }
+                
+                console.log(json);
+                sendData(json, 'process_lesson');
+            }
+
+            function sendData(json, action) {
+                $.ajax({
+                    method: 'POST',
+                    url: '',
+                    data: {
+                        data: JSON.stringify(json),
+                        action: action
+                    }
+                }).done(function() {
+                    location.reload();
+                }).error(function(err) {
+                    var json = JSON.parse(err.responseText);
+                    alert('ОШИБКА!\n\nНе удалось сохранить следующие абонементы:\n\n'+json.join('\n')+'\n');
+                    reload();
+                });
             }
 
             $('body').keydown(function(event) {
