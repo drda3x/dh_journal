@@ -8,6 +8,7 @@ from application.models import Groups, GroupList, Students, Lessons, Passes, Deb
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 from itertools import chain, takewhile
 from collections import Counter
+from application.utils.phones import check_phone
 
 
 class copy_cache(cached_property):
@@ -145,6 +146,41 @@ class GroupLogic(object):
         return list(
             BonusClasses.objects.filter(within_group=self.orm, date__range=[self.date_1, now])
         )
+
+    def add_student(self, first_name=None, last_name=None, phone=None, org=False):
+        first_name = first_name.replace(' ', '')
+        last_name = last_name.replace(' ', '')
+        phone = check_phone(phone)
+
+        try:
+            student = Students.objects.get(first_name=first_name, last_name=last_name, phone=phone)
+
+        except Students.DoesNotExist:
+            student = Students(
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                org=org
+            )
+            student.save()
+
+        self.add_student_simple(student)
+
+    def add_student_simple(self, student):
+        if not isinstance(student, Students):
+            raise Exception('student has to be a Stuent instance')
+
+        try:
+            group_list = GroupList.objects.get(student=student, group=self.orm)
+            group_list.active = True
+            group_list.save()
+
+        except GroupList.DoesNotExist:
+            GroupList(
+                student=student,
+                group=self.orm,
+                active=True
+            ).save()
 
     def calc_bonus_class_finance(self, day):
         try:

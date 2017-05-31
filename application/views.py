@@ -30,6 +30,7 @@ from application.utils.sampo import get_sampo_details, write_log
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 from collections import namedtuple, defaultdict
 from itertools import groupby
+from application.utils.phones import check_phone
 
 
 def custom_proc(request):
@@ -1276,6 +1277,43 @@ class GroupView(IndexView):
     @staticmethod
     def check_available_days(days, dt1, dt2, cnt):
         return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
+
+    def _edit_student_data(self, student_id, first_name=None, last_name=None, phone=None, org=None):
+        try:
+            student = Students.objects.get(pk=student_id)
+            student.first_name = first_name.replace(' ', '')
+            student.last_name = last_name.replace(' ', '')
+            student.phone = check_phone(phone)
+
+            student.save()
+
+        except Students.DoesNotExist:
+            return
+
+    def save_student(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            person = json_data['person']
+
+            if person.get('id') is not None:
+                self._edit_student_data(person['id'], person['first_name'], person['last_name'], person['phone'], person['org'])
+
+            else:
+                group = GroupLogic(int(json_data['group']))
+                group.add_student(
+                    first_name=person['first_name'],
+                    last_name=person['last_name'],
+                    phone=person['phone'],
+                    org=person.get('org', False)
+                )
+
+            return HttpResponse()
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
 
     def process_lesson(self, request):
         try:

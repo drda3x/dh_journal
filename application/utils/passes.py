@@ -335,6 +335,7 @@ class RegularPass(BasePass):
     def set_lesson_not_attended(self, date):
 
         status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
+        print self.orm_object.skips
         self.process_lesson(date, status)
         self.check_lessons_count()
 

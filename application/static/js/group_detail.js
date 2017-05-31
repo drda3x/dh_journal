@@ -122,6 +122,11 @@
                         student_rec.person.phone = $scope.selected_student.phone;
                         student_rec.person.org = $scope.selected_student.org;
                         student_rec.just_added = false;
+
+                        sendData({
+                            person: student_rec.person,
+                            group: $scope.data.group_data.id
+                        }, 'save_student');
                     }
 
                     $scope.saveComment = function() {
@@ -272,6 +277,8 @@
                 }
                 sendData(json, 'process_lesson');
             }
+
+
 
             function sendData(json, action) {
                 $.ajax({
