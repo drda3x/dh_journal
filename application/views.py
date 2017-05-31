@@ -1278,17 +1278,25 @@ class GroupView(IndexView):
     def check_available_days(days, dt1, dt2, cnt):
         return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
 
-    def _edit_student_data(self, student_id, first_name=None, last_name=None, phone=None, org=None):
+    def _edit_student_data(self, student_id, first_name=None, last_name=None, phone=None, org=False):
         try:
             student = Students.objects.get(pk=student_id)
             student.first_name = first_name.replace(' ', '')
             student.last_name = last_name.replace(' ', '')
             student.phone = check_phone(phone)
+            student.org = org
 
             student.save()
 
         except Students.DoesNotExist:
-            return
+            student = Students(
+                first_name=first_name,
+                last_name=last_name,
+                phone=check_phone(phone),
+                org=org
+            )
+
+            student.save()
 
     def save_student(self, request):
         try:
