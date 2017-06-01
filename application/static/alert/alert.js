@@ -9,6 +9,7 @@
         this.html.fadeIn(500);
         setTimeout($.proxy(function() {
             this.html.fadeOut(500);
+            this.html.remove();
         }, this), 3000)
     };
 

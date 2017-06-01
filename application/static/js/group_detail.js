@@ -35,6 +35,30 @@
                 }
             };
 
+            _.map($scope.data.students, function(student) {
+                student.save = function() {
+                    this.person.first_name = $scope.selected_student.first_name;
+                    this.person.last_name = $scope.selected_student.last_name;
+                    this.person.phone = $scope.selected_student.phone;
+                    this.person.org = $scope.selected_student.org;
+                    this.just_added = false;
+
+                    sendData({
+                        person: this.person,
+                        group: $scope.data.group_data.id,
+                    }, 
+                    'save_student', 
+                    function(err, resp) {
+                        var _alert = window.createWindowAlert();
+                        if(err) {
+                            _alert.error('Ошибка');
+                        } else {
+                            _alert.success('Сохранено');
+                        }
+                    });
+                }
+            });
+
             $scope.salary = (function(data) {
                 var _buf = [];
 
@@ -117,16 +141,7 @@
                     }
 
                     $scope.saveStudent = function() {
-                        student_rec.person.first_name = $scope.selected_student.first_name;
-                        student_rec.person.last_name = $scope.selected_student.last_name;
-                        student_rec.person.phone = $scope.selected_student.phone;
-                        student_rec.person.org = $scope.selected_student.org;
-                        student_rec.just_added = false;
-
-                        sendData({
-                            person: student_rec.person,
-                            group: $scope.data.group_data.id
-                        }, 'save_student');
+                        $scope.data.students[$scope.row].save();
                     }
 
                     $scope.saveComment = function() {
@@ -156,6 +171,10 @@
                     }
 
                     $scope.savePayment = function(pass) {
+                        if(student.just_added) {
+                            student.save();
+                        }
+
                         student.just_added = false;
 
                         var cnt = pass.lessons;
@@ -275,12 +294,14 @@
                     teachers: $scope.substitutions[$scope.column],
                     setMisses: setMisses
                 }
-                sendData(json, 'process_lesson');
+                sendData(json, 'process_lesson', function() {
+                    location.reload();
+                });
             }
 
 
 
-            function sendData(json, action) {
+            function sendData(json, action, callback) {
                 $.ajax({
                     method: 'POST',
                     url: '',
@@ -289,11 +310,9 @@
                         action: action
                     }
                 }).done(function() {
-                    location.reload();
-                }).error(function(err) {
-                    var json = JSON.parse(err.responseText);
-                    alert('ОШИБКА!\n\nНе удалось сохранить следующие абонементы:\n\n'+json.join('\n')+'\n');
-                    reload();
+                    callback.apply(null, arguments);
+                }).error(function() {
+                    callback.apply(null, arguments);
                 });
             }
 
