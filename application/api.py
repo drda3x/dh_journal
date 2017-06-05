@@ -648,34 +648,35 @@ def process_lesson(request):
                         wrapped = PassLogic.wrap(pass_orm_object)
                         wrapped.set_lesson_not_attended(date)
 
-            if set(map(int, group.teachers.all().values_list('pk', flat=True))) != set(teachers):
-                try:
-                    subst = TeachersSubstitution.objects.get(group=group, date=date)
-                    subst.teachers.remove(*subst.teachers.all())
-                    subst.teachers.add(*User.objects.filter(pk__in=teachers))
-
-                except TeachersSubstitution.DoesNotExist:
+            if len(teachers) > 0:
+                if set(map(int, group.teachers.all().values_list('pk', flat=True))) != set(teachers):
                     try:
-                        subst = TeachersSubstitution(
+                        subst = TeachersSubstitution.objects.get(group=group, date=date)
+                        subst.teachers.remove(*subst.teachers.all())
+                        subst.teachers.add(*User.objects.filter(pk__in=teachers))
+
+                    except TeachersSubstitution.DoesNotExist:
+                        try:
+                            subst = TeachersSubstitution(
+                                group=group,
+                                date=date
+                            )
+                            subst.save()
+                            subst.teachers.add(*User.objects.filter(pk__in=teachers))
+                        except:
+                            from traceback import format_exc
+                            print format_exc()
+
+                            subst.delete()
+                else:
+                    try:
+                        subst = TeachersSubstitution.objects.get(
                             group=group,
                             date=date
                         )
-                        subst.save()
-                        subst.teachers.add(*User.objects.filter(pk__in=teachers))
-                    except:
-                        from traceback import format_exc
-                        print format_exc()
-
                         subst.delete()
-            else:
-                try:
-                    subst = TeachersSubstitution.objects.get(
-                        group=group,
-                        date=date
-                    )
-                    subst.delete()
-                except TeachersSubstitution.DoesNotExist:
-                    pass
+                    except TeachersSubstitution.DoesNotExist:
+                        pass
 
         else:
             CanceledLessons(group=group, date=date).save()
