@@ -1308,14 +1308,14 @@ class GroupView(IndexView):
 
             else:
                 group = GroupLogic(int(json_data['group']))
-                group.add_student(
+                new_student_id = group.add_student(
                     first_name=person['first_name'],
                     last_name=person['last_name'],
                     phone=person['phone'],
                     org=person.get('org', False)
                 )
 
-            return HttpResponse()
+            return HttpResponse(str(new_student_id))
 
         except Exception:
             from traceback import format_exc

@@ -166,6 +166,8 @@ class GroupLogic(object):
 
         self.add_student_simple(student)
 
+        return int(student.pk)
+
     def add_student_simple(self, student):
         if not isinstance(student, Students):
             raise Exception('student has to be a Stuent instance')

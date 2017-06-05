@@ -35,29 +35,28 @@
                 }
             };
 
-            _.map($scope.data.students, function(student) {
-                student.save = function() {
-                    this.person.first_name = $scope.selected_student.first_name;
-                    this.person.last_name = $scope.selected_student.last_name;
-                    this.person.phone = $scope.selected_student.phone;
-                    this.person.org = $scope.selected_student.org;
-                    this.just_added = false;
+            function saveStudentData(student, data) {
+                student.person.first_name = data.first_name;
+                student.person.last_name = data.last_name;
+                student.person.phone = data.phone;
+                student.person.org = data.org;
+                student.just_added = false;
 
-                    sendData({
-                        person: this.person,
-                        group: $scope.data.group_data.id,
-                    }, 
-                    'save_student', 
-                    function(err, resp) {
-                        var _alert = window.createWindowAlert();
-                        if(err) {
-                            _alert.error('Ошибка');
-                        } else {
-                            _alert.success('Сохранено');
-                        }
-                    });
-                }
-            });
+                sendData({
+                    person: student.person,
+                    group: $scope.data.group_data.id,
+                }, 
+                'save_student', 
+                function(err, resp) {
+                    var _alert = window.createWindowAlert();
+                    if(err) {
+                        _alert.error('Ошибка');
+                    } else {
+                        _alert.success('Сохранено');
+                        student.person.id = resp;
+                    }
+                });
+            }
 
             $scope.salary = (function(data) {
                 var _buf = [];
@@ -141,7 +140,7 @@
                     }
 
                     $scope.saveStudent = function() {
-                        $scope.data.students[$scope.row].save();
+                        saveStudentData(student_rec, $scope.selected_student);
                     }
 
                     $scope.saveComment = function() {
@@ -172,7 +171,7 @@
 
                     $scope.savePayment = function(pass) {
                         if(student.just_added) {
-                            student.save();
+                            saveStudentData(student, $scope.paymentModal.student.person)
                         }
 
                         student.just_added = false;
@@ -233,7 +232,10 @@
                         last_name: null,
                         phone: null
                     },
-                    just_added: true
+                    just_added: true,
+                    save: function() {
+
+                    }
                 };
 
                 $scope.data.students.push(new_student);
@@ -309,10 +311,10 @@
                         data: JSON.stringify(json),
                         action: action
                     }
-                }).done(function() {
-                    callback.apply(null, arguments);
-                }).error(function() {
-                    callback.apply(null, arguments);
+                }).done(function(data) {
+                    callback.apply(null, [null, data]);
+                }).error(function(error) {
+                    callback.apply(null, [error, null]);
                 });
             }
 
