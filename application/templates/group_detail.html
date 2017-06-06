@@ -88,9 +88,14 @@
                             ng-click="processPayment(lesson, student, false); columnClick($index)" 
                             ng-show="column == null || column==$index" class="{{lesson.color}}" 
                             ng-repeat="lesson in student.calendar track by $index">
-                            <strong ng-show="column==null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
+                            <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
                             <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
-                            <input type="checkbox" ng-model="lesson.attended" ng-show="column!=null && lesson.pass" ng-click="processPayment(lesson, student)" />
+                            <strong ng-show="column!=null && lesson.debt && !lesson.pass">({{lesson.sign | makePositive}})</strong>
+
+                            <label for="" class="checkbox"  ng-show="column!=null && lesson.pass" style="margin: 0;">
+                                <input type="checkbox" ng-model="lesson.attended" ng-click="processPayment(lesson, student)" />
+                                <strong>({{lesson.sign | makePositive}})</strong>
+                            </label>
                         </td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null" >
@@ -132,10 +137,10 @@
                     <tr ng-repeat="sal in salary" ng-show="row==null && column==null">
                         <td class="textstrong" ng-show="toggleSideBar">{{sal[0]}}</td>
                         <td class="textstrong" ng-hide="toggleSideBar" colspan="3">{{sal[0]}}</td>
-                        <td ng-mouseover="columnIndexCache((($index > 0) ? $index-1:null))" 
+                        <td ng-mouseover="columnIndexCache($index)" 
                             ng-repeat="val in sal | slice:1 track by $index" 
                             ng-class="[{highlight: !column && hoveredColumn==$index}]"
-                            ng-click="columnClick($index-1)"
+                            ng-click="columnClick($index)"
                             ng-show="column == null || column==$index">{{val}}</td>
                     </tr>
                 </table>

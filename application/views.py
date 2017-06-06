@@ -1334,7 +1334,13 @@ class GroupView(IndexView):
                 if lesson['type'] == 'just_added':
                     nearest_lesson = Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).first()
 
-                    if not nearest_lesson or self.check_available_days(group.days, date.date(), nearest_lesson.date, int(lesson['lessons_cnt'])):
+                    # Долги
+                    if lesson['pass_type_id'] == -2:
+                        if date <= datetime.datetime.now() and not Debts.objects.filter(student_id=lesson['student_id'], group=group, date=date).exists():
+                            debt = Debts(student_id=lesson['student_id'], group=group, date=date, val=0)
+                            debt.save()
+
+                    elif not nearest_lesson or self.check_available_days(group.days, date.date(), nearest_lesson.date, int(lesson['lessons_cnt'])):
                         pass_type = PassTypes.objects.get(pk=lesson['pass_type_id'])
                         new_pass = Passes(
                             student_id=lesson['student_id'],
@@ -1350,10 +1356,30 @@ class GroupView(IndexView):
                         new_pass.save()
 
                         wrapped_pass = PassLogic.wrap(new_pass)
-                        wrapped_pass.create_lessons(date, new_pass.lessons)
 
-                        if date.date() <= datetime.datetime.now().date():
-                            wrapped_pass.set_lesson_attended(date)
+                        debts = list(Debts.objects.filter(group=group, student_id=lesson['student_id'], date__lt=date).order_by('date'))
+
+                        if len(debts) > 0:
+                            new_pass.start_date = debts[0].date
+
+                        i = new_pass.lessons
+                        for debt in debts[:i]:
+                            wrapped_pass.create_lessons(debt.date, 1, dates=[debt.date])
+                            wrapped_pass.set_lesson_attended(debt.date)
+                            i -= 1
+
+                            comment = Comments(
+                                student_id=lesson['student_id'],
+                                group=group,
+                                add_date=datetime.datetime.now(),
+                                text='%s - Списан долг за счет абонемента от %s' % (debt.date.strftime('%d.%m.%Y'), date.strftime('%d.%m.%Y'))
+                            )
+                            comment.save()
+                            debt.delete()
+
+                        new_pass.lessons = i
+                        new_pass.save()
+                        wrapped_pass.create_lessons(date, new_pass.lessons)
 
                 elif lesson['type'] == 'pass':
                     lesson_pass = PassLogic.wrap(Passes.objects.get(pk=lesson['pid']))
@@ -1480,7 +1506,8 @@ class GroupView(IndexView):
                 'attended': False,
                 'canceled': False,
                 'first': False,
-                'last': False
+                'last': False,
+                'debt': isinstance(obj, Debts)
             }
 
     def get_context_data(self, **kwargs):
@@ -1585,14 +1612,17 @@ class GroupView(IndexView):
         context['pass_detail'] = [
             p.__json__()
             for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence')
+        ] + [
+            {'id': -2, 'name': 'Долг'}
         ]
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
         for elem in context['pass_detail']:
-            elem['skips'] = '' if elem['skips'] is None else elem['skips']
+            elem['skips'] = elem.get('skips', '')
+
 
         for det in context['pass_detail']:
-            det['html_color_class'] = self.html_color_classes[det['color']]
+            det['html_color_class'] = self.html_color_classes.get(det.get('color'))
 
         context['pass_detail'] = json.dumps(context['pass_detail'])
 

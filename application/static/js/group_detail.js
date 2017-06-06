@@ -176,7 +176,7 @@
 
                         student.just_added = false;
 
-                        var cnt = pass.lessons;
+                        var cnt = (isDebt(pass.id)) ? 1 : pass.lessons;
 
                         _.map(student.calendar, function(lesson, index) {
                             if (cnt > 0 && index >= $scope.column) {
@@ -187,11 +187,18 @@
                                 lesson.pass_type_id = pass.id;
                                 lesson.lessons_cnt = pass._lessons;
                                 lesson.skips_cnt = pass._skips;
+                                lesson.debt = isDebt(pass.id);
+                                lesson.sign = (lesson.debt) ? 'долг' : pass.prise / pass.lessons;
+
                                 cnt--;
                             }
                         });
                     }
                 }
+            }
+
+            function isDebt(id) {
+                return id == -2;
             }
 
             $scope.paymentChange = function(pass) {
@@ -257,7 +264,7 @@
 
             $scope.checkActive = function(student) {
                 var any_lesson = _.filter(student.calendar, function(date) {
-                    return date.pass
+                    return date.pass || date.debt;
                 });
                 return any_lesson.length > 0;
             }
