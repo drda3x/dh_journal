@@ -206,6 +206,7 @@
 
             $scope.selectTeacher = function(day_subst, teacherIndex, teacher) {
                 day_subst[teacherIndex] = teacher.id;
+                $scope.substitutions[$scope.column][teacherIndex] = teacher.id;
             }
 
             $scope.addStudent = function() {
@@ -294,7 +295,8 @@
                     date: $scope.data.calendar[$scope.column].date,
                     lessons: lessons,
                     teachers: $scope.substitutions[$scope.column],
-                    setMisses: setMisses
+                    setMisses: setMisses,
+                    teachers: $scope.substitutions[$scope.column]
                 }
                 sendData(json, 'process_lesson', function() {
                     location.reload();
@@ -334,7 +336,6 @@
                         $scope.columnClick(null);
                         $scope.rowClick(null);
                     } else {
-                        console.log(event.keyCode);
                     }
                 });
             });

@@ -1328,6 +1328,7 @@ class GroupView(IndexView):
             json_data = json.loads(request.POST['data'])
             group = Groups.all.get(pk=json_data['group_id'])
             date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
+            teachers = map(int, json_data.get('teachers', []))
 
             for lesson in json_data['lessons']:
                 if lesson['type'] == 'just_added':
@@ -1361,6 +1362,36 @@ class GroupView(IndexView):
                         lesson_pass.set_lesson_attended(date, group=group)
                     elif json_data['setMisses']:
                         lesson_pass.set_lesson_not_attended(date)
+
+            if len(teachers) > 0:
+                if set(map(int, group.teachers.all().values_list('pk', flat=True))) != set(teachers):
+                    try:
+                        subst = TeachersSubstitution.objects.get(group=group, date=date)
+                        subst.teachers.remove(*subst.teachers.all())
+                        subst.teachers.add(*User.objects.filter(pk__in=teachers))
+
+                    except TeachersSubstitution.DoesNotExist:
+                        try:
+                            subst = TeachersSubstitution(
+                                group=group,
+                                date=date
+                            )
+                            subst.save()
+                            subst.teachers.add(*User.objects.filter(pk__in=teachers))
+                        except:
+                            from traceback import format_exc
+                            print format_exc()
+
+                            subst.delete()
+                else:
+                    try:
+                        subst = TeachersSubstitution.objects.get(
+                            group=group,
+                            date=date
+                        )
+                        subst.delete()
+                    except TeachersSubstitution.DoesNotExist:
+                        pass
 
         except Exception:
             from traceback import format_exc
@@ -1570,10 +1601,12 @@ class GroupView(IndexView):
             (u.pk, u.__json__()) for u in User.objects.filter(Q(teacher=True) | Q(assistant=True))
         ))
         context['default_teachers'] = '-'.join(t.last_name for t in group.orm.teachers.all())
-        context['substitutions'] = json.dumps(dict((
-            (key.strftime('%d.%m.%Y'), map(lambda x: x.pk, val))
-            for key, val in group.substitutions.iteritems()
-        )))
+
+        _substitutions = [
+            map(lambda v: v.pk, val)
+            for _, val in sorted(group.substitutions.iteritems(), key=lambda k: k[0])
+        ]
+        context['substitutions'] = json.dumps(_substitutions)
 
         default_teachers_cnt = len(group.orm.teachers.all())
         context['raw_substitutions'] = (

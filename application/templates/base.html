@@ -2,7 +2,7 @@
 <html ng-app="DynamicTeacherApp">
     {% load staticfiles %}
     <head>
-        <title>{% block title %}{% endblock %}</title>
+        <title>ТСК "Динамика" - электронный журнал</title>
             <meta charset="UTF-8">
         <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.css" %}"/>
         <link rel="stylesheet" href="{% static "css/main.css" %}"/>
@@ -50,6 +50,12 @@
                                 end || arr.length
                             );
                 };
+            });
+
+            app.filter('last', function() {
+                return function(arr) {
+                    return _.last(arr);
+                }
             });
             
             app.controller("sideBarCtrl", ["$scope", "$rootScope", function($scope, $rootScope) {
