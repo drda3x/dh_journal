@@ -100,10 +100,39 @@
                 }
             });
 
+            $scope.cancelLesson = function() {
+                var json = {
+                    date: $scope.data.calendar[$scope.column].date,
+                    group: $scope.data.group_data.id
+                };
+
+                if(confirm('Подтвердите отмену занятия')) {
+                    sendData(json, 'cancel_lesson', function() {
+                        console.log('success');
+                    });
+                }
+            }
+
             $scope.column = null;
             $scope.columnClick = function(index) {
                 if ($scope.row == null) {
-                    $scope.column = index;
+                    
+                    var lesson = $scope.data.calendar[index];
+                    
+                    if(lesson.canceled) {
+                        if (confirm('Занятие отменено. Восстановить?')) {
+                            var json = {
+                                date: lesson.date,
+                                group: $scope.data.group_data.id
+                            }
+
+                            sendData(json, 'restore_lesson', function() {
+                                location.reload();
+                            }); 
+                        }
+                    } else {
+                        $scope.column = index;
+                    }
                 }
             }
 

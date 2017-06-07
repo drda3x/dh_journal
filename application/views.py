@@ -22,7 +22,7 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution, AdminCalls
+from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution, AdminCalls, CanceledLessons
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -41,6 +41,28 @@ def custom_proc(request):
         'ip_address': request.META['REMOTE_ADDR']
     }
 
+
+def delete_debt(group, student, date):
+
+    params = dict(date=date)
+
+    if isinstance(student, int):
+        params['student_id'] = student
+    else:
+        params['student'] = student
+
+    if isinstance(group, int):
+        params['group_id'] = group
+    else:
+        params['group'] = group
+
+    try:
+        debt = Debts.objects.get(**params)
+        debt.delete()
+        return True
+
+    except Debts.DoesNotExist:
+        return False
 
 def prev_cur(arr):
     itr = iter(arr[:])
@@ -1322,6 +1344,60 @@ class GroupView(IndexView):
             print format_exc()
 
             return HttpResponseServerError()
+
+    def cancel_lesson(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
+            group_id = json_data['group']
+
+            CanceledLessons(group_id=group_id, date=date).save()
+
+            for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
+                    Q(start_date__lte=date) | Q(frozen_date__lte=date),
+                    lessons__gt=0,
+                    group_id=group_id,
+            )):
+                if _pass.check_date(date):
+                    _pass.cancel_lesson(date)
+
+                for lesson in _pass.lessons:
+
+                    #TODO Переписать когда-нибудь!!!
+                    if delete_debt(group_id, _pass.orm_object.student, lesson.date):
+                        lesson.status = Lessons.STATUSES['attended']
+                        lesson.save()
+
+            return HttpResponse()
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
+
+    def restore_lesson(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
+            group_id = json_data['group']
+
+            for _pass in (PassLogic.wrap(p) for p in Passes.objects.filter(
+                        Q(group_id=group_id),
+                        Q(Q(start_date__lte=date) | Q(frozen_date__lte=date)),
+                        Q(lessons__gt=0)
+                )):
+                    if _pass.check_date(date):
+                        _pass.restore_lesson(date)
+
+            CanceledLessons.objects.get(group_id=group_id, date=date).delete()
+
+            return HttpResponse(200)
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+            return HttpResponseServerError('failed')
 
     def process_lesson(self, request):
         try:
