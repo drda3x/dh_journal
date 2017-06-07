@@ -77,7 +77,7 @@
                         <th>Фамилия Имя</th>
                         <th ng-show="!toggleSideBar_local">Телефон</th>
                         <th ng-show="!toggleSideBar_local">Коментарий</th>
-                        <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}</th>
+                        <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}<br><span ng-show="date_rec.canceled" class="text-error">ОТМЕНЕНО</span></th>
                     </tr>
                     <tr ng-show="(row==null && (checkActive(student) || column != null)) || $index==row" ng-repeat="student in data.students" ng-mouseover="rowIndexCache($index)" ng-show="row == null || row == $index" ng-init="rowIndex=$index">
                         <td ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{student.person.last_name}} {{student.person.first_name}}</td>

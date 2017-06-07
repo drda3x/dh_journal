@@ -108,7 +108,7 @@
 
                 if(confirm('Подтвердите отмену занятия')) {
                     sendData(json, 'cancel_lesson', function() {
-                        console.log('success');
+                        location.reload();
                     });
                 }
             }
@@ -119,7 +119,7 @@
                     
                     var lesson = $scope.data.calendar[index];
                     
-                    if(lesson.canceled) {
+                    if(lesson != undefined && lesson.canceled) {
                         if (confirm('Занятие отменено. Восстановить?')) {
                             var json = {
                                 date: lesson.date,
