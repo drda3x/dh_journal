@@ -233,7 +233,11 @@
             }
 
             function checkClubCard(student) {
-                return true;
+                var has_club_card = _.find($scope.data.club_cards, function(card) {
+                        return card.student.first_name == student.person.first_name && card.student.last_name == student.person.last_name
+                    }) != undefined;
+
+                return has_club_card;
             }
 
             function isDebt(id) {
