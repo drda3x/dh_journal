@@ -115,25 +115,30 @@
 
             $scope.column = null;
             $scope.columnClick = function(index) {
-                if ($scope.row == null) {
-                    
-                    var lesson = $scope.data.calendar[index];
-                    
-                    if(lesson != undefined && lesson.canceled) {
-                        if (confirm('Занятие отменено. Восстановить?')) {
-                            var json = {
-                                date: lesson.date,
-                                group: $scope.data.group_data.id
-                            }
-
-                            sendData(json, 'restore_lesson', function() {
-                                location.reload();
-                            }); 
-                        }
-                    } else {
-                        $scope.column = index;
-                    }
+                if ($scope.row == null && !checkAndRestoreLesson()) {
+                    $scope.column = index;
                 }
+            }
+
+            function checkAndRestoreLesson(index) {
+                var lesson = $scope.data.calendar[index];
+                
+                if(lesson != undefined && lesson.canceled) {
+                    if (confirm('Занятие отменено. Восстановить?')) {
+                        var json = {
+                            date: lesson.date,
+                            group: $scope.data.group_data.id
+                        }
+
+                        sendData(json, 'restore_lesson', function() {
+                            location.reload();
+                        }); 
+                    }
+
+                    return true;
+                }
+
+                return false;
             }
 
             $scope.hoveredColumn = null;
@@ -195,7 +200,8 @@
                 } else {
                     $scope.paymentModal = {
                         student: student, //.person,
-                        is_newbie: is_newbie
+                        is_newbie: is_newbie,
+                        mb_club_card: checkClubCard(student)
                     }
 
                     $scope.savePayment = function(pass) {
@@ -224,6 +230,10 @@
                         });
                     }
                 }
+            }
+
+            function checkClubCard(student) {
+                return true;
             }
 
             function isDebt(id) {

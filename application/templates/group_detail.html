@@ -290,6 +290,7 @@
                         <label class="control-label" for="paymentChoise">Тип абонемента:</label>
                         <div class="controls">
                             <select id="paymentChoise" id="paymentChoise" ng-model="selectedPass" ng-change="paymentChange(selectedPass)">
+                                <option ng-show="paymentModal.mb_club_card" ng-value="-1">Списать занятие с клубной карты</option>
                                 <option ng-repeat="pass in passes" ng-value="pass">{{pass.name}}</option>
                             </select>
                         </div>

@@ -1651,6 +1651,14 @@ class GroupView(IndexView):
             bad_profit = normal_profit = good_profit = []
 
         real_group_calendar = [k['date'].date() for k in group.calcked_calendar]
+
+        period_begin, period_end = (lambda x: x[0::len(x)-1])(group.calcked_calendar)
+
+        club_cards = [p.__json__() for p in Passes.objects\
+            .filter(pass_type__one_group_pass=0, start_date__lte=period_end['date'], end_date__gte=period_begin['date'])\
+            .select_related('student').order_by('student__last_name', 'student__first_name')\
+            .order_by('-start_date')]
+
         context['group_detail'] = json.dumps({
             'group_data': group.__json__(),
             #'id': group.id,
@@ -1664,6 +1672,7 @@ class GroupView(IndexView):
             'active_students': filter(lambda s: s['lessons_count'] > 0, students),
             'not_active_students': filter(lambda s: s['lessons_count'] == 0, students),
             'last_lesson': group.last_lesson.strftime('%d.%m.%Y'),
+            'club_cards' : club_cards,
             'calendar': [{
                 'date': i.strftime('%d.%m.%Y'),
                 'canceled': i in group.canceled_lessons,
@@ -1687,7 +1696,7 @@ class GroupView(IndexView):
 
         context['pass_detail'] = [
             p.__json__()
-            for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes.all()).order_by('sequence')
+            for p in PassTypes.all.filter(pk__in=group.available_passes.all()).order_by('sequence')
         ] + [
             {'id': -2, 'name': 'Долг'}
         ]

@@ -633,7 +633,7 @@ class PassTypes(models.Model):
             name=self.name,
             prise=float(self.prise),
             lessons=int(self.lessons),
-            skips=int(self.skips),
+            skips=int(self.skips) if self.skips else None,
             color=self.color,
             oneGroupPass=self.one_group_pass
         )
@@ -790,10 +790,10 @@ class Passes(models.Model):
     def __json__(self):
         return dict(
             id=self.id,
-            student=self.student.id,
-            group=self.group.id,
+            student=self.student.__json__(),
+            group=self.group.id if self.group else None,
             start_date=self.start_date.isoformat(),
-            end_date=self.end_date,
+            end_date=self.end_date.isoformat(),
             pass_type=self.pass_type.__json__(),
             lessons=self.lessons,
             skips=self.skips,
