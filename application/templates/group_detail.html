@@ -63,7 +63,7 @@
                     </ul>
                 </div>
                 <button class="btn btn-primary" ng-click="addStudent()">Добавить</button>
-                <button class="btn btn-primary">Удалить</button>
+                <button class="btn btn-primary" ng-show="row != null" ng-click="deleteStudent()">Удалить</button>
                 <!--
                 <button class="btn btn-primary">Перенести занятия</button>
                 <button class="btn btn-primary">Перевести в другую группу</button>
@@ -290,7 +290,7 @@
                         <label class="control-label" for="paymentChoise">Тип абонемента:</label>
                         <div class="controls">
                             <select id="paymentChoise" id="paymentChoise" ng-model="selectedPass" ng-change="paymentChange(selectedPass)">
-                                <option ng-show="paymentModal.mb_club_card" ng-value="-1">Списать занятие с клубной карты</option>
+                                <option ng-show="paymentModal.club_card" ng-value="paymentModal.club_card">Списать занятие с клубной карты</option>
                                 <option ng-repeat="pass in passes" ng-value="pass">{{pass.name}}</option>
                             </select>
                         </div>
