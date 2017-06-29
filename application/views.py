@@ -302,12 +302,14 @@ class IndexView(BaseView):
             if len(args) == 1:
                 if isinstance(args[0], Groups):
                     group_repr = args[0].__json__()
-                    self['label'] = '%s %s %s %s' % (
-                        group_repr['dance_hall']['station'],
-                        group_repr['days'],
-                        group_repr['time'],
-                        group_repr['name']
-                    )
+                    self.update(group_repr)
+
+                    #self['label'] = '%s %s %s %s' % (
+                    #    group_repr['dance_hall']['station'],
+                    #    group_repr['days'],
+                    #    group_repr['time'],
+                    #    group_repr['name']
+                    #)
 
                     self['url'] = 'group/%d' % group_repr['id']
 

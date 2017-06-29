@@ -58,7 +58,7 @@
                 }
             });
             
-            app.controller("sideBarCtrl", ["$scope", "$rootScope", function($scope, $rootScope) {
+            app.controller("sideBarCtrl", ["$scope", "$rootScope", "$sce", function($scope, $rootScope, $sce) {
                 menuData = {{menu | safe}};
                 $scope.sidebar_menu = processSideBarHeader(menuData);
                 $scope.current_group = parseInt('{{group.id}}');
@@ -159,7 +159,20 @@
                             if (urlElem.hasOwnProperty('type') && urlElem.type=="urls") {
                                 result = result.concat(processSideBarHeader([urlElem]));
                             } else {
-                                result.push({label: urlElem.label, url: urlElem.url, type: 'link', show: !elem.hideable})
+                                var label;
+                                
+                                try {
+                                    label = urlElem.name+"<br>"+urlElem.dance_hall.station+"<br>"+urlElem.days+" "+urlElem.time;
+                                } catch(e) {
+                                    label = urlElem.label;
+                                }
+
+                                result.push({
+                                    label: $sce.trustAsHtml(label),
+                                    url: urlElem.url, 
+                                    type: 'link', 
+                                    show: !elem.hideable
+                                })
                             }
                         }
                     }
@@ -175,6 +188,16 @@
 
             }]);
         </script>
+        <style>
+            .carret {
+                border: 10px solid transparent;
+                width: 0;
+                height: 0;
+                border-right: 15px solid #999999;
+            }
+            .toggle-button: {
+            }
+        </style>
         {% block head %}
             {% block style%}
             {% endblock %}
@@ -215,7 +238,13 @@
             <div class="row-fluid" ng-controller="sideBarCtrl">
                 <div ng-show="toggleSideBar_local" ng-class="{span2: toggleSideBar_local}" class="well">
                         <div>
-                            <a style="display: block; float: right; margin: 2px;" href="" ng-click="setSideBarStatus(false)">скрыть меню</a>
+                            <a class="toggle-button" 
+                                style="display: block; float: right; margin: -20px; background-color: #e3e3e3; padding: 10px 16px 10px 4px; border-radius: 3px;" 
+                                href="" 
+                                ng-click="setSideBarStatus(false)">
+                                    <div class="carret"></div>
+                            </a>
+                            
                         </div>
                         <ul class="nav nav-list" ng-show="toggleSideBar">
                             <li ng-class="calcClasses(menu_elem)" ng-repeat="menu_elem in sidebar_menu track by $index">
@@ -223,7 +252,12 @@
                                     <a style="cursor: pointer" ng-show="menu_elem.hideable && !checkIndex($index)" ng-click="hideMenuPart($index)">скрыть</a>
                                     <a style="cursor: pointer" ng-show="menu_elem.hideable && checkIndex($index)" ng-click="showMenuPart($index)">показать</a>
                                 </span>
-                                <a ng-show="menu_elem.show" ng-if="!isHeader(menu_elem)"  href="{%endverbatim%}http://{{host}}/{%verbatim%}{{menu_elem.url}}">{{menu_elem.label}}</a>
+                                <a ng-show="menu_elem.show" 
+                                   style="color: #000"
+                                   ng-if="!isHeader(menu_elem)"  
+                                   href="{%endverbatim%}http://{{host}}/{%verbatim%}{{menu_elem.url}}"
+                                   ng-bind-html="menu_elem.label">
+                                </a>
                             </li>
                         </ul>
                     </div>
