@@ -29,7 +29,7 @@ from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 from collections import namedtuple, defaultdict
-from itertools import groupby
+from itertools import groupby, takewhile
 from application.utils.phones import check_phone
 
 
@@ -1347,6 +1347,28 @@ class GroupView(IndexView):
 
             return HttpResponseServerError()
 
+    def delete_student(self, request):
+        try:
+
+            json_data = json.loads(request.POST['data'])
+            ids = json_data['ids']
+            gid = json_data['gid']
+            students = Students.objects.filter(pk__in=ids)
+            errors = []
+
+            if _remove_student(gid, ids, GroupList):
+                return HttpResponse(200)
+            else:
+                return HttpResponseServerError('failed')
+
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
+
+
     def cancel_lesson(self, request):
         try:
             json_data = json.loads(request.POST['data'])
@@ -1427,7 +1449,7 @@ class GroupView(IndexView):
                             pass_type=pass_type,
                             opener=request.user,
                             lessons=int(lesson['lessons_cnt']),
-                            skips=int(lesson['skips_cnt']),
+                            skips=int(lesson['skips_cnt']) if lesson['skips_cnt'] is not None else None,
                             creation_date=datetime.datetime.now().date()
                         )
 
@@ -1457,7 +1479,11 @@ class GroupView(IndexView):
 
                         new_pass.lessons = i
                         new_pass.save()
-                        wrapped_pass.create_lessons(date, new_pass.lessons)
+                        wrapped_pass.create_lessons(date, new_pass.lessons, group=group)
+
+                        last_group_lessons = list(takewhile(lambda x: x['date'] <= date, GroupLogic(group).calcked_calendar))
+                        if last_group_lessons and date <= last_group_lessons[-1]['date']:
+                            wrapped_pass.set_lesson_attended(date, group=group)
 
                 elif lesson['type'] == 'pass':
                     lesson_pass = PassLogic.wrap(Passes.objects.get(pk=lesson['pid']))
@@ -1661,6 +1687,9 @@ class GroupView(IndexView):
             .select_related('student').order_by('student__last_name', 'student__first_name')\
             .order_by('-start_date')]
 
+        for det in club_cards:
+            det['html_color_class'] = self.html_color_classes.get(det.get('color'))
+
         context['group_detail'] = json.dumps({
             'group_data': group.__json__(),
             #'id': group.id,
@@ -1706,7 +1735,6 @@ class GroupView(IndexView):
 
         for elem in context['pass_detail']:
             elem['skips'] = elem.get('skips', '')
-
 
         for det in context['pass_detail']:
             det['html_color_class'] = self.html_color_classes.get(det.get('color'))

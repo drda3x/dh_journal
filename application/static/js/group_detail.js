@@ -198,10 +198,12 @@
                 if (lesson.type == 'pass') {
                     lesson.attended = !lesson.attended;
                 } else {
+                    var club_card = getClubCard(student);
+
                     $scope.paymentModal = {
                         student: student, //.person,
                         is_newbie: is_newbie,
-                        mb_club_card: checkClubCard(student)
+                        club_card: club_card
                     }
 
                     $scope.savePayment = function(pass) {
@@ -211,19 +213,26 @@
 
                         student.just_added = false;
 
-                        var cnt = (isDebt(pass.id)) ? 1 : pass.lessons;
+                        var pass_is_club_card = club_card != undefined && pass.id == club_card.id,
+                            is_debt = pass.id == -2,
+                            cnt = (is_debt || pass_is_club_card) ? 1 : pass.lessons;
 
                         _.map(student.calendar, function(lesson, index) {
                             if (cnt > 0 && index >= $scope.column) {
+
+                                if(pass_is_club_card) {
+                                    lesson.pid = club_card.id;
+                                }
+
                                 lesson.pass = true;
                                 lesson.attended = index == $scope.column;
                                 lesson.color = pass.html_color_class;
-                                lesson.type = 'just_added';
-                                lesson.pass_type_id = pass.id;
+                                lesson.type = (pass_is_club_card) ? 'pass' : 'just_added';
+                                lesson.pass_type_id = pass.id || pass.pass_type.id;
                                 lesson.lessons_cnt = pass._lessons;
                                 lesson.skips_cnt = pass._skips;
-                                lesson.debt = isDebt(pass.id);
-                                lesson.sign = (lesson.debt) ? 'долг' : pass.prise / pass.lessons;
+                                lesson.debt = is_debt;
+                                lesson.sign = (is_debt) ? 'долг' : (pass.prise / pass.lessons) || (pass.pass_type.prise / pass.pass_type.lessons);
 
                                 cnt--;
                             }
@@ -232,12 +241,10 @@
                 }
             }
 
-            function checkClubCard(student) {
-                return true;
-            }
-
-            function isDebt(id) {
-                return id == -2;
+            function getClubCard(student) {
+                return _.find($scope.data.club_cards, function(card) {
+                        return card.student.first_name == student.person.first_name && card.student.last_name == student.person.last_name
+                    });
             }
 
             $scope.paymentChange = function(pass) {
@@ -292,6 +299,29 @@
                 if ($scope.column != null) {
                     $scope.processPayment(new_student.calendar[$scope.column], new_student, true);
                 }
+            }
+
+            $scope.deleteStudent = function() {
+                var json = {
+                    gid: $scope.data.group_data.id,
+                    ids: [$scope.data.students[$scope.row].person.id]
+                };
+                sendData(json, 'delete_student', function(err) {
+                    $scope.$apply(function() {
+                        var _alert = window.createWindowAlert();
+
+                        if(err) {
+                            _alert.error('Ошибка');
+                        } else {
+                            $scope.data.students = _.union(
+                                $scope.data.students.slice(0, $scope.row),
+                                $scope.data.students.slice($scope.row + 1)
+                            ); 
+                            _alert.success('Сохранено');
+                            $scope.rowClick(null);
+                        }
+                    });
+                })
             }
 
             $scope.checkStudents = function() {
