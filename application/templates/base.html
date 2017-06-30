@@ -143,6 +143,14 @@
                     }
                 };
 
+                $scope.toggleMenuPart = function(index) {
+                    if(_.indexOf($scope.hidden, index) > -1) {
+                        $scope.showMenuPart(index);
+                    } else {
+                        $scope.hideMenuPart(index);
+                    }
+                }
+
                 $scope.checkIndex = function(index) {
                     return $scope.hidden.indexOf(index) >= 0;
                 }
@@ -209,6 +217,23 @@
             .toggle-button:hover .carret {
                 border-right: 15px solid #e3e3e3;
             }
+            .sidebar-header {
+                border-bottom: 1px solid;
+            }
+            .sidebar-header .carret {
+                border: 6px solid transparent;
+                border-right: 10px solid #999999;
+                display: inline;
+                float: right;
+                margin-top: 3px;
+            }
+            .sidebar-header .carret2 {
+                border: 6px solid transparent;
+                border-top: 10px solid #999999;
+                display: inline;
+                float: right;
+                margin-top: 5px;
+            }
 
         </style>
         {% block head %}
@@ -261,10 +286,17 @@
                         </div>
                         <ul class="nav nav-list" ng-show="toggleSideBar">
                             <li ng-class="calcClasses(menu_elem)" ng-repeat="menu_elem in sidebar_menu track by $index">
+                                <!--
                                 <span ng-if="isHeader(menu_elem)">{{menu_elem.label}}
                                     <a style="cursor: pointer" ng-show="menu_elem.hideable && !checkIndex($index)" ng-click="hideMenuPart($index)">скрыть</a>
                                     <a style="cursor: pointer" ng-show="menu_elem.hideable && checkIndex($index)" ng-click="showMenuPart($index)">показать</a>
                                 </span>
+                                -->
+                                <a href="" class="sidebar-header" ng-if="isHeader(menu_elem)" ng-click="toggleMenuPart($index)">
+                                    {{menu_elem.label}} 
+                                    <div ng-show="menu_elem.hideable && checkIndex($index)" class="carret"></div>  
+                                    <div ng-show="menu_elem.hideable && !checkIndex($index)" class="carret2"></div>  
+                                </a>
                                 <a ng-show="menu_elem.show" 
                                    style="color: #000"
                                    ng-if="!isHeader(menu_elem)"  
