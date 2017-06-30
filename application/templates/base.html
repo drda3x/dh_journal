@@ -195,8 +195,21 @@
                 height: 0;
                 border-right: 15px solid #999999;
             }
-            .toggle-button: {
+            .toggle-button {
+                display: block; 
+                float: right; 
+                margin: -20px; 
+                background-color: #e3e3e3; 
+                padding: 10px 16px 10px 4px; 
+                border-radius: 3px;
             }
+            .toggle-button:hover {
+                background-color: #999999; 
+            }
+            .toggle-button:hover .carret {
+                border-right: 15px solid #e3e3e3;
+            }
+
         </style>
         {% block head %}
             {% block style%}
@@ -239,7 +252,7 @@
                 <div ng-show="toggleSideBar_local" ng-class="{span2: toggleSideBar_local}" class="well">
                         <div>
                             <a class="toggle-button" 
-                                style="display: block; float: right; margin: -20px; background-color: #e3e3e3; padding: 10px 16px 10px 4px; border-radius: 3px;" 
+                                style="" 
                                 href="" 
                                 ng-click="setSideBarStatus(false)">
                                     <div class="carret"></div>
