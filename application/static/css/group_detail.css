@@ -433,3 +433,8 @@ html, body {
     color: #b94a48 !important;
     font-weight: bold !important;
 }
+
+.phone {
+    margin-top: 1px;
+    font-size: 10pt;
+}
