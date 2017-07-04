@@ -21,6 +21,15 @@
          .nomargin {
              margin-left: 0 !important;
          }
+         .group-title {
+
+         }
+         .row-fulid.slided {
+             padding-left: 30px;
+         }
+         .btn-group.slided {
+             padding-left: 0;
+         }
 
          {% for typ in passes_color_classes%}
              .{{typ.name}} { background-color: {{typ.val}}; }
@@ -47,14 +56,19 @@
 {% block content %}
             {% verbatim %}
             <div ng-class="{span10: toggleSideBar_local, span12: !toggleSideBar_local, nomargin: !toggleSideBar_local}" class="well" ng-controller="GroupCtrl">
-            <a href="" ng-show="!toggleSideBar_local" ng-click="setSideBarStatus(true)">показать меню</a>
-        <h4 class="row-fulid">
-            {{data.group_data.dance_hall.station}} {{data.group_data.days}} {{data.group_data.time}}({{data.group_data.name}}) {{data.group_data.teachers_repr}}
-        </h4>
-        <div class="row-fulid">
-            <div class="span12" style="margin-bottom: 10px">
-                <div class="btn-group">
-                    <a class="btn dropdown-toggle btn-primary" data-toggle="dropdown" href="#">
+            <div>
+                <a class="toggle-button" 
+                    style="float:left; padding-right: 4px;" 
+                    href="" 
+                    ng-show="!toggleSideBar_local"
+                    ng-click="setSideBarStatus(true)">
+                        <div class="carret-left" style="margin-left: 14px"></div>
+                </a>
+            </div>
+            <div class="row-fulid" ng-class="{slided: !toggleSideBar_local}">
+            <div class="span4" style="margin-top: -13px">
+                <div class="btn-group" ng-class="{slided: toggleSideBar_local}">
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
                         {{control_data.constant.current_date_str}}
                     <span class="caret"></span>
                     </a>
@@ -62,13 +76,16 @@
                         <li ng-repeat="dt in control_data.date_control"><a href="http://{%endverbatim%}{{host}}/group/{%verbatim%}{{dt.val}}">{{dt.name}}</a></li>
                     </ul>
                 </div>
-                <button class="btn btn-primary" ng-click="addStudent()">Добавить</button>
-                <button class="btn btn-primary" ng-show="row != null" ng-click="deleteStudent()">Удалить</button>
+                <button class="btn" ng-click="addStudent()">Добавить</button>
+                <button class="btn" ng-show="row != null" ng-click="deleteStudent()">Удалить</button>
                 <!--
                 <button class="btn btn-primary">Перенести занятия</button>
                 <button class="btn btn-primary">Перевести в другую группу</button>
                 -->
             </div>
+            <h4 class="group-title span8" style="margin-top: -10px">
+                {{data.group_data.dance_hall.station}} {{data.group_data.days}} {{data.group_data.time}}({{data.group_data.name}}) {{data.group_data.teachers_repr}}
+            </h4>
         </div>
         <div class="row-fulid">
             <div ng-class="{span4: column!=null}" >
@@ -85,7 +102,11 @@
                             {{student.person.last_name}} {{student.person.first_name}}
                             <div class="phone">{{student.person.phone}}</div>
                         </td>
-                        <td ng-show="!toggleSideBar_local" ng-click="rowClick($index, student)" ng-mouseover="columnIndexCache(null);" ng-class="{highlight: hoveredRow==rowIndex}">{{(student.comments|last).text}}</td>
+                        <td ng-show="!toggleSideBar_local"
+                            ng-click="rowClick($index, student)" 
+                            ng-mouseover="columnIndexCache(null);" 
+                            ng-class="{highlight: hoveredRow==rowIndex}"
+                            class="span4">{{trimComment((student.comments|last).text, 35)}}</td>
                         <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
                             ng-click="processPayment(lesson, student, false); columnClick($index)" 

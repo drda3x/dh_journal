@@ -379,7 +379,14 @@
                 });
             }
 
-
+            $scope.trimComment = function(commentMessage, maxCommentLen) {
+                 
+                if(commentMessage != undefined && commentMessage.length > maxCommentLen) {
+                    return commentMessage.slice(0, maxCommentLen) + ' ...'
+                } else {
+                    return commentMessage
+                }
+            }
 
             function sendData(json, action, callback) {
                 $.ajax({
