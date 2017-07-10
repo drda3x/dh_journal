@@ -21,14 +21,19 @@
          .nomargin {
              margin-left: 0 !important;
          }
-         .group-title {
+         .checkb {
+             padding: 5px 15px !important;
+         }
 
+         .daypopup-teachers {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 1px 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgb(227, 227, 227);
          }
-         .row-fulid.slided {
-             padding-left: 30px;
-         }
-         .btn-group.slided {
-             padding-left: 0;
+         .daypopup-teachers table {
+             background-color: inherit !important;
          }
 
          {% for typ in passes_color_classes%}
@@ -92,6 +97,7 @@
                 <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
                     <tr>
                         <th>Фамилия Имя</th>
+                        <th ng-show="!toggleSideBar_local">Телефон</th>
                         <th ng-show="!toggleSideBar_local">Коментарий</th>
                         <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}<br><span ng-show="date_rec.canceled" class="text-error">ОТМЕНЕНО</span></th>
                     </tr>
@@ -346,6 +352,56 @@
               <button class="btn" ng-click="checkStudents(); resetModal()">Отмена</button>
             </div>
         </div>
+
+        <div class="modal">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4>01.07.2017</h4>
+
+            <div class="row-fulid daypopup-teachers">
+                <h5>Преподаватели</h5>
+                <table class="region table" style="margin-bottom: 0;">
+                    <tr>
+                        <td ng-repeat="cur_teacher in day_popup.teachers" style="border-top: none">
+                            <select ng-model="day_popup.teachers[$index]">
+                                <option ng-repeat="teacher in teachers" 
+                                        ng-value="teacher.id">
+                                    {{teacher.last_name}} {{teacher.first_name}}
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <button class="btn">Добавить ученика</button>
+          </div>
+          <div class="modal-body">
+              <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
+                  <tr>
+                      <th>Фамилия, Имя</th>
+                      <th>Телефон</th>
+                  </tr>
+                  <tr ng-repeat="row in day_popup.rows">
+                      <td>{{row.student.person.last_name}} {{row.student.person.first_name}}</td>
+                      <td class="{{row.day_data.color}}" ng-class="{checkb: row.day_data.pass}">
+                          <strong ng-class="{redsign: !checkSign(row.day_data.sign)}">{{row.day_data.sign | makePositive}}</strong>
+                            <a href="" ng-show="!row.day_data.pass">Добавить оплату</a>
+                            <strong ng-show="row.day_data.debt && !row.day_data.pass">({{row.day_data.sign | makePositive}})</strong>
+
+                            <label for="" class="checkbox"  ng-show="row.day_data.pass" style="margin: 0;">
+                                <input type="checkbox" ng-model="row.day_data.attended" ng-click="processPayment(row.day_data, student)" />
+                                <!--strong>({{row.day_data.sign | makePositive}})</strong-->
+                            </label>
+                      </td>
+                  </tr>
+              </table>
+        </div>
+          <div class="modal-footer">
+            <a href="#" class="btn">Сохранить без пропусков</a>
+            <a href="#" class="btn btn-primary">Сохранить c пропусками</a>
+          </div>
+        </div>
+
     </div>
 
     {% endverbatim %}

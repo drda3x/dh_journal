@@ -241,10 +241,33 @@
                 }
             }
 
-            function getClubCard(student) {
-                return _.find($scope.data.club_cards, function(card) {
+            $scope.fillDayPopup = function(column) {
+
+                $scope.day_popup = { 
+                    rows: _.map($scope.data.students, function(student) {
+                        return {
+                            student: student,
+                            day_data: student.calendar[column]
+                        }
+                    }),
+
+                    teachers: $scope.substitutions[column]
+                }
+
+            }
+
+            $scope.fillDayPopup(0);
+
+            function checkClubCard(student) {
+                var has_club_card = _.find($scope.data.club_cards, function(card) {
                         return card.student.first_name == student.person.first_name && card.student.last_name == student.person.last_name
-                    });
+                    }) != undefined;
+
+                return has_club_card;
+            }
+
+            function isDebt(id) {
+                return id == -2;
             }
 
             $scope.paymentChange = function(pass) {
