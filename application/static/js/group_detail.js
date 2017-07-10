@@ -192,14 +192,16 @@
 
 
             $scope.processPayment = function(lesson, student, is_newbie) {
+                /* 
                 if ($scope.column == null) {
                     return;
                 }
+                */
 
                 if (lesson.type == 'pass') {
                     lesson.attended = !lesson.attended;
                 } else {
-                    var club_card = getClubCard(student);
+                    var club_card = null;//getClubCard(student);
 
                     $scope.paymentModal = {
                         student: student, //.person,

@@ -310,7 +310,7 @@
            </div>
         </div>
         
-        <div class="modal" ng-hide="!paymentModal">
+        <div class="modal" ng-hide="!paymentModal" style="z-index: 9999" >
             <div class="modal-header">
                {{paymentModal.student.person.last_name}} {{paymentModal.student.person.first_name}} 
             </div>
@@ -368,7 +368,7 @@
             </div>
         </div>
 
-        <div class="modal">
+        <div class="modal" style="z-index: 9998">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h4>
@@ -388,7 +388,7 @@
                       <td>{{row.student.person.last_name}} {{row.student.person.first_name}}</td>
                       <td class="{{row.day_data.color}}" ng-class="{checkb: row.day_data.pass}">
                           <strong ng-class="{redsign: !checkSign(row.day_data.sign)}">{{row.day_data.sign | makePositive}}</strong>
-                            <a href="" ng-show="!row.day_data.pass">Добавить оплату</a>
+                            <a href="" ng-show="!row.day_data.pass" ng-click="processPayment(row.day_data, row.student, false)">Добавить оплату</a>
                             <strong ng-show="row.day_data.debt && !row.day_data.pass">({{row.day_data.sign | makePositive}})</strong>
 
                             <label for="" class="checkbox"  ng-show="row.day_data.pass" style="margin: 0;">
