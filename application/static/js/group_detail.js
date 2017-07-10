@@ -190,6 +190,7 @@
                 }
             }
 
+
             $scope.processPayment = function(lesson, student, is_newbie) {
                 if ($scope.column == null) {
                     return;
@@ -253,6 +254,8 @@
 
                     teachers: $scope.substitutions[column]
                 }
+
+                $scope.showBackDrop = true;
 
             }
 
@@ -445,6 +448,12 @@
                     }
                 });
             });
+
+            // Show the backdrop
+            //$('<div class="modal-backdrop"></div>').appendTo(document.body);
+
+            // Remove it (later)
+            //$(".modal-backdrop").remove(); 
 
         }]);
     }

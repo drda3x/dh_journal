@@ -26,14 +26,29 @@
          }
 
          .daypopup-teachers {
-            background-color: #f5f5f5;
+            background-color: #fff;
             border-radius: 5px;
-            padding: 1px 15px;
+            padding: 10px 15px 2px;
             margin-bottom: 10px;
             border: 1px solid rgb(227, 227, 227);
+            text-align: center;
          }
+
          .daypopup-teachers table {
              background-color: inherit !important;
+         }
+         .modal-backdrop {
+            opacity: 0.9;
+         }
+         .modal {
+             border: 1px solid rgb(227, 227, 227) !important;
+         }
+         .modal-header {
+            background-color: #f5f5f5;
+            border-radius: 7px 7px 0 0;
+         }
+         .modal-body {
+            background-color: #f5f5f5;
          }
 
          {% for typ in passes_color_classes%}
@@ -356,30 +371,18 @@
         <div class="modal">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4>01.07.2017</h4>
-
-            <div class="row-fulid daypopup-teachers">
-                <h5>Преподаватели</h5>
-                <table class="region table" style="margin-bottom: 0;">
-                    <tr>
-                        <td ng-repeat="cur_teacher in day_popup.teachers" style="border-top: none">
-                            <select ng-model="day_popup.teachers[$index]">
-                                <option ng-repeat="teacher in teachers" 
-                                        ng-value="teacher.id">
-                                    {{teacher.last_name}} {{teacher.first_name}}
-                                </option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
+            <h4>
+                <span>01.07.2017</span>
+            </h4>
+                <button class="btn">Добавить ученика</button>
             </div>
-            <button class="btn">Добавить ученика</button>
-          </div>
+
+
           <div class="modal-body">
               <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
                   <tr>
                       <th>Фамилия, Имя</th>
-                      <th>Телефон</th>
+                      <th>Оплата</th>
                   </tr>
                   <tr ng-repeat="row in day_popup.rows">
                       <td>{{row.student.person.last_name}} {{row.student.person.first_name}}</td>
@@ -397,12 +400,24 @@
               </table>
         </div>
           <div class="modal-footer">
+            <div class="daypopup-teachers">
+               <span ng-repeat="cur_teacher in day_popup.teachers">
+                  <select ng-model="day_popup.teachers[$index]">
+                        <option ng-repeat="teacher in teachers" 
+                                ng-value="teacher.id">
+                            {{teacher.last_name}} {{teacher.first_name}}
+                        </option>
+                    </select>
+               </span>
+          </div>
             <a href="#" class="btn">Сохранить без пропусков</a>
             <a href="#" class="btn btn-primary">Сохранить c пропусками</a>
           </div>
         </div>
 
+        <div class="modal-backdrop" ng-show="showBackDrop"></div>
     </div>
+
 
     {% endverbatim %}
 
