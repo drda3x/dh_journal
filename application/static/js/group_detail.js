@@ -116,7 +116,7 @@
             $scope.column = null;
             $scope.columnClick = function(index) {
                 if ($scope.row == null && !checkAndRestoreLesson()) {
-                    $scope.column = index;
+                    $scope.fillDayPopup(index);
                 }
             }
 
@@ -254,14 +254,18 @@
                         }
                     }),
 
-                    teachers: $scope.substitutions[column]
-                }
+                    teachers: $scope.substitutions[column],
+                    day_index: column
+                };
 
-                $scope.showBackDrop = true;
+                $scope.showDayPopup = true;
 
             }
 
-            $scope.fillDayPopup(0);
+            $scope.destroyDayPopup = function() {
+                $scope.day_popup = null;
+                $scope.showDayPopup = false;
+            }
 
             function checkClubCard(student) {
                 var has_club_card = _.find($scope.data.club_cards, function(card) {
@@ -290,7 +294,19 @@
                 $scope.substitutions[$scope.column][teacherIndex] = teacher.id;
             }
 
-            $scope.addStudent = function() {
+            $scope.addStudentFromMain = function() {
+                var new_student = getNewStudent(); 
+                $scope.data.students.push(new_student);
+                $scope.rowClick($scope.data.students.length - 1, new_student);
+            }
+
+            $scope.addStudentFromPopup = function(day_index) {
+                var new_student = getNewStudent(); 
+                $scope.data.students.push(new_student);
+                $scope.processPayment(new_student.calendar[day_index], new_student, true);
+            }
+
+            function getNewStudent() {
                 var new_student = {
                     calendar: _.map($scope.data.calendar, function() {
                         return {
@@ -320,13 +336,7 @@
                     }
                 };
 
-                $scope.data.students.push(new_student);
-
-                $scope.rowClick($scope.data.students.length - 1, new_student);
-
-                if ($scope.column != null) {
-                    $scope.processPayment(new_student.calendar[$scope.column], new_student, true);
-                }
+                return new_student;
             }
 
             $scope.deleteStudent = function() {
@@ -386,9 +396,9 @@
                 return ($scope.toggleSideBar_local && (index==null || index != 0)) ? 1 : 2;
             }
 
-            $scope.saveLessons = function(setMisses) {
+            $scope.saveLessons = function(setMisses, column) {
                 var lessons = _.map($scope.data.students, function(student) {
-                    var lesson = _.clone(student.calendar[$scope.column]);
+                    var lesson = _.clone(student.calendar[column]);
                     lesson.student_id = student.person.id;
 
                     return lesson;
@@ -396,11 +406,11 @@
 
                 var json = {
                     group_id: $scope.data.group_data.id,
-                    date: $scope.data.calendar[$scope.column].date,
+                    date: $scope.data.calendar[column].date,
                     lessons: lessons,
-                    teachers: $scope.substitutions[$scope.column],
+                    teachers: $scope.substitutions[column],
                     setMisses: setMisses,
-                    teachers: $scope.substitutions[$scope.column]
+                    teachers: $scope.substitutions[column]
                 }
                 sendData(json, 'process_lesson', function() {
                     location.reload();

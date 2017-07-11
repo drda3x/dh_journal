@@ -130,8 +130,8 @@
                             class="span4">{{trimComment((student.comments|last).text, 35)}}</td>
                         <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                             ng-mouseover="columnIndexCache($index)" 
-                            ng-click="processPayment(lesson, student, false); columnClick($index)" 
-                            ng-show="column == null || column==$index" class="{{lesson.color}}" 
+                            ng-click="columnClick($index)" 
+                            class="{{lesson.color}}" 
                             ng-repeat="lesson in student.calendar track by $index">
                             <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
                             <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
@@ -368,13 +368,13 @@
             </div>
         </div>
 
-        <div class="modal" style="z-index: 9998">
+        <div class="modal" style="z-index: 9998" ng-show="showDayPopup">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="destroyDayPopup(); checkStudents(); resetModal()">&times;</button>
             <h4>
                 <span>01.07.2017</span>
             </h4>
-                <button class="btn">Добавить ученика</button>
+                <button class="btn" ng-click="addStudentFromPopup(day_popup.day_index)" >Добавить ученика</button>
             </div>
 
 
@@ -410,12 +410,12 @@
                     </select>
                </span>
           </div>
-            <a href="#" class="btn">Сохранить без пропусков</a>
-            <a href="#" class="btn btn-primary">Сохранить c пропусками</a>
+            <a href="#" class="btn" ng-click="saveLessons(false, day_popup.day_index)">Сохранить без пропусков</a>
+            <a href="#" class="btn btn-primary" ng-click="saveLessons(true, day_popup.day_index)">Сохранить c пропусками</a>
           </div>
         </div>
 
-        <div class="modal-backdrop" ng-show="showBackDrop"></div>
+        <div class="modal-backdrop" ng-show="showDayPopup" ng-click="destroyDayPopup(); checkStudents(); resetModal()"></div>
     </div>
 
 
