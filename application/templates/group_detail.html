@@ -96,7 +96,7 @@
                         <li ng-repeat="dt in control_data.date_control"><a href="http://{%endverbatim%}{{host}}/group/{%verbatim%}{{dt.val}}">{{dt.name}}</a></li>
                     </ul>
                 </div>
-                <button class="btn" ng-click="addStudent()">Добавить</button>
+                <button class="btn" ng-click="addStudentFromMain()">Добавить</button>
                 <button class="btn" ng-show="row != null" ng-click="deleteStudent()">Удалить</button>
                 <!--
                 <button class="btn btn-primary">Перенести занятия</button>
@@ -134,13 +134,7 @@
                             class="{{lesson.color}}" 
                             ng-repeat="lesson in student.calendar track by $index">
                             <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
-                            <a href="" ng-show="column!=null && !lesson.pass">Добавить оплату</a>
                             <strong ng-show="column!=null && lesson.debt && !lesson.pass">({{lesson.sign | makePositive}})</strong>
-
-                            <label for="" class="checkbox"  ng-show="column!=null && lesson.pass" style="margin: 0;">
-                                <input type="checkbox" ng-model="lesson.attended" ng-click="processPayment(lesson, student)" />
-                                <strong>({{lesson.sign | makePositive}})</strong>
-                            </label>
                         </td>
                     </tr>
                     <tr ng-mouseover="rowIndexCache(null)" ng-show="row==null && column==null" >
@@ -387,25 +381,24 @@
                   <tr ng-repeat="row in day_popup.rows">
                       <td>{{row.student.person.last_name}} {{row.student.person.first_name}}</td>
                       <td class="{{row.day_data.color}}" ng-class="{checkb: row.day_data.pass}">
-                          <strong ng-class="{redsign: !checkSign(row.day_data.sign)}">{{row.day_data.sign | makePositive}}</strong>
-                            <a href="" ng-show="!row.day_data.pass" ng-click="processPayment(row.day_data, row.student, false)">Добавить оплату</a>
-                            <strong ng-show="row.day_data.debt && !row.day_data.pass">({{row.day_data.sign | makePositive}})</strong>
-
-                            <label for="" class="checkbox"  ng-show="row.day_data.pass" style="margin: 0;">
-                                <input type="checkbox" ng-model="row.day_data.attended" ng-click="processPayment(row.day_data, student)" />
-                                <!--strong>({{row.day_data.sign | makePositive}})</strong-->
-                            </label>
-                      </td>
-                  </tr>
-              </table>
-        </div>
-          <div class="modal-footer">
-            <div class="daypopup-teachers">
-               <span ng-repeat="cur_teacher in day_popup.teachers">
-                  <select ng-model="day_popup.teachers[$index]">
-                        <option ng-repeat="teacher in teachers" 
-                                ng-value="teacher.id">
-                            {{teacher.last_name}} {{teacher.first_name}}
+                            <a href="" ng-show="!row.day_data.pass" ng-click="processPayment(row.day_data, row.student, false, day_popup.day_index)">Добавить оплату</a>
+                            <label for="" class="checkbox" ng-show="row.day_data.pass"  style="margin: 0;">
+                                <input type="checkbox" 
+                                    ng-show="row.day_data.pass" 
+                                    ng-model="row.day_data.attended" ng-click="processPayment(row.day_data, student, false, day_popup.day_index)" />
+                                    <strong ng-class="{redsign: !checkSign(row.day_data.sign)}">{{row.day_data.sign | makePositive}}</strong>
+                                </label>
+                          </td>
+                      </tr>
+                  </table>
+            </div>
+              <div class="modal-footer">
+                <div class="daypopup-teachers">
+                   <span ng-repeat="cur_teacher in day_popup.teachers">
+                      <select ng-model="day_popup.teachers[$index]">
+                            <option ng-repeat="teacher in teachers" 
+                                    ng-value="teacher.id">
+                                {{teacher.last_name}} {{teacher.first_name}}
                         </option>
                     </select>
                </span>

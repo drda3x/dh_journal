@@ -191,17 +191,9 @@
             }
 
 
-            $scope.processPayment = function(lesson, student, is_newbie) {
-                /* 
-                if ($scope.column == null) {
-                    return;
-                }
-                */
-
-                if (lesson.type == 'pass') {
-                    lesson.attended = !lesson.attended;
-                } else {
-                    var club_card = null;//getClubCard(student);
+            $scope.processPayment = function(lesson, student, is_newbie, day_index) {
+                if (lesson.type != 'pass') {
+                    var club_card = getClubCard(student);
 
                     $scope.paymentModal = {
                         student: student, //.person,
@@ -218,28 +210,36 @@
 
                         var pass_is_club_card = club_card != undefined && pass.id == club_card.id,
                             is_debt = pass.id == -2,
-                            cnt = (is_debt || pass_is_club_card) ? 1 : pass.lessons;
-
-                        _.map(student.calendar, function(lesson, index) {
-                            if (cnt > 0 && index >= $scope.column) {
+                            cnt = (is_debt || pass_is_club_card) ? 1 : pass._lessons,
+                            index = 0;
+                       
+                        while(cnt > 0) {
+                            if(index >= day_index) {
+                                var lesson = student.calendar[index];
 
                                 if(pass_is_club_card) {
                                     lesson.pid = club_card.id;
                                 }
 
                                 lesson.pass = true;
-                                lesson.attended = index == $scope.column;
+                                lesson.attended = index == day_index;
                                 lesson.color = pass.html_color_class;
                                 lesson.type = (pass_is_club_card) ? 'pass' : 'just_added';
                                 lesson.pass_type_id = pass.id || pass.pass_type.id;
                                 lesson.lessons_cnt = pass._lessons;
                                 lesson.skips_cnt = pass._skips;
                                 lesson.debt = is_debt;
-                                lesson.sign = (is_debt) ? 'долг' : (pass.prise / pass.lessons) || (pass.pass_type.prise / pass.pass_type.lessons);
+                                
+                                if(lesson.attended) {
+                                    lesson.sign = (is_debt) ? 'долг' : (pass.prise / pass.lessons) || (pass.pass_type.prise / pass.pass_type.lessons);
+                                } else {
+                                    lesson.sign = null;
+                                }
 
                                 cnt--;
                             }
-                        });
+                            index++;
+                        } 
                     }
                 }
             }
@@ -267,12 +267,17 @@
                 $scope.showDayPopup = false;
             }
 
-            function checkClubCard(student) {
-                var has_club_card = _.find($scope.data.club_cards, function(card) {
-                        return card.student.first_name == student.person.first_name && card.student.last_name == student.person.last_name
-                    }) != undefined;
+            function getClubCard(student) {
+                var searchId = student.person.id;
 
-                return has_club_card;
+                for(var i in $scope.data.club_cards) {
+                    var card = $scope.data.club_cards[i];
+                    if(searchId == card.student.id) {
+                        return card
+                    }
+                }
+
+                return undefined
             }
 
             function isDebt(id) {
@@ -303,7 +308,7 @@
             $scope.addStudentFromPopup = function(day_index) {
                 var new_student = getNewStudent(); 
                 $scope.data.students.push(new_student);
-                $scope.processPayment(new_student.calendar[day_index], new_student, true);
+                $scope.processPayment(new_student.calendar[day_index], new_student, true, day_index);
             }
 
             function getNewStudent() {
