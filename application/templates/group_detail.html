@@ -123,7 +123,6 @@
                 <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">
                     <tr>
                         <th>Фамилия Имя</th>
-                        <th ng-show="!toggleSideBar_local">Телефон</th>
                         <th ng-show="!toggleSideBar_local">Коментарий</th>
                         <th ng-repeat="date_rec in data.calendar" ng-click="columnClick($index)" ng-show="column == null || column==$index" ng-class="getProfit(date_rec.profit)">{{date_rec.date}}<br><span ng-show="date_rec.canceled" class="text-error">ОТМЕНЕНО</span></th>
                     </tr>
