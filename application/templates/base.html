@@ -75,6 +75,16 @@
                     }
                 })();
 
+                $scope.isAnyPageOpened = (function() {
+                    for(var i in $scope.sidebar_menu) {
+                        if($scope.isActive($scope.sidebar_menu[i])) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })();
+
                 $scope.isHeader = function(elem) {
                     return elem.type == 'header';
                 }
@@ -288,6 +298,7 @@
                             <a class="toggle-button" 
                                 style="" 
                                 href="" 
+                                ng-show="isAnyPageOpened"
                                 ng-click="setSideBarStatus(false)">
                                     <div class="carret"></div>
                             </a>
