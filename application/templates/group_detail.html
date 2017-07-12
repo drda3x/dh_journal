@@ -4,6 +4,10 @@
 {% block style%}
     <link rel="stylesheet" href="{% static "css/group_detail.css" %}">
     <style>
+        .slided {
+            left: 35px !important;
+            position: relative;
+        }
         .profitgood {
          background-color: #33ff99 !important;
          }
@@ -85,18 +89,25 @@
                         <div class="carret-left" style="margin-left: 14px"></div>
                 </a>
             </div>
-            <div class="row-fulid" ng-class="{slided: !toggleSideBar_local}">
-            <div class="span4" style="margin-top: -13px">
-                <div class="btn-group" ng-class="{slided: toggleSideBar_local}">
-                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                        {{control_data.constant.current_date_str}}
-                    <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li ng-repeat="dt in control_data.date_control"><a href="http://{%endverbatim%}{{host}}/group/{%verbatim%}{{dt.val}}">{{dt.name}}</a></li>
-                    </ul>
-                </div>
-                <button class="btn" ng-click="addStudentFromMain()">Добавить</button>
+            <div class="row-fulid" >
+                <div class="span4" 
+                     ng-class="{slided: !toggleSideBar_local}"  
+                     style="margin-top: -13px">
+
+                    <div class="btn-group" 
+                         style="padding-left: 0;">
+                        <a class="btn dropdown-toggle" 
+                           data-toggle="dropdown" 
+                           href="#">
+                            {{control_data.constant.current_date_str}}
+                        <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li ng-repeat="dt in control_data.date_control"><a href="http://{%endverbatim%}{{host}}/group/{%verbatim%}{{dt.val}}">{{dt.name}}</a></li>
+                        </ul>
+                    </div>
+
+                <button class="btn" ng-click="addStudentFromMain()" >Добавить</button>
                 <button class="btn" ng-show="row != null" ng-click="deleteStudent()">Удалить</button>
                 <!--
                 <button class="btn btn-primary">Перенести занятия</button>
