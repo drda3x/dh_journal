@@ -271,8 +271,14 @@
             <td class="{{lesson.color}}" 
                ng-show="column == $index"
                ng-repeat="lesson in student.calendar track by $index">
-               <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
-               <strong ng-show="column!=null && lesson.debt && !lesson.pass">({{lesson.sign | makePositive}})</strong>
+                <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
+                <a href="" ng-show="column!=null && !lesson.pass" style="text-align: center">Добавить<br>оплату</a>
+                <strong ng-show="column!=null && lesson.debt && !lesson.pass">({{lesson.sign | makePositive}})</strong>
+
+                <label for="" class="checkbox"  ng-show="column!=null && lesson.pass" style="margin: 0;">
+                    <input type="checkbox" ng-model="lesson.attended" ng-click="processPayment(lesson, student)" />
+                    <strong>({{lesson.sign | makePositive}})</strong>
+                </label>
             </td>
          </tr>
       </table>
