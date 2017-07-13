@@ -117,6 +117,7 @@
             $scope.columnClick = function(index) {
                 if ($scope.row == null && !checkAndRestoreLesson()) {
                     $scope.fillDayPopup(index);
+                    $scope.column = index;
                 }
             }
 
