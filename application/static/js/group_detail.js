@@ -169,6 +169,7 @@
 
                     $scope.selected_student = student_rec
                     $scope.selected_student = {
+                        id: student_rec.person.id,
                         first_name: student_rec.person.first_name,
                         last_name: student_rec.person.last_name,
                         phone: student_rec.person.phone,
@@ -189,8 +190,127 @@
                         $scope.selected_student.comments = student_rec.comments;
                         $scope.new_comment = null;
                     }
-
+                    
+                    $scope.editComment = function(comment) {
+                        $scope.new_comment = comment;
+                    }
                 }
+            }
+            
+        $scope.Comments = {
+            showEditor: false,
+            isNew: false,
+            editedCommentNum: null,
+            prevCommentText: null,
+
+            addOrEditComment: function(comment, student, num) {
+                this.showEditor = true;
+                this.isNew = (comment == null);
+
+                var editedComment;
+                
+                if(this.isNew) {
+                    editedComment = {
+                        add_date: moment().format("DD.MM.YYYY h:mm:ss"),
+                        text: ''
+                    };
+                    student.comments.push(editedComment);
+                    this.editedCommentNum = student.comments.length - 1;
+
+                } else {
+                    editedComment = comment;
+                    this.editedCommentNum = num;
+                    this.prevCommentText = comment.text;
+                }
+            },
+
+            save: function(comment, student) {
+                var json = {};
+
+                json.cid = comment.pk || null;
+                json.type = (this.isNew) ? 'add' : 'edit';
+                json.stid = student.id;
+                json.grid = $scope.data.group_data.id;
+                json.msg = comment.text;
+
+                var _alert = window.createWindowAlert();
+                
+                sendData(json, 'process_comment', (function(comment, _alert) {
+                    return function(err, resp) {
+                        $scope.$apply(function() {
+                            if(!err) {
+                                comment.pk = resp;
+                                _alert.success('Коментарий успешно сохранен');
+                            } else {
+                                _alert.error('Ошибка');
+                            }
+                        });
+                    }
+                })(comment, _alert));
+
+                this.isNew = false;
+                this.showEditor = false;
+                this.editedCommentNum = null;
+            },
+
+            delete: function(comment, student, index) {
+                if(!comment.pk && !confirm('Подтвердите удаление коментария')) {
+                    return;
+                }
+
+                var json = {};
+
+                json.cid = comment.pk;
+                json.type = 'delete';
+                json.stid = student.id;
+                json.grid = $scope.data.group_data.id;
+
+
+                var _alert = window.createWindowAlert();
+
+                sendData(json, 'process_comment', (function(student, index, _alert) {
+
+                    return function(err, resp) {
+                        if(!err) {
+                            $scope.$apply(function() {
+                                for(var i=0, j=$scope.data.students.length; i<j; i++) {
+                                    var s = $scope.data.students[i];
+                                    if(s.person.id == student.id) {
+                                        s.comments = s.comments
+                                            .slice(0, index)
+                                            .concat(s.comments.slice(index+1))
+                                        break;
+                                    }
+
+                                    $scope.selected_student.comments = $scope.selected_student.comments
+                                        .slice(0, index).concat($scope.selected_student.comments.slice(index+1));
+                                }
+                            });
+
+                            _alert.success('Коментарий успешно удален')
+                        } else {
+                            _alert.error('Ошибка')
+                        }
+                    }
+                })(student, index, _alert));
+            },
+
+            cancel: function(comment, student) {
+                if(this.isNew) {
+                    student.comments.pop();
+                } else {
+                    comment.text = this.prevCommentText;
+                }
+
+                this.isNew = false;
+                this.showEditor = false;
+                this.editedCommentNum = null;
+            }
+        }
+
+            $scope.addOrEditComment = function(comment, student) {
+
+                var editedComment =  (comment == null) ? {} : comment;
             }
 
 

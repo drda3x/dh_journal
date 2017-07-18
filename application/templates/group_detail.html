@@ -219,15 +219,35 @@
       </div>
       <div class="span6 offset1">
          <legend>Коментарии</legend>
-         <div ng-show="selected_student.comments.length > 0" class="region coment-main">
+         <div ng-show="selected_student.comments.length > 0" 
+              class="region coment-main">
             <div class="coment row-fulid" ng-repeat="comment in selected_student.comments">
                <div class="text-info" style="font-weight: bold;">{{comment.add_date}}</div>
-               {{comment.text}}
+               <textarea class="span12 coment-add" 
+                         id="" 
+                         name="" 
+                         cols="50" 
+                         rows="1" 
+                         style="resize: none;" 
+                         placeholder="Введите текст коментария" 
+                         ng-show="Comments.showEditor && Comments.editedCommentNum == $index"
+                         ng-model="comment.text">
+               </textarea>
+               <button class="btn btn-primary" 
+                       ng-click="Comments.save(comment, selected_student)" 
+                       ng-show="Comments.showEditor && Comments.editedCommentNum == $index">Сохранить</button>
+                <button class="btn btn-danger" 
+                        ng-click="Comments.cancel(comment, selected_student)" 
+                        ng-show="Comments.showEditor && Comments.editedCommentNum == $index">Отмена</button>
+                <span ng-hide="Comments.showEditor && Comments.editedCommentNum == $index"
+                      ng-dblclick="Comments.addOrEditComment(comment, selected_student, $index)">{{comment.text}}</span>
+                <a href="#" ng-click="Comments.delete(comment, selected_student, $index)">Удалить</a>
             </div>
          </div>
-         <textarea class="span12 coment-add" id="" name="" cols="50" rows="3" style="resize: none;" placeholder="Введите коментарий" ng-model="new_comment"></textarea>
-         <button class="btn btn-primary" ng-click="saveComment()">Сохранить</button>
-         <button class="btn btn-danger" ng-click="checkStudents(); rowClick(null)">Отмена</button>
+         <a href="#" 
+             class="btn btn-primary"
+             ng-hide="Comments.showEditor"
+             ng-click="Comments.addOrEditComment(null, selected_student, null)">Добавить коментарий</a>
       </div>
    </div>
    <div class="row-fulid hidden-desktop">

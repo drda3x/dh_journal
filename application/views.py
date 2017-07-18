@@ -1563,6 +1563,37 @@ class GroupView(IndexView):
             key: val for val, key in get_color_classes()
         }
 
+    def process_comment(self, request):
+        json_data = json.loads(request.POST['data'])
+        cid = json_data.get('cid')
+        action_type = json_data['type']
+
+        if action_type == 'add':
+            comment = Comments(
+                student_id=json_data['stid'],
+                group_id=json_data['grid'],
+                add_date=datetime.datetime.now(),
+                text=json_data['msg']
+            )
+            comment.save()
+
+            return HttpResponse(comment.pk)
+
+        elif cid is not None and action_type == 'edit':
+            comment = Comments.objects.filter(pk=cid).update(
+                text=json_data['msg'],
+                add_date=datetime.datetime.now()
+            )
+
+        elif cid is not None and action_type == 'delete':
+            try:
+                Comments.objects.get(pk=cid).delete()
+
+            except Comments.DoesNotExist:
+                pass
+
+        return HttpResponse("ok")
+
     def get_detail_repr(self, obj):
         if isinstance(obj, GroupLogic.CanceledLesson):
             return {
