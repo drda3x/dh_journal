@@ -92,7 +92,7 @@
          <div class="carret-left" style="margin-left: 14px"></div>
       </a>
    </div>
-   <div class="row-fulid" >
+   <div class="row-fulid visible-desktop" >
       <div class="span4" 
          ng-class="{slided: !toggleSideBar_local}"  
          style="margin-top: -13px">
@@ -259,18 +259,25 @@
       </div>
    </div>
    <div class="row-fulid hidden-desktop">
+     <div class="dates-list" style="margin: 15px 0" ng-show="column==null">
+        <button class="btn btn-large" style="width: 100%" ng-click="goMainPage()">Выбрать группу</button>
+     </div>
+     <div class="dates-list" style="margin: 15px 0" ng-show="column==null">
+        <button class="btn btn-large" style="width: 100%" ng-click="columnClick($index)">Выбрать месяц</button>
+     </div>
+     <div class="dates-list" style="margin: 15px 0" ng-show="column!=null">
+        <button class="btn btn-large" style="width: 100%" ng-click="columnClick($index)">Добавить ученика</button>
+     </div>
+     <div class="dates-list" style="margin: 15px 0" ng-show="column!=null">
+        <button class="btn btn-large" style="width: 100%" ng-click="columnClick($index)">назад</button>
+     </div>
+   </div>
+   <div class="row-fulid hidden-desktop">
       <div class="span12">
-         <h4>Даты</h4>
-         <div class="dates-list" style="margin: 15px 0" ng-show="column!=null">
-            <button class="btn btn-large" style="width: 100%" ng-click="columnClick($index)">назад</button>
-         </div>
          <div class="dates-list" ng-repeat="date_rec in data.calendar" ng-show="column==null">
             <button class="btn btn-large" style="width: 100%" ng-click="columnClick($index)">{{date_rec.date}}</button>
          </div>
       </div>
-   </div>
-   <div ng-show="column!=null" class="row-fulid hidden-desktop">
-       <strong>Поиск</strong>
    </div>
    <div class="row hidden-desktop mobile-student" 
        ng-show="column!=null" 
@@ -288,7 +295,7 @@
            </strong-->
            <span class="text-info" 
                  ng-show="!student.calendar[column].pass" 
-                 ng-click="processPayment(student.calendar[column], student)"
+                 ng-click="processPayment(student.calendar[column], student, false, column)"
                  style="text-align: center">$</span>
            <span class="square text-success" 
                  ng-click="student.calendar[column].attended = false"
@@ -296,58 +303,62 @@
            <span class="square text-none" 
                  ng-click="student.calendar[column].attended = true"
                  ng-show="student.calendar[column].pass && !student.calendar[column].attended">&#8212;</span>
-           <!--a href="" ng-show="student.calendar[column].pass && !student.calendar[column].attended" ng-click="student.calendar[column].attended = true"></a>
-           <a href="" ng-show="student.calendar[column].attended" ng-click="student.calendar[column].attended = false">
-                <!--Отмечено {{student.calendar[column].sign | makePositive}}>
-           </a>
-           <
-           <strong ng-show="student.calendar[column].debt && !student.calendar[column].pass">({{student.calendar[column].sign | makePositive}})</strong>
-           <label for="" class="checkbox"  ng-show="student.calendar[column].pass" style="margin: 0;">
-               <input type="checkbox" ng-model="student.calendar[column].attended" ng-click="processPayment(student.calendar[column], student)" />
-               <strong>({{student.calendar[column].sign | makePositive}})</strong>
-           </label>
-           -->
        </div>
    </div>
-   <!--div class="row-fulid hidden-desktop">
-       <table class="table table-bordered region"
-           ng-show="column!=null">
-         <tr>
-            <th>Фамилия Имя</th>
-            <th ng-repeat="date_rec in data.calendar" 
-               ng-click="columnClick($index)" 
-               ng-show="column==$index" 
-               ng-class="getProfit(date_rec.profit)">
-               {{date_rec.date}}<br><span ng-show="date_rec.canceled" class="text-error">ОТМЕНЕНО</span>
-            </th>
-         </tr>
-         <tr ng-repeat="student in data.students" 
-            ng-mouseover="rowIndexCache($index)" 
-            ng-show="row == null || row == $index" 
-            ng-init="rowIndex=$index">
-            <td ng-click="rowClick($index, student)" 
-               ng-mouseover="columnIndexCache(null);" 
-               ng-class="{highlight: hoveredRow==rowIndex}">
-               {{student.person.last_name}} {{student.person.first_name}}
-               <div class="phone">{{student.person.phone}}</div>
-            </td>
-            <td class="{{lesson.color}}" 
-               ng-show="column == $index"
-               ng-repeat="lesson in student.calendar track by $index">
-                <strong ng-show="column == null" ng-class="{redsign: !checkSign(lesson.sign)}">{{lesson.sign | makePositive}}</strong>
-                <a href="" ng-show="column!=null && !lesson.pass" style="text-align: center">Добавить<br>оплату</a>
-                <strong ng-show="column!=null && lesson.debt && !lesson.pass">({{lesson.sign | makePositive}})</strong>
 
-                <label for="" class="checkbox"  ng-show="column!=null && lesson.pass" style="margin: 0;">
-                    <input type="checkbox" ng-model="lesson.attended" ng-click="processPayment(lesson, student)" />
-                    <strong>({{lesson.sign | makePositive}})</strong>
-                </label>
-            </td>
-         </tr>
-      </table>
-   </div-->
+   <div class="row-fulid mobile-teachers hidden-desktop" ng-show="column!=null">
+       <span ng-repeat="cur_teacher in day_popup.teachers">
+          <select ng-model="day_popup.teachers[$index]">
+             <option ng-repeat="teacher in teachers" 
+                ng-value="teacher.id">
+                {{teacher.last_name}} {{teacher.first_name}}
+             </option>
+          </select>
+       </span>
+   </div>
+
+   <div class="row-fulid hidden-desktop" ng-show="column!=null">
+     <div class="dates-list" style="margin: 15px 0">
+        <button class="btn btn-large btn-primary" style="width: 100%" ng-click="saveLessons(true, column)">Сохранить с пропусками</button>
+     </div>
+     <div class="dates-list" style="margin: 15px 0">
+        <button class="btn btn-large" style="width: 100%" ng-click="saveLessons(false, column)">Сохранить без пропусков</button>
+     </div>
+   </div>
+
+   <div class="row-fulid hidden-desktop mobile-modal well" style="z-index: 9999" ng-hide="!paymentModal">
+       <h4 class="row">{{paymentModal.student.person.last_name}} {{paymentModal.student.person.first_name}}</h4>
+        <form class="form-horizontal">
+           <div class="controll-group">
+              <label class="control-label" for="paymentChoise">Тип абонемента:</label>
+              <div class="controls">
+                 <select id="paymentChoise" id="paymentChoise" ng-model="selectedPass" ng-change="paymentChange(selectedPass)">
+                    <option ng-show="paymentModal.club_card" ng-value="paymentModal.club_card">Списать занятие с клубной карты</option>
+                    <option ng-repeat="pass in passes" ng-value="pass">{{pass.name}}</option>
+                 </select>
+              </div>
+           </div>
+           <div class="controll-group">
+              <label class="control-label" for="lessons">Кол-во уроков: </label>
+              <div class="controls">
+                 <input type="text" id="lessons" ng-model="selectedPass._lessons">
+              </div>
+           </div>
+           <div class="controll-group">
+              <label class="control-label" for="skips">Кол-во пропусков:</label>
+              <div class="controls">
+                 <input type="text" id="skips" ng-model="selectedPass._skips">
+              </div>
+           </div>
+        </form> 
+        <button class="btn btn-large" ng-click="checkStudents(); resetModal()">Отмена</button>
+        <button class="btn btn-primary btn-large" ng-click="savePayment(selectedPass); checkStudents(); resetModal()">Сохранить</button>
+   </div>
+
+   <div class="modal-backdrop hidden-desktop" ng-show="paymentModal" style="z-index: 9998" ng-click="checkStudents(); resetModal();"></div>
+
    <div class="row"></div>
-   <div class="row-fluid" ng-show="row==null">
+   <div class="row-fluid visible-desktop" ng-show="row==null">
       <div class="span2">
          <h4>Сбор за месяц</h4>
          <table class="region table table-bordered">
@@ -376,7 +387,8 @@
             </tbody>
          </table>
       </div>
-      <div class="span3">
+
+      <div class="span3 visible-desktop">
          <h4>Зарплата</h4>
          <table class="region table table-bordered">
             <tr ng-repeat="sal in month_sal">
@@ -385,7 +397,8 @@
             </tr>
          </table>
       </div>
-      <div class="span7  visible-desktop">
+
+      <div class="span7 visible-desktop">
          <h4>Люди не посещающие занятия</h4>
          <table class="region table table-bordered table-hover">
             <tr ng-repeat="student in data.students" 
@@ -402,6 +415,7 @@
          </table>
       </div>
    </div>
+
    <div class="modal visible-desktop" ng-hide="!paymentModal" style="z-index: 9999" >
       <div class="modal-header">
          {{paymentModal.student.person.last_name}} {{paymentModal.student.person.first_name}} 

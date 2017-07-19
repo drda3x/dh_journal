@@ -196,6 +196,10 @@
                     }
                 }
             }
+
+        $scope.goMainPage = function() {
+            window.location = window.location.origin + '/'
+        }
             
         $scope.Comments = {
             showEditor: false,
@@ -354,6 +358,7 @@
 
 
             $scope.processPayment = function(lesson, student, is_newbie, day_index) {
+
                 if (lesson.type != 'pass') {
                     var club_card = getClubCard(student);
 

@@ -487,3 +487,24 @@ html, body {
 .mobile-student .text-none {
     font-size: 23pt;
 } 
+
+.mobile-teachers {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.mobile-teachers select {
+    width: 90%;
+    height: 40px;
+}
+
+.mobile-modal {
+    position: fixed;
+    top: 20%;
+    left: 5%;
+    width: 80%;
+}
+
+.mobile-modal button {
+    margin-top: 10px;
+}
