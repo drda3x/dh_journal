@@ -438,3 +438,10 @@ html, body {
     margin-top: 1px;
     font-size: 10pt;
 }
+
+.coment-text {
+    cursor: pointer;
+}
+.coment-text:hover {
+    text-decoration: underline;
+}

@@ -224,6 +224,45 @@
                 }
             },
 
+            showPopover: function(comment, student, index, event) {
+
+                $('body').off('click', '.comment-popover-link');
+                $('.coment-text').popover('destroy'); 
+                event.stopPropagation();
+                
+                var editLink = "coment-popover-edit" + index,
+                    deleteLink = "coment-popover-delete" + index;
+
+                $('#coment'+index).popover({
+                    content: '<div style="text-align: center; width: 90%"><a class="comment-popover-link edit" ng-click=addOrEditComment() href="#">Изменить</>  <a class="comment-popover-link delete" href="#">Удалить</></div>',
+                    placement: 'bottom',
+                    html: true
+                }).popover('show');
+
+                $('body').one('click', function() {
+                    $('body').off('click', '.comment-popover-link');
+                    $('.coment-text').popover('destroy'); 
+                })
+
+                .one('click', '.comment-popover-link', (function (comment, student, index) {
+                    return function(event) {
+                        var target = $(event.target);
+                        
+                        if(target.hasClass('edit')) {
+                            $scope.$apply(function() {
+                                $scope.Comments.addOrEditComment(comment, student, index);
+                            });
+                        } else if(confirm('Подтвердите удаление коментария')) {
+                            $scope.$apply(function() {
+                                $scope.Comments.delete(comment, student, index)
+                            });
+                        }
+
+                        $('body').off('click', '.comment-popover-link');
+                    }
+                })(comment, student, index))
+            },
+
             save: function(comment, student) {
                 var json = {};
 
@@ -254,7 +293,7 @@
             },
 
             delete: function(comment, student, index) {
-                if(!comment.pk && !confirm('Подтвердите удаление коментария')) {
+                if(!comment.pk) {
                     return;
                 }
 

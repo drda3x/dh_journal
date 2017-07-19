@@ -239,9 +239,11 @@
                 <button class="btn btn-danger" 
                         ng-click="Comments.cancel(comment, selected_student)" 
                         ng-show="Comments.showEditor && Comments.editedCommentNum == $index">Отмена</button>
-                <span ng-hide="Comments.showEditor && Comments.editedCommentNum == $index"
+                <span id="coment{{$index}}" 
+                      class="coment-text"
+                      ng-hide="Comments.showEditor && Comments.editedCommentNum == $index"
+                      ng-click="Comments.showPopover(comment, selected_student, $index, $event)"
                       ng-dblclick="Comments.addOrEditComment(comment, selected_student, $index)">{{comment.text}}</span>
-                <a href="#" ng-click="Comments.delete(comment, selected_student, $index)">Удалить</a>
             </div>
          </div>
          <a href="#" 
