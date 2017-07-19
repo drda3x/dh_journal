@@ -144,10 +144,14 @@
                   <div class="phone">{{student.person.phone}}</div>
                </td>
                <td ng-show="!toggleSideBar_local"
-                  ng-click="rowClick($index, student)" 
+                  ng-click="rowClick($index, student); Comments.addOrEditComment(student.comments|last, student, student.comments.length)" 
                   ng-mouseover="columnIndexCache(null);" 
                   ng-class="{highlight: hoveredRow==rowIndex}"
-                  class="span4">{{trimComment((student.comments|last).text, 35)}}</td>
+                  class="span4">
+                  <span ng-show="student.comments.length > 0">{{trimComment((student.comments|last).text, 35)}}</span>
+                  <a class="coment-text" 
+                     ng-show="student.comments.length == 0">Добавить</a>
+              </td>
                <td ng-class="{highlight: column==null && (hoveredColumn==$index || hoveredRow==rowIndex)}" 
                   ng-mouseover="columnIndexCache($index)" 
                   ng-click="columnClick($index)" 
@@ -231,6 +235,7 @@
                          style="resize: none;" 
                          placeholder="Введите текст коментария" 
                          ng-show="Comments.showEditor && Comments.editedCommentNum == $index"
+                         focus-me="Comments.showEditor && Comments.editedCommentNum == $index"
                          ng-model="comment.text">
                </textarea>
                <button class="btn btn-primary" 
