@@ -445,3 +445,11 @@ html, body {
 .coment-text:hover {
     text-decoration: underline;
 }
+.comment-sell {
+    vertical-align: middle !important;
+}
+.mobile-student {
+    border-bottom: 1px solid rgb(227,227,227);
+    margin-bottom: 3px;
+    padding-bottom: 3px;
+}

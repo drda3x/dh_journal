@@ -96,6 +96,7 @@
       <div class="span4" 
          ng-class="{slided: !toggleSideBar_local}"  
          style="margin-top: -13px">
+         <button class="btn" ng-show="row != null" ng-click="rowClick(null)">Назад к ведомости</button>
          <div class="btn-group" 
             style="padding-left: 0;">
             <a class="btn dropdown-toggle" 
@@ -147,7 +148,7 @@
                   ng-click="rowClick($index, student); Comments.addOrEditComment(student.comments|last, student, student.comments.length)" 
                   ng-mouseover="columnIndexCache(null);" 
                   ng-class="{highlight: hoveredRow==rowIndex}"
-                  class="span4">
+                  class="span4 comment-sell">
                   <span ng-show="student.comments.length > 0">{{trimComment((student.comments|last).text, 35)}}</span>
                   <a class="coment-text" 
                      ng-show="student.comments.length == 0">Добавить</a>
@@ -268,7 +269,29 @@
          </div>
       </div>
    </div>
-   <div class="row-fulid hidden-desktop">
+   <div ng-show="column!=null" class="row-fulid hidden-desktop">
+       <strong>Поиск</strong>
+   </div>
+   <div class="row-fulid hidden-desktop mobile-student" 
+       ng-show="column!=null" 
+       ng-init="lesson = student.calendar[column]"
+       ng-repeat="student in data.students">
+       <h3>{{student.person.last_name}} {{student.person.first_name}}</h3>
+       <h4>{{student.person.phone}}</h4>
+       <div >
+           <strong ng-show="student.calendar[column].pass" 
+               ng-class="{redsign: !checkSign(student.calendar[column].sign)}">
+               {{student.calendar[column].sign | makePositive}}
+           </strong>
+           <a href="" ng-show="!student.calendar[column].pass" style="text-align: center">Добавить оплату</a>
+           <strong ng-show="student.calendar[column].debt && !student.calendar[column].pass">({{student.calendar[column].sign | makePositive}})</strong>
+           <label for="" class="checkbox"  ng-show="student.calendar[column].pass" style="margin: 0;">
+               <input type="checkbox" ng-model="student.calendar[column].attended" ng-click="processPayment(student.calendar[column], student)" />
+               <strong>({{student.calendar[column].sign | makePositive}})</strong>
+           </label>
+       </div>
+   </div>
+   <!--div class="row-fulid hidden-desktop">
        <table class="table table-bordered region"
            ng-show="column!=null">
          <tr>
@@ -304,7 +327,7 @@
             </td>
          </tr>
       </table>
-   </div>
+   </div-->
    <div class="row"></div>
    <div class="row-fluid" ng-show="row==null">
       <div class="span2">
