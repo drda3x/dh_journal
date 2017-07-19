@@ -453,3 +453,37 @@ html, body {
     margin-bottom: 3px;
     padding-bottom: 3px;
 }
+
+.mobile-student-sell:before {
+  	content:''; /* и */
+	height: 100%; /* вот */
+	display: inline-block; /* оно! */
+    vertical-align: middle;
+}
+
+.mobile-student-l {
+    font-size: 13pt;
+}
+
+.mobile-student-l .phone {
+    font-size: 10pt;
+}
+
+.mobile-student-r, .mobile-student-l {
+    display: inline-block;
+}
+
+.mobile-student-l {
+    min-width: 200px;
+}
+
+.mobile-student .text-success, .mobile-student .text-info {
+    font-size: 25pt;
+}
+
+.mobile-student .square {
+}
+
+.mobile-student .text-none {
+    font-size: 23pt;
+} 

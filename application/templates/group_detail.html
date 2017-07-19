@@ -272,23 +272,41 @@
    <div ng-show="column!=null" class="row-fulid hidden-desktop">
        <strong>Поиск</strong>
    </div>
-   <div class="row-fulid hidden-desktop mobile-student" 
+   <div class="row hidden-desktop mobile-student" 
        ng-show="column!=null" 
        ng-init="lesson = student.calendar[column]"
        ng-repeat="student in data.students">
-       <h3>{{student.person.last_name}} {{student.person.first_name}}</h3>
-       <h4>{{student.person.phone}}</h4>
-       <div >
-           <strong ng-show="student.calendar[column].pass" 
+
+       <div class="mobile-student-l mobile-student-sell">
+           <div>{{student.person.last_name}} {{student.person.first_name}}</div>
+           <div class="phone">{{student.person.phone}}</div>
+       </div>
+       <div class="mobile-student-r mobile-student-sell">
+           <!--strong ng-show="student.calendar[column].pass" 
                ng-class="{redsign: !checkSign(student.calendar[column].sign)}">
                {{student.calendar[column].sign | makePositive}}
-           </strong>
-           <a href="" ng-show="!student.calendar[column].pass" style="text-align: center">Добавить оплату</a>
+           </strong-->
+           <span class="text-info" 
+                 ng-show="!student.calendar[column].pass" 
+                 ng-click="processPayment(student.calendar[column], student)"
+                 style="text-align: center">$</span>
+           <span class="square text-success" 
+                 ng-click="student.calendar[column].attended = false"
+                 ng-show="student.calendar[column].attended">&#10003</span>
+           <span class="square text-none" 
+                 ng-click="student.calendar[column].attended = true"
+                 ng-show="student.calendar[column].pass && !student.calendar[column].attended">&#8212;</span>
+           <!--a href="" ng-show="student.calendar[column].pass && !student.calendar[column].attended" ng-click="student.calendar[column].attended = true"></a>
+           <a href="" ng-show="student.calendar[column].attended" ng-click="student.calendar[column].attended = false">
+                <!--Отмечено {{student.calendar[column].sign | makePositive}}>
+           </a>
+           <
            <strong ng-show="student.calendar[column].debt && !student.calendar[column].pass">({{student.calendar[column].sign | makePositive}})</strong>
            <label for="" class="checkbox"  ng-show="student.calendar[column].pass" style="margin: 0;">
                <input type="checkbox" ng-model="student.calendar[column].attended" ng-click="processPayment(student.calendar[column], student)" />
                <strong>({{student.calendar[column].sign | makePositive}})</strong>
            </label>
+           -->
        </div>
    </div>
    <!--div class="row-fulid hidden-desktop">
