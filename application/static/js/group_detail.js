@@ -398,7 +398,15 @@
                                 lesson.debt = is_debt;
                                 
                                 if(lesson.attended) {
-                                    lesson.sign = (is_debt) ? 'долг' : (pass.prise / pass.lessons) || (pass.pass_type.prise / pass.pass_type.lessons);
+                                    if(is_debt) {
+                                        lesson.sign = 'долг'
+                                    } else {
+                                        var prise1 = pass.prise / pass.lessons,
+                                            prise2 = (pass.hasOwnProperty('pass_type')) ? pass.pass_type.prise / pass.pass_type.lessons : 0;
+
+                                        lesson.sign = prise1 || prise2;
+                                    }
+
                                 } else {
                                     lesson.sign = null;
                                 }
