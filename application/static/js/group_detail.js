@@ -375,9 +375,9 @@
 
                         student.just_added = false;
 
-                        var pass_is_club_card = club_card != undefined && pass.id == club_card.id,
+                        var pass_is_club_card = (club_card != undefined && pass.id == club_card.id),
                             is_debt = pass.id == -2,
-                            cnt = (is_debt || pass_is_club_card) ? 1 : pass._lessons,
+                            cnt = (is_debt || pass_is_club_card || !pass.oneGroupPass) ? 1 : pass._lessons,
                             index = 0;
                        
                         while(cnt > 0) {

@@ -146,7 +146,7 @@ def group_detail_view(request):
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
         context['pass_detail'] = json.dumps([
             p.__json__()
-            for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+            for p in PassTypes.all.filter(pk__in=group.available_passes).order_by('sequence').values()
         ])
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
