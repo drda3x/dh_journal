@@ -116,7 +116,10 @@
             $scope.column = null;
             $scope.columnClick = function(index) {
                 if ($scope.row == null && !checkAndRestoreLesson()) {
-                    $scope.fillDayPopup(index);
+                    if(index != null) {
+                        $scope.fillDayPopup(index);
+                    }
+                    $scope.column = index;
                 }
             }
 
@@ -166,6 +169,7 @@
 
                     $scope.selected_student = student_rec
                     $scope.selected_student = {
+                        id: student_rec.person.id,
                         first_name: student_rec.person.first_name,
                         last_name: student_rec.person.last_name,
                         phone: student_rec.person.phone,
@@ -186,12 +190,175 @@
                         $scope.selected_student.comments = student_rec.comments;
                         $scope.new_comment = null;
                     }
-
+                    
+                    $scope.editComment = function(comment) {
+                        $scope.new_comment = comment;
+                    }
                 }
+            }
+
+        $scope.goMainPage = function() {
+            window.location = window.location.origin + '/'
+        }
+            
+        $scope.Comments = {
+            showEditor: false,
+            isNew: false,
+            editedCommentNum: null,
+            prevCommentText: null,
+
+            addOrEditComment: function(comment, student, num) {
+                this.showEditor = true;
+                this.isNew = (comment == null);
+
+                var editedComment;
+                
+                if(this.isNew) {
+                    editedComment = {
+                        add_date: moment().format("DD.MM.YYYY h:mm:ss"),
+                        text: ''
+                    };
+                    student.comments.push(editedComment);
+                    this.editedCommentNum = student.comments.length - 1;
+
+                } else {
+                    editedComment = comment;
+                    this.editedCommentNum = num;
+                    this.prevCommentText = comment.text;
+                }
+            },
+
+            showPopover: function(comment, student, index, event) {
+
+                $('body').off('click', '.comment-popover-link');
+                $('.coment-text').popover('destroy'); 
+                event.stopPropagation();
+                
+                var editLink = "coment-popover-edit" + index,
+                    deleteLink = "coment-popover-delete" + index;
+
+                $('#coment'+index).popover({
+                    content: '<div style="text-align: center; width: 90%"><a class="comment-popover-link edit" ng-click=addOrEditComment() href="#">Изменить</>  <a class="comment-popover-link delete" href="#">Удалить</></div>',
+                    placement: 'bottom',
+                    html: true
+                }).popover('show');
+
+                $('body').one('click', function() {
+                    $('body').off('click', '.comment-popover-link');
+                    $('.coment-text').popover('destroy'); 
+                })
+
+                .one('click', '.comment-popover-link', (function (comment, student, index) {
+                    return function(event) {
+                        var target = $(event.target);
+                        
+                        if(target.hasClass('edit')) {
+                            $scope.$apply(function() {
+                                $scope.Comments.addOrEditComment(comment, student, index);
+                            });
+                        } else if(confirm('Подтвердите удаление коментария')) {
+                            $scope.$apply(function() {
+                                $scope.Comments.delete(comment, student, index)
+                            });
+                        }
+
+                        $('body').off('click', '.comment-popover-link');
+                    }
+                })(comment, student, index))
+            },
+
+            save: function(comment, student) {
+                var json = {};
+
+                json.cid = comment.pk || null;
+                json.type = (this.isNew) ? 'add' : 'edit';
+                json.stid = student.id;
+                json.grid = $scope.data.group_data.id;
+                json.msg = comment.text;
+
+                var _alert = window.createWindowAlert();
+                
+                sendData(json, 'process_comment', (function(comment, _alert) {
+                    return function(err, resp) {
+                        $scope.$apply(function() {
+                            if(!err) {
+                                comment.pk = resp;
+                                _alert.success('Коментарий успешно сохранен');
+                            } else {
+                                _alert.error('Ошибка');
+                            }
+                        });
+                    }
+                })(comment, _alert));
+
+                this.isNew = false;
+                this.showEditor = false;
+                this.editedCommentNum = null;
+            },
+
+            delete: function(comment, student, index) {
+                if(!comment.pk) {
+                    return;
+                }
+
+                var json = {};
+
+                json.cid = comment.pk;
+                json.type = 'delete';
+                json.stid = student.id;
+                json.grid = $scope.data.group_data.id;
+
+
+                var _alert = window.createWindowAlert();
+
+                sendData(json, 'process_comment', (function(student, index, _alert) {
+
+                    return function(err, resp) {
+                        if(!err) {
+                            $scope.$apply(function() {
+                                for(var i=0, j=$scope.data.students.length; i<j; i++) {
+                                    var s = $scope.data.students[i];
+                                    if(s.person.id == student.id) {
+                                        s.comments = s.comments
+                                            .slice(0, index)
+                                            .concat(s.comments.slice(index+1))
+                                        break;
+                                    }
+
+                                    $scope.selected_student.comments = $scope.selected_student.comments
+                                        .slice(0, index).concat($scope.selected_student.comments.slice(index+1));
+                                }
+                            });
+
+                            _alert.success('Коментарий успешно удален')
+                        } else {
+                            _alert.error('Ошибка')
+                        }
+                    }
+                })(student, index, _alert));
+            },
+
+            cancel: function(comment, student) {
+                if(this.isNew) {
+                    student.comments.pop();
+                } else {
+                    comment.text = this.prevCommentText;
+                }
+
+                this.isNew = false;
+                this.showEditor = false;
+                this.editedCommentNum = null;
+            }
+        }
+
+            $scope.addOrEditComment = function(comment, student) {
+
+                var editedComment =  (comment == null) ? {} : comment;
             }
 
 
             $scope.processPayment = function(lesson, student, is_newbie, day_index) {
+
                 if (lesson.type != 'pass') {
                     var club_card = getClubCard(student);
 
@@ -208,9 +375,9 @@
 
                         student.just_added = false;
 
-                        var pass_is_club_card = club_card != undefined && pass.id == club_card.id,
+                        var pass_is_club_card = (club_card != undefined && pass.id == club_card.id),
                             is_debt = pass.id == -2,
-                            cnt = (is_debt || pass_is_club_card) ? 1 : pass._lessons,
+                            cnt = (is_debt || pass_is_club_card || !pass.oneGroupPass) ? 1 : pass._lessons,
                             index = 0;
                        
                         while(cnt > 0) {
@@ -231,7 +398,15 @@
                                 lesson.debt = is_debt;
                                 
                                 if(lesson.attended) {
-                                    lesson.sign = (is_debt) ? 'долг' : (pass.prise / pass.lessons) || (pass.pass_type.prise / pass.pass_type.lessons);
+                                    if(is_debt) {
+                                        lesson.sign = 'долг'
+                                    } else {
+                                        var prise1 = pass.prise / pass.lessons,
+                                            prise2 = (pass.hasOwnProperty('pass_type')) ? pass.pass_type.prise / pass.pass_type.lessons : 0;
+
+                                        lesson.sign = prise1 || prise2;
+                                    }
+
                                 } else {
                                     lesson.sign = null;
                                 }

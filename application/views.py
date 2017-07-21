@@ -146,7 +146,7 @@ def group_detail_view(request):
         context['group_detail'] = get_group_detail(group_id, date_from, date_to)
         context['pass_detail'] = json.dumps([
             p.__json__()
-            for p in PassTypes.all.filter(one_group_pass=True, pk__in=group.available_passes).order_by('sequence').values()
+            for p in PassTypes.all.filter(pk__in=group.available_passes).order_by('sequence').values()
         ])
         context['other_groups'] = Groups.opened.exclude(id=group.id)
 
@@ -1562,6 +1562,37 @@ class GroupView(IndexView):
         return {
             key: val for val, key in get_color_classes()
         }
+
+    def process_comment(self, request):
+        json_data = json.loads(request.POST['data'])
+        cid = json_data.get('cid')
+        action_type = json_data['type']
+
+        if action_type == 'add':
+            comment = Comments(
+                student_id=json_data['stid'],
+                group_id=json_data['grid'],
+                add_date=datetime.datetime.now(),
+                text=json_data['msg']
+            )
+            comment.save()
+
+            return HttpResponse(comment.pk)
+
+        elif cid is not None and action_type == 'edit':
+            comment = Comments.objects.filter(pk=cid).update(
+                text=json_data['msg'],
+                add_date=datetime.datetime.now()
+            )
+
+        elif cid is not None and action_type == 'delete':
+            try:
+                Comments.objects.get(pk=cid).delete()
+
+            except Comments.DoesNotExist:
+                pass
+
+        return HttpResponse("ok")
 
     def get_detail_repr(self, obj):
         if isinstance(obj, GroupLogic.CanceledLesson):

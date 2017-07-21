@@ -438,3 +438,73 @@ html, body {
     margin-top: 1px;
     font-size: 10pt;
 }
+
+.coment-text {
+    cursor: pointer;
+}
+.coment-text:hover {
+    text-decoration: underline;
+}
+.comment-sell {
+    vertical-align: middle !important;
+}
+.mobile-student {
+    border-bottom: 1px solid rgb(227,227,227);
+    margin-bottom: 3px;
+    padding-bottom: 3px;
+}
+
+.mobile-student-sell:before {
+  	content:''; /* и */
+	height: 100%; /* вот */
+	display: inline-block; /* оно! */
+    vertical-align: middle;
+}
+
+.mobile-student-l {
+    font-size: 13pt;
+}
+
+.mobile-student-l .phone {
+    font-size: 10pt;
+}
+
+.mobile-student-r, .mobile-student-l {
+    display: inline-block;
+}
+
+.mobile-student-l {
+    min-width: 200px;
+}
+
+.mobile-student .text-success, .mobile-student .text-info {
+    font-size: 25pt;
+}
+
+.mobile-student .square {
+}
+
+.mobile-student .text-none {
+    font-size: 23pt;
+} 
+
+.mobile-teachers {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.mobile-teachers select {
+    width: 90%;
+    height: 40px;
+}
+
+.mobile-modal {
+    position: fixed;
+    top: 20%;
+    left: 5%;
+    width: 80%;
+}
+
+.mobile-modal button {
+    margin-top: 10px;
+}

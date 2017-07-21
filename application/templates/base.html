@@ -3,8 +3,10 @@
     {% load staticfiles %}
     <head>
         <title>ТСК "Динамика" - электронный журнал</title>
-            <meta charset="UTF-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap.css" %}"/>
+        <link rel="stylesheet" href="{% static "bootstrap/css/bootstrap-responsive.css" %}"/>
         <link rel="stylesheet" href="{% static "css/main.css" %}"/>
         <link rel="stylesheet" href="{% static "css/datepicker.css" %}"/>
         <link rel="stylesheet" href="{% static "shortcard/short_card.css" %}"/>
@@ -35,6 +37,29 @@
             });
             
             var app = angular.module('DynamicTeacherApp', []);
+
+            app.directive('focusMe', ['$timeout', '$parse', function ($timeout, $parse) {
+                return {
+                    //scope: true,   // optionally create a child scope
+                    link: function (scope, element, attrs) {
+                        var model = $parse(attrs.focusMe);
+                        scope.$watch(model, function (value) {
+                            console.log('value=', value);
+                            if (value === true) {
+                                $timeout(function () {
+                                    element[0].focus();
+                                });
+                            }
+                        });
+                        // to address @blesh's comment, set attribute value to 'false'
+                        // on blur event:
+                        element.bind('blur', function () {
+                            console.log('blur');
+                            scope.$apply(model.assign(scope, false));
+                        });
+                    }
+                };
+            }]);
 
             app.filter('makePositive', function() {
                 return function(num) { 
@@ -274,7 +299,8 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                         </a>
-                        <a href="#" class="brand">ТСК "Динамика". Электронный журнал</a>
+                        <a href="#" class="brand visible-desktop">ТСК "Динамика". Электронный журнал</a>
+                        <a href="#" class="brand hidden-desktop">ТСК "Динамика". ЭЖ</a>
                         {% if user.id %}
                             <div class="nav-collapse collapse">
                                 <div class="pull-right dropdown header-right" style="position: relative">
@@ -292,8 +318,8 @@
             </div>
             {% if user.id != None %}            
                 {% verbatim %}
-            <div class="row-fluid" ng-controller="sideBarCtrl">
-                <div ng-show="toggleSideBar_local" ng-class="{span2: toggleSideBar_local}" class="well">
+                <div class="row-fluid"  ng-controller="sideBarCtrl">
+                <div ng-show="toggleSideBar_local" ng-class="{span2: toggleSideBar_local,  'visible-desktop': isAnyPageOpened}" class="well">
                         <div>
                             <a class="toggle-button" 
                                 style="" 

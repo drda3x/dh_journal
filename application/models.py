@@ -572,6 +572,7 @@ class Comments(models.Model):
 
     def __json__(self, values=None):
         result = dict(
+            pk=self.pk,
             add_date=self.add_date.strftime('%d.%m.%Y %H:%M:%S'),
             student=self.student.__json__(),
             group=self.group.__json__() if self.group else None,
