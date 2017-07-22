@@ -377,44 +377,38 @@
 
                         var pass_is_club_card = (club_card != undefined && pass.id == club_card.id),
                             is_debt = pass.id == -2,
-                            cnt = (is_debt || pass_is_club_card || !pass.oneGroupPass) ? 1 : pass._lessons,
-                            index = 0;
-                       
-                        while(cnt > 0) {
-                            if(index >= day_index) {
-                                var lesson = student.calendar[index];
+                            cnt = (is_debt || pass_is_club_card || !pass.oneGroupPass) ? 1 : pass._lessons;
+                        
+                        for(var i=day_index, j=cnt; i < student.calendar.length && j > 0; i++, j--) {
+                            var lesson = student.calendar[i];
 
-                                if(pass_is_club_card) {
-                                    lesson.pid = club_card.id;
-                                }
-
-                                lesson.pass = true;
-                                lesson.attended = index == day_index;
-                                lesson.color = pass.html_color_class;
-                                lesson.type = (pass_is_club_card) ? 'pass' : 'just_added';
-                                lesson.pass_type_id = pass.id || pass.pass_type.id;
-                                lesson.lessons_cnt = pass._lessons;
-                                lesson.skips_cnt = pass._skips;
-                                lesson.debt = is_debt;
-                                
-                                if(lesson.attended) {
-                                    if(is_debt) {
-                                        lesson.sign = 'долг'
-                                    } else {
-                                        var prise1 = pass.prise / pass.lessons,
-                                            prise2 = (pass.hasOwnProperty('pass_type')) ? pass.pass_type.prise / pass.pass_type.lessons : 0;
-
-                                        lesson.sign = prise1 || prise2;
-                                    }
-
-                                } else {
-                                    lesson.sign = null;
-                                }
-
-                                cnt--;
+                            if(pass_is_club_card) {
+                                lesson.pid = club_card.id;
                             }
-                            index++;
-                        } 
+
+                            lesson.pass = true;
+                            lesson.attended = i == day_index;
+                            lesson.color = pass.html_color_class;
+                            lesson.type = (pass_is_club_card) ? 'pass' : 'just_added';
+                            lesson.pass_type_id = pass.id || pass.pass_type.id;
+                            lesson.lessons_cnt = pass._lessons;
+                            lesson.skips_cnt = pass._skips;
+                            lesson.debt = is_debt;
+                            
+                            if(lesson.attended) {
+                                if(is_debt) {
+                                    lesson.sign = 'долг'
+                                } else {
+                                    var prise1 = pass.prise / pass.lessons,
+                                        prise2 = (pass.hasOwnProperty('pass_type')) ? pass.pass_type.prise / pass.pass_type.lessons : 0;
+
+                                    lesson.sign = prise1 || prise2;
+                                }
+
+                            } else {
+                                lesson.sign = null;
+                            }
+                        }
                     }
                 }
             }
@@ -588,7 +582,6 @@
                     group_id: $scope.data.group_data.id,
                     date: $scope.data.calendar[column].date,
                     lessons: lessons,
-                    teachers: $scope.substitutions[column],
                     setMisses: setMisses,
                     teachers: $scope.substitutions[column]
                 }
