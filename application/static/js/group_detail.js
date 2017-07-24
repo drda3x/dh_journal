@@ -436,6 +436,14 @@
                 $scope.showDayPopup = false;
             }
 
+            $scope.editLessons = function(student, move_from, move_to, del_from, del_count) {
+                if(move_from != undefined && move_to != undefined) {
+
+                } else if(del_from != undefined && del_count != undefined) {
+
+                }
+            }
+
             function getClubCard(student) {
                 var searchId = student.person.id;
 
