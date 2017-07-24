@@ -437,11 +437,25 @@
             }
 
             $scope.editLessons = function(student, move_from, move_to, del_from, del_count) {
+                var json = {};
+
                 if(move_from != undefined && move_to != undefined) {
-
+                    
                 } else if(del_from != undefined && del_count != undefined) {
+                    json.stid = student.id;
+                    json.grid = $scope.data.group_data.id;
+                    json.date = del_from;
+                    json.cnt = del_count;
 
+                    sendData(json, 'delete_lessons', function(err, data) {
+                        if(!err) {
+                            console.log('success');
+                        } else {
+                            console.log('err');
+                        }
+                    });
                 }
+
             }
 
             function getClubCard(student) {

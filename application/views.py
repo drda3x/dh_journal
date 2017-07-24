@@ -28,7 +28,7 @@ from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
 
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
-from collections import namedtuple, defaultdict
+from collections import namedtuple, defaultdict, Counter
 from itertools import groupby, takewhile
 from application.utils.phones import check_phone
 
@@ -1321,6 +1321,55 @@ class GroupView(IndexView):
             )
 
             student.save()
+
+    def delete_lessons(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            student_id = json_data['stid']
+            group_id = json_data['grid']
+            date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
+            count = json_data['cnt']
+
+            lessons = list(Lessons.objects.filter(
+                    group_id=group_id,
+                    student_id=student_id,
+                    date__gte=date
+            ).order_by('date')[:count])
+
+            passes = Counter([
+                l.group_pass for l in lessons
+            ])
+
+            for group_pass, cnt in passes.most_common():
+                current_count = len(Lessons.objects.filter(group_pass=group_pass))
+
+                if group_pass.one_group_pass:
+                    if current_count - cnt <= 0:
+                        group_pass.delete()
+
+                    else:
+                        diff = (cnt if group_pass.lessons >= cnt else 0)
+                        group_pass.lessons -= diff
+                        group_pass.lessons_origin -= diff
+                        group_pass.save()
+
+                else:
+                    group_pass.lessons = min(
+                        group_pass.lessons.origin, group_pass.lessons + cnt
+                    )
+                    group_pass.save()
+
+
+            for lesson in lessons:
+                l.delete()
+
+            return HttpResponse()
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
 
     def save_student(self, request):
         try:
