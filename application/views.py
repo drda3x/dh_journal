@@ -1365,6 +1365,31 @@ class GroupView(IndexView):
 
             return HttpResponse()
 
+        except AssertionError:
+            return HttpResponse()
+
+        except Exception:
+            from traceback import format_exc
+            print format_exc()
+
+            return HttpResponseServerError()
+
+    def move_lessons(self, request):
+        try:
+            json_data = json.loads(request.POST['data'])
+            student_id = json_data['stid']
+            group_id = json_data['grid']
+            date_from = datetime.datetime.strptime(json_data['date_from'], '%d.%m.%Y')
+            date_to = datetime.datetime.strptime(json_data['date_to'], '%d.%m.%Y')
+
+            p = Lessons.objects.get(student_id=student_id, group_id=group_id, date=date_from).group_pass
+            wrapped = PassLogic.wrap(p)
+
+            if not wrapped.freeze(date_from, date_to):
+                raise Exception('Can\'t move lessons')
+
+            return HttpResponse()
+
         except Exception:
             from traceback import format_exc
             print format_exc()

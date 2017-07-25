@@ -11,6 +11,7 @@
         <link rel="stylesheet" href="{% static "css/datepicker.css" %}"/>
         <link rel="stylesheet" href="{% static "shortcard/short_card.css" %}"/>
         <link rel="stylesheet" href="{% static "alert/alert.css" %}"/>
+        <link rel="stylesheet" href="{% static  "css/angular-datepicker.css" %}" type="text/css" />
         <script type="text/javascript" src="{% static "js/jquery.js" %}"></script>
         <script type="text/javascript" src="{% static "js/angular.min.js" %}"></script>
         <script type="text/javascript" src="{% static "js/jquery.cookie.js" %}"></script>
@@ -20,6 +21,7 @@
         <script type="text/javascript" src="{% static "bootstrap/js/bootstrap-datepicker.js" %}"></script>
         <script type="text/javascript" src="{% static "shortcard/short_card.js" %}"></script>
         <script type="text/javascript" src="{% static "alert/alert.js" %}"></script>
+        <script type="text/javascript" src="{% static "js/angular-datepicker.js" %}"></script>
         <script type="text/javascript">
             var csrftoken = $.cookie('csrftoken');
 
@@ -36,7 +38,7 @@
                 }
             });
             
-            var app = angular.module('DynamicTeacherApp', []);
+            var app = angular.module('DynamicTeacherApp', ['720kb.datepicker']);
 
             app.directive('focusMe', ['$timeout', '$parse', function ($timeout, $parse) {
                 return {

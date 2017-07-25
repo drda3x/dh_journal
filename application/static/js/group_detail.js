@@ -174,7 +174,8 @@
                         last_name: student_rec.person.last_name,
                         phone: student_rec.person.phone,
                         org: student_rec.person.org,
-                        comments: student_rec.comments
+                        comments: student_rec.comments,
+                        calendar: student_rec.calendar
                     }
 
                     $scope.saveStudent = function() {
@@ -436,22 +437,57 @@
                 $scope.showDayPopup = false;
             }
 
-            $scope.editLessons = function(student, move_from, move_to, del_from, del_count) {
+            $scope.editLessons = function(row, move_from, move_to, del_from, del_count) {
                 var json = {};
+                var student = $scope.data.students[row].person;
+                var _alert = window.createWindowAlert();
+                json.stid = student.id;
+                json.grid = $scope.data.group_data.id;
 
                 if(move_from != undefined && move_to != undefined) {
-                    
+                    json.date_from = move_from;
+                    json.date_to = move_to;
+
+                    sendData(json, 'move_lessons', function(err, data) {
+                        if(!err) {
+                            _alert.success('Занятия успешно перенесены');
+                            location.reload();
+                        } else {
+                            _alert.error('Ошибка при переносе занятий');
+                        }
+                    });
                 } else if(del_from != undefined && del_count != undefined) {
-                    json.stid = student.id;
-                    json.grid = $scope.data.group_data.id;
                     json.date = del_from;
                     json.cnt = del_count;
 
                     sendData(json, 'delete_lessons', function(err, data) {
                         if(!err) {
-                            console.log('success');
+                            $scope.$apply(function() {
+                                var student = $scope.data.students[row],
+                                    calendar_index = 0,
+                                    calendar = $scope.data.calendar;
+
+                                while(calendar_index < calendar.length && calendar[calendar_index].date != del_from) {
+                                    calendar_index++;
+                                }
+                                
+                                var lesson, i, j;
+
+                                for(i=calendar_index, j=calendar.length; i<j, del_count>0; i++) {
+                                    lesson = student.calendar[i];
+
+                                    if(lesson.pass) {
+                                        lesson.attended = false;
+                                        lesson.color = null;
+                                        lesson.sign = '';
+
+                                        del_count--;
+                                    }
+                                }
+                            });
+                            _alert.success('Занятия успешно удалены')
                         } else {
-                            console.log('err');
+                            _alert.error('Ошибка при удалении занятий')
                         }
                     });
                 }
