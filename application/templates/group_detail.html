@@ -355,6 +355,9 @@
      <div class="dates-list" style="margin: 15px 0">
         <button class="btn btn-large" style="width: 100%" ng-click="saveLessons(false, column)">Сохранить без пропусков</button>
      </div>
+     <div class="dates-list" style="margin: 30px 0">
+        <button class="btn btn-large" style="width: 100%" ng-click="cancelLesson(column)">Отменить занятие</button>
+     </div>
    </div>
 
    <div class="row-fulid hidden-desktop mobile-modal well" style="z-index: 9999" ng-hide="!paymentModal">
@@ -447,7 +450,14 @@
       </div>
    </div>
 
-   <div class="modal visible-desktop" ng-hide="!paymentModal" style="z-index: 9999" >
+   <div class="modal visible-desktop" ng-hide="!paymentModal && paymentModal.is_canceled">
+       <div class="modal-header">Занятие отменено!</div>
+       <div class="modal-body">
+           <button class="btn btn-primary">Восстановить занятие</button>
+       </div>
+   </div>
+
+   <div class="modal visible-desktop" ng-hide="!paymentModal && !paymentModal.is_canceled" style="z-index: 9999" >
       <div class="modal-header">
          {{paymentModal.student.person.last_name}} {{paymentModal.student.person.first_name}} 
       </div>
@@ -508,7 +518,8 @@
          <h4>
             <span>01.07.2017</span>
          </h4>
-         <button class="btn" ng-click="addStudentFromPopup(day_popup.day_index)" >Добавить ученика</button>
+         <button class="btn btn-success" ng-click="addStudentFromPopup(day_popup.day_index)" >Добавить ученика</button>
+         <a href="#" class="btn" ng-click="cancelLesson(column)">Отменить занятие</a>
       </div>
       <div class="modal-body">
          <table class="table table-bordered region" ng-mouseleave="columnIndexCache(null); rowIndexCache(null)">

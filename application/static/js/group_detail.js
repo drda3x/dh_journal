@@ -100,9 +100,9 @@
                 }
             });
 
-            $scope.cancelLesson = function() {
+            $scope.cancelLesson = function(day_index) {
                 var json = {
-                    date: $scope.data.calendar[$scope.column].date,
+                    date: $scope.data.calendar[day_index].date,
                     group: $scope.data.group_data.id
                 };
 
@@ -366,7 +366,8 @@
                     $scope.paymentModal = {
                         student: student, //.person,
                         is_newbie: is_newbie,
-                        club_card: club_card
+                        club_card: club_card,
+                        is_canceled: $scope.data.calendar[day_index].canceled
                     }
 
                     $scope.savePayment = function(pass) {
