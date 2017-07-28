@@ -262,18 +262,18 @@
     <legend>Редактирование занятий</legend>
     <div class="span3" style="margin-left: 0;">
         <label for="" class="radio"><input type="radio" name="edit_lessons" ng-model="lessons_editor" ng-value="1" ng-click="val3=null; val4=null">Перенести</label>
-        <datepicker date-format="dd.MM.yyyy" date-year-title="selected title">
+        <datepicker date-format="dd.MM.yyyy" date-week-start-day="1" date-year-title="selected title">
             <input type="text" placeholder="с даты" ng-disabled="!lessons_editor || lessons_editor==2" ng-model="val1">
         </datepicker>
         
-        <datepicker date-format="dd.MM.yyyy" date-year-title="selected title">
+        <datepicker date-format="dd.MM.yyyy" date-week-start-day="1" date-year-title="selected title">
             <input type="text" placeholder="на дату" ng-disabled="!lessons_editor || lessons_editor==2" ng-model="val2">
         </datepicker>
     </div>
 
     <div class="span3">
         <label for="" class="radio"><input type="radio" name="edit_lessons" ng-model="lessons_editor" ng-value="2" ng-click="val1=null; val2=null">Удалить</label>
-        <datepicker date-format="dd.MM.yyyy" date-year-title="selected title">
+        <datepicker date-format="dd.MM.yyyy" date-week-start-day="1" date-year-title="selected title">
             <input type="text" placeholder="с даты" ng-disabled="!lessons_editor || lessons_editor==1" ng-model="val3">
         </datepicker>
         <input type="number" placeholder="кол-во" ng-disabled="!lessons_editor || lessons_editor==1" ng-model="val4">

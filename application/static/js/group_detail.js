@@ -673,6 +673,8 @@
                 });
             }
 
+            $scope.daysInString = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
             $('body').keydown(function(event) {
                 $scope.$apply(function() {
                     if (event.keyCode == 39) {

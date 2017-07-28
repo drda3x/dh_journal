@@ -904,10 +904,12 @@
 
           $scope.daysInString.push(n % 7);
         }
-        $scope.daysInString = $scope.daysInString.map(function mappingFunc(el) {
+        /*$scope.daysInString = $scope.daysInString.map(function mappingFunc(el) {
 
           return $filter('date')(new Date(new Date('06/08/2014').valueOf() + A_DAY_IN_MILLISECONDS * el), 'EEE');
-        });
+        });*/
+
+        $scope.daysInString = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
         //create the calendar holder and append where needed
         if ($scope.datepickerAppendTo &&
