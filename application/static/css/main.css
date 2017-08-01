@@ -43,3 +43,16 @@ body {
     text-align: right;
 }
 
+.nav-group {
+    display: table;
+    width: 100%;
+}
+
+.nav-group-link, .nav-group-profit {
+    display: table-cell;
+}
+
+.nav-group-profit {
+    vertical-align: middle;
+    padding-left: 15px;
+}

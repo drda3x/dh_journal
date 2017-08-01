@@ -216,7 +216,8 @@
                                     label: $sce.trustAsHtml(label),
                                     url: urlElem.url, 
                                     type: 'link', 
-                                    show: !elem.hideable
+                                    show: !elem.hideable,
+                                    profit: urlElem.profit
                                 })
                             }
                         }
@@ -333,7 +334,7 @@
                             
                         </div>
                         <ul class="nav nav-list" ng-show="toggleSideBar">
-                            <li ng-class="calcClasses(menu_elem)" ng-repeat="menu_elem in sidebar_menu track by $index">
+                            <li ng-class="calcClasses(menu_elem)" ng-repeat="menu_elem in sidebar_menu track by $index" class="nav-group">
                                 <!--
                                 <span ng-if="isHeader(menu_elem)">{{menu_elem.label}}
                                     <a style="cursor: pointer" ng-show="menu_elem.hideable && !checkIndex($index)" ng-click="hideMenuPart($index)">скрыть</a>
@@ -345,12 +346,19 @@
                                     <div ng-show="menu_elem.hideable && checkIndex($index)" class="carret"></div>  
                                     <div ng-show="menu_elem.hideable && !checkIndex($index)" class="carret2"></div>  
                                 </a>
-                                <a ng-show="menu_elem.show" 
-                                   style="color: #000"
-                                   ng-if="!isHeader(menu_elem)"  
-                                   href="{%endverbatim%}http://{{host}}/{%verbatim%}{{menu_elem.url}}"
-                                   ng-bind-html="menu_elem.label">
+
+                                <a ng-class="{'nav-group-link': menu_elem.show}"
+                                    ng-show="menu_elem.show" 
+                                    style="color: #000"
+                                    ng-if="!isHeader(menu_elem)"  
+                                    href="{%endverbatim%}http://{{host}}/{%verbatim%}{{menu_elem.url}}"
+                                    ng-bind-html="menu_elem.label">
                                 </a>
+                                <div ng-class="{'nav-group-profit': menu_elem.show}">
+                                    <img {%endverbatim%}src="{% static "img/bad_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==-1" />
+                                    <img {%endverbatim%}src="{% static "img/good_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==1" />
+                                    <img {%endverbatim%}src="{% static "img/normal_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==0" />
+                                </div>
                             </li>
                         </ul>
                     </div>

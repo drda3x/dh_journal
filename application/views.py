@@ -304,6 +304,9 @@ class IndexView(BaseView):
                     group_repr = args[0].__json__()
                     self.update(group_repr)
 
+                    profit = GroupLogic(args[0]).profit()
+                    self['profit'] = profit[0][1] if profit else None
+
                     #self['label'] = '%s %s %s %s' % (
                     #    group_repr['dance_hall']['station'],
                     #    group_repr['days'],
