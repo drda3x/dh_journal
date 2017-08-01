@@ -416,20 +416,23 @@
             }
 
             $scope.fillDayPopup = function(column) {
+                
+                $scope.showLessonRestore = $scope.data.calendar[column].canceled;
+                $scope.showDayPopup = !$scope.showLessonRestore;
+                
+                if($scope.showDayPopup) {
+                    $scope.day_popup = { 
+                        rows: _.map($scope.data.students, function(student) {
+                            return {
+                                student: student,
+                                day_data: student.calendar[column]
+                            }
+                        }),
 
-                $scope.day_popup = { 
-                    rows: _.map($scope.data.students, function(student) {
-                        return {
-                            student: student,
-                            day_data: student.calendar[column]
-                        }
-                    }),
-
-                    teachers: $scope.substitutions[column],
-                    day_index: column
-                };
-
-                $scope.showDayPopup = true;
+                        teachers: $scope.substitutions[column],
+                        day_index: column
+                    };
+                }
 
             }
 
