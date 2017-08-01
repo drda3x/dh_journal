@@ -450,14 +450,6 @@
       </div>
    </div>
 
-   <div class="modal visible-desktop" ng-hide="!paymentModal || !paymentModal.is_canceled">
-       <div class="modal-header">Занятие отменено!</div>
-       <div class="modal-body">
-           <button class="btn btn-primary">Восстановить занятие</button>
-       </div>
-   </div>
-
-
    <div class="modal visible-desktop" ng-hide="!paymentModal || paymentModal.is_canceled" style="z-index: 9999" >
       <div class="modal-header">
         {{paymentModal}} 
