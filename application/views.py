@@ -297,15 +297,16 @@ class IndexView(BaseView):
         """
         Класс для создания обыкновенных ссылок на странице
         """
-        def __init__(self, *args):
+        def __init__(self, *args, **kwargs):
 
             if len(args) == 1:
                 if isinstance(args[0], Groups):
                     group_repr = args[0].__json__()
                     self.update(group_repr)
 
-                    profit = GroupLogic(args[0]).profit()
-                    self['profit'] = profit[0][1] if profit else None
+                    if kwargs.get('is_superuser', False):
+                        profit = GroupLogic(args[0]).profit()
+                        self['profit'] = profit[0][1] if profit else None
 
                     #self['label'] = '%s %s %s %s' % (
                     #    group_repr['dance_hall']['station'],
@@ -361,7 +362,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'urls': [
-                    self.Url(g) for g in groups.filter(teachers=user)
+                    self.Url(g, is_superuser=True) for g in groups.filter(teachers=user)
                 ]
             })
 
@@ -371,7 +372,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'urls': [
-                    self.Url(g) for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
+                    self.Url(g, is_superuser=True) for g in  groups.filter(pk__in=substitutions_qs).exclude(teachers=user)
                 ]
             })
 
@@ -389,7 +390,7 @@ class IndexView(BaseView):
                         'depth': '%d_%d' % (depth, level_depth),
                         'type': 'urls',
                         'urls': [
-                            self.Url(g) for g in groups.filter(level=level).exclude(teachers=user)
+                            self.Url(g, is_superuser=True) for g in groups.filter(level=level).exclude(teachers=user)
                         ]
                     } for level_depth, level in enumerate(GroupLevels.objects.all())
                 ]
@@ -413,7 +414,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': True,
                 'type': 'groups',
-                'urls': [self.Url(g) for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
+                'urls': [self.Url(g, is_superuser=True) for g in Groups.closed.all().order_by('-end_date')[:5]] + [self.Url(u'--все закрытые группы--', 'history')]
             })
 
             depth += 1
