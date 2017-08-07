@@ -1013,6 +1013,7 @@ class TeachersSubstitution(models.Model):
         app_label = u'application'
         unique_together = ('date', 'group')
 
+
 class AdminCalls(models.Model):
     date = models.DateField(verbose_name=u"Дата звонка")
     student = models.ForeignKey("Students", verbose_name=u"Ученик")
@@ -1023,6 +1024,20 @@ class AdminCalls(models.Model):
     message = models.ForeignKey("Comments", verbose_name=u"Коментарий", null=True, blank=True)
     is_solved = models.BooleanField(verbose_name=u"Флаг о решении вопроса", default=False)
     related_call = models.ForeignKey("AdminCalls", null=True, blank=True)
+
+    class Meta:
+        app_label = u'application'
+
+
+class AdministratorList(models.Model):
+    student = models.ForeignKey("Students", verbose_name=u"Ученик")
+    groups = models.ManyToManyField("Groups",  verbose_name=u"Последние посещаемые группы", null=True, blank=True)
+
+    def __json__(self):
+        return {
+            'student': self.student.__json__(),
+            'groups': [g.__json__() for g in self.groups.all()]
+        }
 
     class Meta:
         app_label = u'application'

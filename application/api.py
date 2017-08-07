@@ -39,7 +39,8 @@ from application.models import (
     SampoPrises,
     BonusClassList,
     BonusClasses,
-    TeachersSubstitution
+    TeachersSubstitution,
+    AdministratorList
 )
 from application.views import group_detail_view
 from application.system_api import get_models
@@ -994,3 +995,32 @@ def get_teacher_video(request):
 
     except Exception:
         return HttpResponseNotFound()
+
+
+@auth_decorator
+def add_student_to_admin_list(request):
+    """
+    Add student to AdministratorList from watever you want
+    """
+    try:
+        data = json.loads(request.POST['data'])
+        student_id = data['stid']
+        group = Groups.objects.get(pk=data['gid'])
+        # МБ еще коментарий нужен
+
+        try:
+            rec = AdministratorList.objects.get(student_id=student_id)
+
+        except AdministratorList.DoesNotExist:
+            rec = AdministratorList(student_id=student_id)
+            rec.save()
+
+        if group not in rec.groups.all():
+            rec.groups.add(group)
+
+        return HttpResponse(200)
+    except Exception:
+        from traceback import format_exc
+        print format_exc()
+
+        return HttpResponseServerError()

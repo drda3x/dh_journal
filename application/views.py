@@ -22,7 +22,21 @@ from application.logic.group import GroupLogic
 from application.utils.passes import get_color_classes, PassLogic, ORG_PASS_HTML_CLASS
 from application.utils.groups import get_groups_list, get_group_detail, get_student_lesson_status, get_group_students_list, get_student_groups
 from application.utils.date_api import get_month_offset, get_last_day_of_month, MONTH_RUS
-from application.models import Lessons, User, Passes, GroupList, SampoPayments, SampoPasses, SampoPassUsage, Debts, GroupLevels, TeachersSubstitution, AdminCalls, CanceledLessons
+from application.models import (
+    Lessons,
+    User,
+    Passes,
+    GroupList,
+    SampoPayments,
+    SampoPasses,
+    SampoPassUsage,
+    Debts,
+    GroupLevels,
+    TeachersSubstitution,
+    AdminCalls,
+    CanceledLessons,
+    AdministratorList
+)
 from application.auth import auth_decorator
 from application.utils.date_api import get_count_of_weekdays_per_interval
 from application.utils.sampo import get_sampo_details, write_log
@@ -424,6 +438,15 @@ class IndexView(BaseView):
                 'hideable': False,
                 'type': 'urls',
                 'urls': [self.Url(u'Финансовый отчет', 'finance')]
+            })
+
+            depth += 1
+            menu.append({
+                'label': u'Отчеты',
+                'depth': str(depth),
+                'hideable': False,
+                'type': 'urls',
+                'urls': [self.Url(u'Помойка', 'adminlist')]
             })
 
         # Меню для других преподов
@@ -2241,3 +2264,69 @@ class AdminCallsView(BaseView):
 
         return HttpResponse(200)
 
+
+class AdministratorView(IndexView):
+    """
+    Вьюшка для списка-помойки
+    """
+
+    template_name = u'admin_list.html'
+
+    def get_context_data(self, *args, **kwargs):
+
+        """
+        [
+            {
+                student: student.__json__(),
+                groups: [
+                    {
+                        group: group.__json__(),
+                        comments: [
+                            comment1.__json__(), comment2.__json__(), ...
+                        ]
+                    },
+                    ...
+                ]
+            },
+            {
+                ...
+            }
+        ]
+        """
+
+        context = super(AdministratorView, self).get_context_data(**kwargs)
+        data = AdministratorList.objects.select_related().all()
+
+        comments_filter = [
+            Q(group=group, student=rec.student)
+            for rec in data for group in rec.groups.all()
+        ] + [
+            Q()
+        ]
+
+        comments_recs = Comments.objects.filter(
+            reduce(lambda a, x: a | x, comments_filter[1:-1], comments_filter[0])
+        )
+
+        comments_dict = defaultdict(list)
+
+        for rec in comments_recs:
+            comments_dict[(comment.student, comment.group)].append(rec.__json__())
+
+        context['data'] = []
+
+        for record in data:
+            context_rec = dict(student=record.student.__json__(), groups=[])
+
+            for group in record.groups.all():
+                comment = comments_dict.get((record.student, group))
+                group_rec = dict(
+                    group=group.__json__(),
+                    comments=comments_dict[(record.student, group)]
+                )
+
+                context_rec['groups'].append(group_rec)
+
+            context['data'].append(context_rec)
+
+        return context

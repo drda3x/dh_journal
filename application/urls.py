@@ -70,5 +70,7 @@ urlpatterns = [
     url(r'sampo', views.SampoView.as_view()),
     url(r'mk', views.BonusClassView.as_view()),
     url(r'daycall', views.AdminCallsView.as_view()),
+    url(r'addadmin', api.add_student_to_admin_list),
+    url(r'adminlist', views.AdministratorView.as_view()),
     url(r'', views.IndexView.as_view())
 ]
