@@ -2311,7 +2311,7 @@ class AdministratorView(IndexView):
         comments_dict = defaultdict(list)
 
         for rec in comments_recs:
-            comments_dict[(comment.student, comment.group)].append(rec.__json__())
+            comments_dict[(rec.student, rec.group)].append(rec.__json__())
 
         context['data'] = []
 
@@ -2328,5 +2328,7 @@ class AdministratorView(IndexView):
                 context_rec['groups'].append(group_rec)
 
             context['data'].append(context_rec)
+
+        context['data'] = json.dumps(context['data'])
 
         return context

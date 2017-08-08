@@ -2,11 +2,83 @@
 {% load staticfiles %}
 {% load i18n %}
 {% block style%}
+    <link rel="stylesheet" href="{% static "css/admin_list.css" %}">
 {% endblock %}
 {% block script %}
+    <script type="text/javascript" src="{% static "js/admin_list.js" %}"></script>
+    <script type="text/javascript">
+        window.pageInit({{data | safe}})
+    </script>
 {% endblock%}
 {% block content %}
-    {{data}}
     {% verbatim %}
+    <div class="span10 well" ng-controller="AdminListCtrl">
+        <!--
+        <div class="row-fulid">
+            <div class="span4 sell">ФИО, Телефон</div>
+            <div class="span4 sell">Группа</div>
+            <div class="span4 sell">Коментарии</div>
+        </div>
+        <div class="row-fulid"  ng-repeat="record in data">
+            <div class="span4 sell">{{record.student.first_name}} {{record.student.last_name}} <div>{{record.student.phone}}</div></div>
+            <div class="span4 sell">
+                <div class="row-fulid" ng-repeat="group_rec in record.groups">
+                    <div class="span12 sell">
+                        {{group_rec.group.name}}
+                    </div>
+                </div>
+            </div>
+            <div class="span4 sell">
+                <div class="row-fulid" ng-repeat="group_rec in record.groups">
+                    <div class="span12 sell">
+                        {{(group_rec.comments | first).text}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
+        <div class="row-fulid">
+            <div class="span12" style="margin: 0 0 10px 0">
+                <a class="btn" href="" ng-click="addRow($event)">Добавить</a>
+            </div>
+        </div>
+        <div class="row-fuild">
+            <table class="table table-bordered region">
+                <tr>
+                    <th>ФИО, Телефон</th>
+                    <th>Группа/Группы</th>
+                    <th>Коментарии</th>
+                </tr>
+                <tr ng-repeat="record in data" ng-dblclick="rowClick($index, $event)">
+                    <td>
+                        <span ng-hide="row==$index">{{record.student.last_name}}</span>
+                        <span ng-hide="row==$index">{{record.student.first_name}}</span>
+                        <span ng-show="row==$index">
+                            <input type="text" placeholder="Фамилия" ng-model="record.student.last_name" ng-click="blockEvent($event)">
+                        </span>
+                        <span ng-show="row==$index">
+                            <input type="text" placeholder="Имя" ng-model="record.student.first_name" ng-click="blockEvent($event)">
+                        </span>
+                        <div>
+                            <span ng-hide="row==$index">{{record.student.phone}}</span>
+                            <span ng-show="row==$index">
+                                <input type="text" placeholder="Телефон" ng-model="record.student.phone" ng-click="blockEvent($event)">
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div ng-repeat="group_rec in record.groups">
+                            {{group_rec.group.name}}
+                        </div>
+                    </td>
+                    <td>
+                        <div ng-repeat="group_rec in record.groups">
+                            {{(group_rec.comments | first).text}}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
     {% endverbatim%}
 {% endblock%}

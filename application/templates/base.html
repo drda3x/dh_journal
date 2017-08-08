@@ -85,6 +85,22 @@
                 }
             });
             
+            app.filter('first', function() {
+                return function(arr) {
+                    return _.first(arr);
+                }
+            });
+
+            app.filter('len', function() {
+                return function(arr) {
+                    if(arr != undefined) {
+                        return arr.length;
+                    } else {
+                        return null;
+                    }
+                }
+            });
+            
             app.controller("sideBarCtrl", ["$scope", "$rootScope", "$sce", function($scope, $rootScope, $sce) {
                 menuData = {{menu | safe}};
                 $scope.sidebar_menu = processSideBarHeader(menuData);
