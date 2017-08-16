@@ -61,6 +61,30 @@
                 $scope.data = result;
             }
 
+            $scope.contextMenu = {
+                show: false,
+                event: null,
+
+                open: function(record, event) {
+                    this.show = true;
+                    this.event = event;
+                },
+
+                items: [
+                    {
+                        label: 'Перевести', 
+                        callback: function() {
+                            console.log(this.label)
+                        }
+                    },{
+                        label: 'Удалить',
+                        callback: function() {
+                            console.log(this.label)
+                        }
+                    }
+                ],
+            }
+
             $('body').click(function() {
                 $scope.$apply(function() {
                     $scope.row = null;
