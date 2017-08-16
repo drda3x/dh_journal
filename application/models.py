@@ -481,6 +481,9 @@ class BonusClasses(models.Model):
     def get_finance(self):
         return len(list(BonusClassList.objects.filter(group=self, attendance=True))) * self.prise
 
+    def __json__(self):
+        return dict()
+
     class Meta:
         unique_together = ('date', 'hall')
         app_label = u'application'
