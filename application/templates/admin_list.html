@@ -9,7 +9,10 @@
     <script type="text/javascript" src="{% static "js/directives/context_menu.js" %}"></script>
     <script type="text/javascript" src="{% static "js/pages/admin_list.js" %}"></script>
     <script type="text/javascript">
-        window.pageInit({{data | safe}})
+        window.pageInit(
+            {{data | safe}},
+            {{groups | safe}}
+        )
     </script>
 {% endblock%}
 {% block content %}
@@ -84,17 +87,26 @@
         
         <context-menu menu-items="contextMenu.items" event="contextMenu.event" ng-show="contextMenu.show"></context-menu>
 
-        <div class="modal" ng-show="false">
+        <div id="moveModal" class="modal" ng-show="moveModal.show">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3>Modal header</h3>
+            <button type="button" class="close" ng-click="moveModal.close()" aria-hidden="true">&times;</button>
+            <h3>{{moveModal.data.student.last_name}} {{moveModal.data.student.first_name}}</h3>
+            <h5>{{moveModal.data.student.phone}}</h5>
           </div>
           <div class="modal-body">
-            <p>One fine body…</p>
+              <label for="moveModal-group">
+                  Группа
+                  <select id="moveModal-group" ng-model="selectedGroup" name="">
+                      <option value="">--не выбрано--</option>
+                      <option ng-value="group" ng-repeat="group in groups">
+                        {{group.dance_hall.station}} {{group.days}} {{group.time}} {{group.name}}
+                      </option>
+                  </select>
+              </label>
           </div>
           <div class="modal-footer">
-            <a href="#" class="btn">Close</a>
-            <a href="#" class="btn btn-primary">Save changes</a>
+            <a href="#" class="btn" ng-click="moveModal.close()">Отмена</a>
+            <a href="#" class="btn btn-primary" ng-click="moveModal.close(); moveModal.save(selectedGroup)">Сохранить</a>
           </div>
         </div>
 

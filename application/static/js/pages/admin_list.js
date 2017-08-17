@@ -16,14 +16,16 @@
         return result
     }
 
-    window.pageInit = function(data) {
+    window.pageInit = function(data, groups) {
         app.controller("AdminListCtrl", ["$scope", function($scope) {
             $scope.data = data;
+            $scope.groups = groups;
 
             $scope.row = null;
             $scope.rowClick = function(index, event) {
                 $scope.blockEvent(event);
                 $scope.row = index;
+                $scope.contextMenu.close();
             }
 
             $scope.addRow = function(event) {
@@ -64,25 +66,59 @@
             $scope.contextMenu = {
                 show: false,
                 event: null,
+                record: null,
+                items: [],
 
                 open: function(record, event) {
                     this.show = true;
                     this.event = event;
+                    this.record = record;
                 },
 
-                items: [
-                    {
-                        label: 'Перевести', 
-                        callback: function() {
-                            console.log(this.label)
+                close: function() {
+                    this.show = false;
+                }
+            }
+
+            $scope.contextMenu.items = [
+                {
+                    label: 'Перевести', 
+                    callback: $.proxy(function() {
+                        this.show = false;
+                        $scope.moveModal.open(this.record);
+                    }, $scope.contextMenu) 
+                },{
+                    label: 'Удалить',
+                    callback: $.proxy(function() {
+                        this.show = false;
+                        if(confirm("Удалить ученика из списков?")) {
+                            alert("Функция не реализована!!!");
                         }
-                    },{
-                        label: 'Удалить',
-                        callback: function() {
-                            console.log(this.label)
-                        }
-                    }
-                ],
+                    }, $scope.contextMenu)
+                }
+            ];
+
+            $scope.moveModal = {
+                show: false,
+                data: null,
+
+                open: function(data) {
+                    this.data = data;
+                    this.show = true;
+                },
+                
+                close: function() {
+                    this.show = false;
+                },
+
+                toggle: function() {
+                    this.show = !this.show;
+                },
+
+                save: function(group) {
+                    var stid = this.data.student.id,
+                        gid = group.id;
+                }
             }
 
             $('body').click(function() {

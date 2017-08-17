@@ -2331,4 +2331,10 @@ class AdministratorView(IndexView):
 
         context['data'] = json.dumps(context['data'])
 
+        groups = [
+            g.__json__()
+            for g in Groups.opened.all().order_by('level')
+        ]
+        context['groups'] = json.dumps(groups)
+
         return context
