@@ -242,7 +242,7 @@ class GroupLogic(object):
                     lesson.prise() for lesson in lessons if lesson.group_pass.bonus_class == open_lesson
                 ])
 
-            if lessons or open_lesson:
+            if (lessons or open_lesson) and day not in self.canceled_lessons:
                 day_saldo = sum(
                     [l.prise() for l in lessons], 0
                 )
