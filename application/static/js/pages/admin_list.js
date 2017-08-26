@@ -69,10 +69,11 @@
                 record: null,
                 items: [],
 
-                open: function(record, event) {
+                open: function(record, index, event) {
                     this.show = true;
                     this.event = event;
                     this.record = record;
+                    this.record_index = index;
                 },
 
                 close: function() {
@@ -91,9 +92,16 @@
                     label: 'Удалить',
                     callback: $.proxy(function() {
                         this.show = false;
+                        console.log(this.record);
                         if(confirm("Удалить ученика из списков?")) {
                             alert("Функция не реализована!!!");
                         }
+                        
+                        var lp = $scope.data.slice(0, this.record_index),
+                            rp = $scope.data.slice(this.record_index+1);
+
+                        $scope.data = lp.concat(rp);
+
                     }, $scope.contextMenu)
                 }
             ];

@@ -54,7 +54,7 @@
                     <th>Группа/Группы</th>
                     <th>Коментарии</th>
                 </tr>
-                <tr ng-repeat="record in data" ng-dblclick="rowClick($index, $event)" ng-click="contextMenu.open(record, $event)">
+                <tr ng-repeat="record in data" ng-dblclick="rowClick($index, $event)" ng-click="contextMenu.open(record, $index, $event)">
                     <td>
                         <span ng-hide="row==$index">{{record.student.last_name}}</span>
                         <span ng-hide="row==$index">{{record.student.first_name}}</span>
