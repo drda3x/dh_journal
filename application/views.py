@@ -2294,7 +2294,9 @@ class AdministratorView(IndexView):
         ]
         """
 
+
         context = super(AdministratorView, self).get_context_data(**kwargs)
+
         data = AdministratorList.objects.select_related().all()
 
         comments_filter = [

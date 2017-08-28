@@ -21,6 +21,59 @@
             $scope.data = data;
             $scope.groups = groups;
 
+            // TEST
+            $scope.data.push({
+                student: {
+                    first_name: 'Василий',
+                    last_name: 'Нестеров',
+                    phone: '+7(926) 161-85-59'
+                },
+                groups: [
+                {
+                    group: {
+                        name: 'Хастл-Начинающие', 
+                    },
+                    comments: [{
+                        text: 'Позвонить летом в среду'
+                    }]
+                },
+                {
+                    group: {
+                        name: 'Растяжка',
+                    },
+                    comments: [{
+                        text: 'Не будет ходить, и так человек-резинка'
+                    }]
+                }
+                ]
+            });
+
+            $scope.data.push({
+                student: {
+                    first_name: 'Михаил',
+                    last_name: 'Кудрявцев',
+                    phone: '+7(926) 161-58-59'
+                },
+                groups: [
+                {
+                    group: {
+                        name: 'Хастл-Начинающие', 
+                    },
+                    comments: [{
+                        text: 'Позвонить летом в среду'
+                    }]
+                },
+                {
+                    group: {
+                        name: 'Растяжка',
+                    },
+                    comments: [{
+                        text: 'Не будет ходить, и так человек-резинка'
+                    }]
+                }
+                ]
+            });
+
             $scope.row = null;
             $scope.rowClick = function(index, event) {
                 $scope.blockEvent(event);
