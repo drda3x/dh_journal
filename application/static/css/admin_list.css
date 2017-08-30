@@ -5,3 +5,25 @@
 
 .well .row-fulid {
 }
+
+.person-info {
+    display: inline-block;
+}
+
+.person-info-name {
+    width: 49%;
+}
+
+.person-info-menu {
+    width: 50%
+}
+
+.person-info-menu div {
+    margin-left: auto;
+    margin-right: 0;
+    width: 200px;
+}
+
+.top-menu .input-append {
+    margin: 0;
+}

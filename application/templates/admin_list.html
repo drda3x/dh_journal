@@ -19,12 +19,69 @@
     {% verbatim %}
     <div class="span10 well" ng-controller="AdminListCtrl">
         <div class="row-fulid">
-            <div class="span12" style="margin: 0 0 10px 0">
-                <a class="btn" href="" ng-click="addRow($event)">Добавить</a>
+            <div class="span12 top-menu" style="margin: 0 0 10px 0">
+                  <div class="span2">
+                      <a class="btn" href="" ng-click="addRow($event)">Добавить</a>
+                  </div>
+                  <div class="input-append span6">
+                      <input class="input-xxlarge" 
+                             id="appendedInputButtons" 
+                             size="16" 
+                             placeholder="Фамилия, Имя или телефон"
+                             type="text">
+                      <button class="btn" type="button">Найти</button>
+                      <button class="btn" type="button">Фильтры</button>
+                </div>
             </div>
         </div>
         <div class="row-fuild" ng-repeat="record in data">
-            <legend>{{record.student.last_name}} {{record.student.first_name}} {{student.record.phone}}</legend>
+            <legend>
+                <div class="person-info person-info-name">
+                    {{record.student.last_name}} {{record.student.first_name}} {{record.student.phone}}
+                </div>
+                <div class="person-info person-info-menu">
+                    <div>
+                        <button class="btn">Перевести</button>
+                        <button class="btn btn-danger">Удалить</button>
+                    </div>
+                </div>
+            </legend>
+            <div class="row-fulid">
+                <div class="span8">
+                    <legend>
+                        Коментарии
+                    </legend>
+                    <div class="well" style="background-color: #fff; height: 300px; overflow-y: scroll;">
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                            <p class="comment">
+                            , курс на социально-ориентированный национальный проект способствует повышению актуальности дальнейших направлений развития проекта. Значимость этих проблем настолько очевидна, что курс на социально-ориентированный национальный проект позволяет выполнить важнейшие задания по...
+                            </p>
+                    </div>
+                    <div>
+                        <form class="form-inline" style="text-align: right">
+                          <input type="text" class="input-xxlarge span10" placeholder="Введите коментарий">
+                          <button type="submit" class="btn btn-primary">Сохранить</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="span4">
+                    <legend>Группы</legend>
+                </div>
+            </div>
         </div>
         
         <context-menu menu-items="contextMenu.items" event="contextMenu.event" ng-show="contextMenu.show"></context-menu>
