@@ -27,3 +27,14 @@
 .top-menu .input-append {
     margin: 0;
 }
+
+.comments-block {
+    background-color: #fff; 
+    max-height: 300px; 
+    overflow-y: scroll;
+}
+
+.comment-text {
+    padding-top: 5px;
+    display: inline-block;
+}
