@@ -17,8 +17,8 @@
 {% endblock%}
 {% block content %}
     {% verbatim %}
-    <div class="span10 well" ng-controller="AdminListCtrl">
-        <div class="row-fulid">
+    <div class="span10" ng-controller="AdminListCtrl">
+        <div class="row-fulid well">
             <div class="span12 top-menu" style="margin: 0 0 10px 0">
                   <div class="span2">
                       <a class="btn" href="" ng-click="addRow($event)">Добавить</a>
@@ -28,13 +28,14 @@
                              id="appendedInputButtons" 
                              size="16" 
                              placeholder="Фамилия, Имя или телефон"
+                             ng-model="search_filter"
                              type="text">
                       <button class="btn" type="button">Найти</button>
                       <button class="btn" type="button">Фильтры</button>
                 </div>
             </div>
         </div>
-        <div class="row-fuild" ng-repeat="record in data">
+        <div class="span12 well" style="margin-left: 0;" ng-repeat="record in data" ng-show="record.display">
             <legend>
                 <div class="person-info person-info-name">
                     {{record.student.last_name}} {{record.student.first_name}} {{record.student.phone}}
@@ -46,7 +47,7 @@
                     </div>
                 </div>
             </legend>
-            <div class="row-fulid">
+            <div>
                 <div class="span8">
                     <legend>
                         Коментарии
@@ -54,15 +55,22 @@
                     <div class="comments-block well" style="">
                         <span ng-repeat="group in record.groups">
                             <p class="comment well" ng-repeat="comment in group.comments">
-                                <span class="label">{{group.group.name}}</span><br>
+                            <span class="label label-info">{{comment.date}}</span> <span class="label">{{group.group.name}}</span><br>
                                 <span class="comment-text">{{comment.text}}</span>
                             </p>
                         </span>
+                        <span ng-repeat="comment in record.comments">
+                            <p class="comment well" >
+                            <span class="label label-info">{{comment.date}}</span><br>
+                                <span class="comment-text">{{comment.text}}</span>
+                            </p>
+                        </span>
+
                     </div>
                     <div>
                         <form class="form-inline" style="text-align: right">
-                          <input type="text" class="input-xxlarge span10" placeholder="Введите коментарий">
-                          <button type="submit" class="btn btn-primary">Сохранить</button>
+                          <input type="text" class="input-xxlarge span10" ng-model="comment_$index" placeholder="Введите коментарий">
+                          <button type="submit" class="btn btn-primary" ng-click="saveComment(record, comment_$index, $index)">Сохранить</button>
                         </form>
                     </div>
                 </div>

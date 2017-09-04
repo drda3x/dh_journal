@@ -34,7 +34,8 @@
                         name: 'Хастл-Начинающие', 
                     },
                     comments: [{
-                        text: 'Позвонить летом в среду'
+                        text: 'Позвонить летом в среду',
+                        date: '25.01.2017 12:00'
                     }]
                 },
                 {
@@ -42,7 +43,8 @@
                         name: 'Растяжка',
                     },
                     comments: [{
-                        text: 'Не будет ходить, и так человек-резинка'
+                        text: 'Не будет ходить, и так человек-резинка',
+                        date: '01.01.2017 12:00'
                     }]
                 }
                 ]
@@ -60,7 +62,8 @@
                         name: 'Хастл-Начинающие', 
                     },
                     comments: [{
-                        text: 'Позвонить летом в среду'
+                        text: 'Говорит, что уже умеет танцевать',
+                        date: '01.01.2017 12:00'
                     }]
                 },
                 {
@@ -68,7 +71,8 @@
                         name: 'Растяжка',
                     },
                     comments: [{
-                        text: 'Не будет ходить, и так человек-резинка'
+                        text: 'Придет тянуть шпагат',
+                        date: '01.01.2017 12:00'
                     }]
                 }
                 ]
@@ -181,6 +185,41 @@
                         gid = group.id;
                 }
             }
+
+            $scope.saveComment = function(record, text, index) {
+                record.comments = record.comments || [];
+                record.comments.push({
+                    'text': text
+                });
+
+                $scope['comment_' + index] = null;
+            }
+
+            for(var i=0, j=$scope.data.length; i<j; i++) {
+                $scope.data[i].display = true;
+            }
+
+            $scope.search_filter = '';
+            $scope.$watch('search_filter', function(val) {
+                var filtered = [],
+                    first_name,
+                    last_name,
+                    phone;
+                
+                var p_val = val.replace(/[^0-9]/g, '');                
+
+                for(var i=0, j=$scope.data.length; i<j; i++) {
+                    first_name = $scope.data[i].student.first_name;
+                    last_name = $scope.data[i].student.last_name; 
+                    phone = $scope.data[i].student.phone.replace(/[^0-9]/g, '');
+
+                    if(first_name.indexOf(val) >= 0 || last_name.indexOf(val) >= 0 || (p_val !== '' && phone.indexOf(p_val) >= 0)) {
+                        $scope.data[i].display = true;
+                    } else {
+                        $scope.data[i].display = false;
+                    }
+                }
+            });
 
             $('body').click(function() {
                 $scope.$apply(function() {
