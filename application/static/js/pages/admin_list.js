@@ -43,7 +43,7 @@
                         name: 'Растяжка',
                     },
                     comments: [{
-                        text: 'Не будет ходить, и так человек-резинка',
+                        text: 'Не будет ходить, за чем записался вообще не знает',
                         date: '01.01.2017 12:00'
                     }]
                 }
@@ -181,15 +181,28 @@
                 },
 
                 save: function(group) {
-                    var stid = this.data.student.id,
-                        gid = group.id;
+                    var request_data = {
+                        stid: this.data.student.id,
+                        gid: group.id
+                    };
+
+                }
+            }
+
+            $scope.deleteStudent = function(stIndex) {
+                if(confirm("Уверены, что хотите удалить ученика из этих списков?")) {
+                    var left = $scope.data.slice(0, stIndex),
+                        right = $scope.data.slice(stIndex+1);
+
+                    $scope.data = left.concat(right);
                 }
             }
 
             $scope.saveComment = function(record, text, index) {
                 record.comments = record.comments || [];
                 record.comments.push({
-                    'text': text
+                    'text': text,
+                    'date': moment().format('DD.MM.YYYY hh:mm')
                 });
 
                 $scope['comment_' + index] = null;

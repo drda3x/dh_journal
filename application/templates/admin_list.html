@@ -31,7 +31,7 @@
                              ng-model="search_filter"
                              type="text">
                       <button class="btn" type="button">Найти</button>
-                      <button class="btn" type="button">Фильтры</button>
+                      <!--button class="btn" type="button">Фильтры</button-->
                 </div>
             </div>
         </div>
@@ -42,8 +42,8 @@
                 </div>
                 <div class="person-info person-info-menu">
                     <div>
-                        <button class="btn">Перевести</button>
-                        <button class="btn btn-danger">Удалить</button>
+                        <button class="btn" ng-click="moveModal.open(record)">Перевести</button>
+                        <button class="btn btn-danger" ng-click="deleteStudent($index)">Удалить</button>
                     </div>
                 </div>
             </legend>
@@ -70,7 +70,7 @@
                     <div>
                         <form class="form-inline" style="text-align: right">
                           <input type="text" class="input-xxlarge span10" ng-model="comment_$index" placeholder="Введите коментарий">
-                          <button type="submit" class="btn btn-primary" ng-click="saveComment(record, comment_$index, $index)">Сохранить</button>
+                          <button type="submit" class="btn btn-primary" ng-click="saveComment(record, comment_$index, $index); comment_$index=null">Сохранить</button>
                         </form>
                     </div>
                 </div>
@@ -109,7 +109,6 @@
             <a href="#" class="btn btn-primary" ng-click="moveModal.close(); moveModal.save(selectedGroup)">Сохранить</a>
           </div>
         </div>
-
     </div>
     {% endverbatim%}
 {% endblock%}
