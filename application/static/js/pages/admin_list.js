@@ -16,12 +16,30 @@
         return result
     }
 
+    function sendData(json, action, callback) {
+        $.ajax({
+            method: 'POST',
+            url: '',
+            data: {
+                data: JSON.stringify(json),
+                action: action
+            }
+        }).done(function(data) {
+            callback.apply(null, [null, data]);
+        }).error(function(error) {
+            callback.apply(null, [error, null]);
+        });
+    }
+
     window.pageInit = function(data, groups) {
         app.controller("AdminListCtrl", ["$scope", function($scope) {
+
+            $scope.glued = true;
             $scope.data = data;
             $scope.groups = groups;
 
             // TEST
+            /*
             $scope.data.push({
                 student: {
                     first_name: 'Василий',
@@ -77,6 +95,7 @@
                 }
                 ]
             });
+            */
 
             $scope.row = null;
             $scope.rowClick = function(index, event) {
@@ -200,12 +219,28 @@
 
             $scope.saveComment = function(record, text, index) {
                 record.comments = record.comments || [];
-                record.comments.push({
-                    'text': text,
-                    'date': moment().format('DD.MM.YYYY hh:mm')
-                });
 
-                $scope['comment_' + index] = null;
+                sendData({
+                    st_id: record.student.id,
+                    text: text
+                }, 
+                'save_comment', 
+                function(err, resp) {
+                    var _alert = window.createWindowAlert();
+                    if(err) {
+                        _alert.error('Ошибка');
+                    } else {
+                        $scope.$apply(function() {
+                            record.comments.push({
+                                'text': text,
+                                'add_date': moment().format('DD.MM.YYYY hh:mm')
+                            });
+
+                            $scope['comment_' + index] = null;
+                        });
+                        _alert.success('Сохранено');
+                    }
+                });
             }
 
             for(var i=0, j=$scope.data.length; i<j; i++) {

@@ -2272,6 +2272,23 @@ class AdministratorView(IndexView):
 
     template_name = u'admin_list.html'
 
+    def save_comment(self, request, *args, **kwargs):
+        try:
+            request_data = json.loads(request.POST.get('data'))
+
+            comment = Comments(
+                add_date = datetime.datetime.now(),
+                student_id = request_data['st_id'],
+                text=request_data['text']
+            )
+
+            comment.save()
+
+            return HttpResponse('OK')
+
+        except Exception:
+            return HttpResponseServerError()
+
     def get_context_data(self, *args, **kwargs):
 
         """
@@ -2279,13 +2296,12 @@ class AdministratorView(IndexView):
             {
                 student: student.__json__(),
                 groups: [
-                    {
-                        group: group.__json__(),
-                        comments: [
-                            comment1.__json__(), comment2.__json__(), ...
-                        ]
-                    },
-                    ...
+                    group1.__json__(),
+                    group2.__json__(),
+                ]
+                comments: [
+                    comment1.__json__(),
+                    comment2.__json__()
                 ]
             },
             {
@@ -2293,7 +2309,6 @@ class AdministratorView(IndexView):
             }
         ]
         """
-
 
         context = super(AdministratorView, self).get_context_data(**kwargs)
 
@@ -2303,31 +2318,27 @@ class AdministratorView(IndexView):
             Q(group=group, student=rec.student)
             for rec in data for group in rec.groups.all()
         ] + [
-            Q()
+            Q(group=None)
         ]
 
-        comments_recs = Comments.objects.filter(
-            reduce(lambda a, x: a | x, comments_filter[1:-1], comments_filter[0])
-        )
+        if not comments_filter:
+            comments = ()
 
-        comments_dict = defaultdict(list)
-
-        for rec in comments_recs:
-            comments_dict[(rec.student, rec.group)].append(rec.__json__())
+        else:
+            comments = Comments.objects.filter(reduce(
+                lambda a, x: a | x,
+                comments_filter[1:],
+                comments_filter[0]
+            )).order_by('add_date')
 
         context['data'] = []
 
         for record in data:
-            context_rec = dict(student=record.student.__json__(), groups=[])
-
-            for group in record.groups.all():
-                comment = comments_dict.get((record.student, group))
-                group_rec = dict(
-                    group=group.__json__(),
-                    comments=comments_dict[(record.student, group)]
-                )
-
-                context_rec['groups'].append(group_rec)
+            context_rec = dict(
+                student=record.student.__json__(),
+                groups=[group.__json__() for group in record.groups.all()],
+                comments=[comment.__json__() for comment in comments if comment.student == record.student]
+            )
 
             context['data'].append(context_rec)
 

@@ -52,16 +52,10 @@
                     <legend>
                         Коментарии
                     </legend>
-                    <div class="comments-block well" style="">
-                        <span ng-repeat="group in record.groups">
-                            <p class="comment well" ng-repeat="comment in group.comments">
-                            <span class="label label-info">{{comment.date}}</span> <span class="label">{{group.group.name}}</span><br>
-                                <span class="comment-text">{{comment.text}}</span>
-                            </p>
-                        </span>
+                    <div scroll-glue  class="comments-block well" style="">
                         <span ng-repeat="comment in record.comments">
                             <p class="comment well" >
-                            <span class="label label-info">{{comment.date}}</span><br>
+                            <span class="label label-info">{{comment.add_date}}</span> <span class="label">{{comment.group.name}}</span><br>
                                 <span class="comment-text">{{comment.text}}</span>
                             </p>
                         </span>
@@ -78,7 +72,7 @@
                     <legend>Группы</legend>
                     <table class="table table-bordered" style="background-color: #fff">
                         <tr ng-repeat="group in record.groups">
-                            <td>{{group.group.name}}</td>
+                            <td>{{group.name}}</td>
                         </tr>
                     </table>
                 </div>
