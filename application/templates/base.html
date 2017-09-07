@@ -160,18 +160,13 @@
                                     <div ng-show="menu_elem.hideable && !checkIndex($index)" class="carret2"></div>  
                                 </a>
 
-                                <a ng-class="{'nav-group-link': menu_elem.show}"
+                                <a ng-class="{'nav-group-link': menu_elem.show, 'bad_profit': (menu_elem.profit<0), 'good_profit': (menu_elem.profit>0)}"
                                     ng-show="menu_elem.show" 
                                     style="color: #000"
                                     ng-if="!isHeader(menu_elem)"  
                                     href="{%endverbatim%}http://{{host}}/{%verbatim%}{{menu_elem.url}}"
                                     ng-bind-html="menu_elem.label">
                                 </a>
-                                <div ng-class="{'nav-group-profit': menu_elem.show}">
-                                    <img {%endverbatim%}src="{% static "img/bad_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==-1" />
-                                    <img {%endverbatim%}src="{% static "img/good_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==1" />
-                                    <img {%endverbatim%}src="{% static "img/normal_profit.png" %}"{%verbatim%} alt="" style="width: 30px" ng-show="menu_elem.show && menu_elem.profit==0" />
-                                </div>
                             </li>
                         </ul>
                     </div>

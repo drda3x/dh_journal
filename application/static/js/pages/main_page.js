@@ -133,6 +133,7 @@ window.sideBarInit = function(menuData) {
                             show: !elem.hideable,
                             profit: urlElem.profit
                         })
+                        console.log(urlElem.profit);
                     }
                 }
             }

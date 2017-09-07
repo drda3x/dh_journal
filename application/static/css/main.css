@@ -43,11 +43,6 @@ body {
     text-align: right;
 }
 
-.nav-group {
-    display: table;
-    width: 100% !important;
-}
-
 .nav-group-link, .nav-group-profit {
     display: table-cell;
 }
@@ -55,4 +50,20 @@ body {
 .nav-group-profit {
     vertical-align: middle;
     padding-left: 15px;
+}
+
+.good_profit {
+    background-color: #75ffb8;
+}
+
+.good_profit:hover {
+    background-color: #5bc68f !important;
+}
+
+.bad_profit {
+    background-color: #ff9999 !important;
+}
+
+.bad_profit:hover {
+    background-color: #d68080 !important;
 }

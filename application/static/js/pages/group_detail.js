@@ -598,6 +598,33 @@
                 })
             }
 
+            $scope.moveToTrash = function() {
+                if(!confirm("Перенести в помойку?")) {
+                    return;
+                } 
+
+                var json = {
+                    gid: $scope.data.group_data.id,
+                    ids: [$scope.data.students[$scope.row].person.id]
+                };
+                sendData(json, 'move_to_trash', function(err) {
+                    $scope.$apply(function() {
+                        var _alert = window.createWindowAlert();
+
+                        if(err) {
+                            _alert.error('Ошибка');
+                        } else {
+                            $scope.data.students = _.union(
+                                $scope.data.students.slice(0, $scope.row),
+                                $scope.data.students.slice($scope.row + 1)
+                            ); 
+                            _alert.success('Сохранено');
+                            $scope.rowClick(null);
+                        }
+                    });
+                })
+            }
+
             $scope.checkStudents = function() {
                 var student = _.last($scope.data.students);
                 if (student.hasOwnProperty('just_added') && student.just_added) {

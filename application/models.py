@@ -1033,8 +1033,16 @@ class AdminCalls(models.Model):
 
 
 class AdministratorList(models.Model):
+
+    STATUSES = {
+      "active": "a",
+      "simple_deleted": "d1",
+      "complete_deted": "d2"
+    }
+
     student = models.ForeignKey("Students", verbose_name=u"Ученик")
     groups = models.ManyToManyField("Groups",  verbose_name=u"Последние посещаемые группы", null=True, blank=True)
+    status = models.CharField(max_length=20, verbose_name=u"Статус", choices=((v, k) for k, v in STATUSES.iteritems()), default=STATUSES['active'])
 
     def __json__(self):
         return {

@@ -45,6 +45,7 @@ from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassLi
 from collections import namedtuple, defaultdict, Counter
 from itertools import groupby, takewhile
 from application.utils.phones import check_phone
+import traceback
 
 
 def custom_proc(request):
@@ -253,6 +254,21 @@ def print_lesson(request):
 # УРА ТОВАРИЩИ!!!
 
 
+def request_handler(func):
+    def handler(self, *args, **kwargs):
+        try:
+            request = args[-1]
+            data = json.loads(request.POST['data'])
+            resp = func(self, **data)
+
+            return HttpResponse(resp or 200)
+        except Exception:
+            traceback.format_exc()
+            return HttpResponseServerError()
+
+    return handler
+
+
 class BaseView(TemplateView):
     """
     Базовый класс для всех вьюшек
@@ -297,6 +313,7 @@ class BaseView(TemplateView):
                 return getattr(self, action_name)(*args, **kwargs)
 
             except Exception:
+                traceback.format_exc()
                 return HttpResponseServerError()
 
         else:
@@ -320,6 +337,7 @@ class IndexView(BaseView):
 
                     if kwargs.get('is_superuser', False):
                         profit = GroupLogic(args[0]).profit()
+                        print profit
                         self['profit'] = profit[0][1] if profit else None
 
                     #self['label'] = '%s %s %s %s' % (
@@ -1635,6 +1653,22 @@ class GroupView(IndexView):
 # 1. Только добавили
 # 2. Отмечание занятия
 
+    @request_handler
+    def move_to_trash(self, gid, ids):
+        group = GroupLogic(gid)
+        for _id in ids:
+            try:
+                al_rec = AdministratorList.objects.get(student_id=_id)
+
+            except AdministratorList.DoesNotExist:
+                al_rec = AdministratorList(student_id=_id)
+                al_rec.save()
+
+            if group not in al_rec.groups.all():
+                al_rec.groups.add(group.orm)
+
+            group.delete_student(_id)
+
 
     def rest_process_subst(self, *args, **kwargs):
         """
@@ -2272,7 +2306,8 @@ class AdministratorView(IndexView):
 
     template_name = u'admin_list.html'
 
-    def save_comment(self, request, *args, **kwargs):
+    @request_handler
+    def save_comment(self, st_id, text):
         try:
             request_data = json.loads(request.POST.get('data'))
 
@@ -2288,6 +2323,19 @@ class AdministratorView(IndexView):
 
         except Exception:
             return HttpResponseServerError()
+
+    @request_handler
+    def move_student(self, stid, gid):
+        GroupLogic(gid).add_student_simple(Students.objects.get(pk=stid))
+
+    @request_handler
+    def delete_student(self, st_id, fulldelete):
+        if fulldelete:
+            AdministratorList.objects.get(student_id=int(st_id)).delete()
+        else:
+            AdministratorList.objects.filter(student_id=int(st_id)).update(
+                status=AdministratorList.STATUSES["simple_deleted"]
+            )
 
     def get_context_data(self, *args, **kwargs):
 
@@ -2312,7 +2360,9 @@ class AdministratorView(IndexView):
 
         context = super(AdministratorView, self).get_context_data(**kwargs)
 
-        data = AdministratorList.objects.select_related().all()
+        data = AdministratorList.objects.select_related().filter(
+            status=AdministratorList.STATUSES['active']
+        )
 
         comments_filter = [
             Q(group=group, student=rec.student)

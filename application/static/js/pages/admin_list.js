@@ -170,13 +170,9 @@
                         this.show = false;
                         console.log(this.record);
                         if(confirm("Удалить ученика из списков?")) {
-                            alert("Функция не реализована!!!");
+
                         }
                         
-                        var lp = $scope.data.slice(0, this.record_index),
-                            rp = $scope.data.slice(this.record_index+1);
-
-                        $scope.data = lp.concat(rp);
 
                     }, $scope.contextMenu)
                 }
@@ -200,21 +196,59 @@
                 },
 
                 save: function(group) {
-                    var request_data = {
+                    var data = {
                         stid: this.data.student.id,
                         gid: group.id
-                    };
+                    }
+
+                    sendData(data, 
+                    'move_student', 
+                    function(err, resp) {
+                        var _alert = window.createWindowAlert();
+                        if(err) {
+                            _alert.error('Ошибка');
+                        } else {
+                            if(confirm("Удалить ученика из списков?")) {
+                                for(var i=0, j=$scope.data.length; i<j; i++) {
+                                    if ($scope.data[i].student.id == data.stid) {
+                                        deleteStudent(data.stid, i, true);
+                                        break;
+                                    }
+                                }
+                            }
+                            _alert.success('Сохранено');
+                        }
+                    });
 
                 }
             }
 
             $scope.deleteStudent = function(stIndex) {
                 if(confirm("Уверены, что хотите удалить ученика из этих списков?")) {
-                    var left = $scope.data.slice(0, stIndex),
-                        right = $scope.data.slice(stIndex+1);
-
-                    $scope.data = left.concat(right);
+                    deleteStudent($scope.data[stIndex].student.id, stIndex)
                 }
+            }
+
+            function deleteStudent(student, dataIndex, fulldelete) {
+                sendData({
+                    st_id: student,
+                    fulldelete: fulldelete || false
+                }, 
+                'delete_student', 
+                function(err, resp) {
+                    var _alert = window.createWindowAlert();
+                    if(err) {
+                        _alert.error('Ошибка');
+                    } else {
+                        $scope.$apply(function() {
+                            var lp = $scope.data.slice(0, dataIndex),
+                                rp = $scope.data.slice(dataIndex+1);
+
+                            $scope.data = lp.concat(rp);
+                        });
+                        _alert.success('Сохранено');
+                    }
+                });
             }
 
             $scope.saveComment = function(record, text, index) {

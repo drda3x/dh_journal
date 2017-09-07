@@ -184,6 +184,18 @@ class GroupLogic(object):
                 active=True
             ).save()
 
+    def delete_student(self, student):
+        params = {
+            "group": self.orm
+        }
+
+        if isinstance(student, int):
+            params.update({"student_id": student})
+        else:
+            params.update({"student": student})
+
+        GroupList.objects.filter(**params).update(active=False)
+
     def calc_bonus_class_finance(self, day):
         try:
             bonus_class = filter(lambda bk: bk.date == day, self.bonus_classes).pop(0)
