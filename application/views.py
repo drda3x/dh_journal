@@ -337,7 +337,6 @@ class IndexView(BaseView):
 
                     if kwargs.get('is_superuser', False):
                         profit = GroupLogic(args[0]).profit()
-                        print profit
                         self['profit'] = profit[0][1] if profit else None
 
                     #self['label'] = '%s %s %s %s' % (
@@ -455,16 +454,7 @@ class IndexView(BaseView):
                 'depth': str(depth),
                 'hideable': False,
                 'type': 'urls',
-                'urls': [self.Url(u'Финансовый отчет', 'finance')]
-            })
-
-            depth += 1
-            menu.append({
-                'label': u'Отчеты',
-                'depth': str(depth),
-                'hideable': False,
-                'type': 'urls',
-                'urls': [self.Url(u'Помойка', 'adminlist')]
+                'urls': [self.Url(u'Финансовый отчет', 'finance'), self.Url(u'Помойка', 'adminlist')]
             })
 
         # Меню для других преподов
