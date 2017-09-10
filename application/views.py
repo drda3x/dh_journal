@@ -1574,7 +1574,7 @@ class GroupView(IndexView):
                         i = new_pass.lessons
                         for debt in debts[:i]:
                             wrapped_pass.create_lessons(debt.date, 1, dates=[debt.date])
-                            wrapped_pass.set_lesson_attended(debt.date)
+                            wrapped_pass.set_lesson_attended(debt.date, group=group)
                             i -= 1
 
                             comment = Comments(
@@ -1839,8 +1839,12 @@ class GroupView(IndexView):
         period_begin, period_end = (lambda x: x[0::len(x)-1])(group.calcked_calendar)
 
         club_cards = [p.__json__() for p in Passes.objects\
-            .filter(pass_type__one_group_pass=0, start_date__lte=period_end['date'], end_date__gte=period_begin['date'])\
-            .select_related('student').order_by('student__last_name', 'student__first_name')\
+            .filter(
+                pass_type__one_group_pass=0,
+                start_date__lte=period_end['date'],
+                end_date__gte=period_begin['date'],
+                lessons__gt=0
+            ).select_related('student').order_by('student__last_name', 'student__first_name')\
             .order_by('-start_date')]
 
         for det in club_cards:

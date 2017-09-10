@@ -389,7 +389,7 @@ class MultiPass(BasePass):
                 kwargs['group'] = Groups.all.get(pk=kwargs['group'])
 
         except Exception:
-            raise TypeError('Expected group or group.id in kwargs')
+            raise TypeError('Expected group or group.id in kwargs' )
 
         def right_type(x):
             return x.date() if isinstance(x, datetime.datetime) else x
@@ -440,11 +440,8 @@ class PassLogic(object):
             obj.group = None
 
             if not obj.end_date:
-                obj.end_date = datetime.date(
-                    obj.start_date.year if obj.start_date.month < 12 else obj.start_date.year + 1,
-                    obj.start_date.month + 1 if obj.start_date.month < 12 else 1,
-                    obj.start_date.day if obj.start_date.month + 1 != 2 else min(obj.start_date.day, 28)
-                )
+                delta = datetime.timedelta(days=31)
+                obj.end_date = obj.start_date + delta
 
             obj.save()
             return MultiPass(obj)
