@@ -1589,10 +1589,7 @@ class GroupView(IndexView):
                         new_pass.lessons = i
                         new_pass.save()
                         wrapped_pass.create_lessons(date, new_pass.lessons, group=group)
-
-                        last_group_lessons = list(takewhile(lambda x: x['date'] <= date, GroupLogic(group).calcked_calendar))
-                        if last_group_lessons and date <= last_group_lessons[-1]['date']:
-                            wrapped_pass.set_lesson_attended(date, group=group)
+                        wrapped_pass.set_lesson_attended(date, group=group)
 
                 elif lesson['type'] == 'pass':
                     lesson_pass = PassLogic.wrap(Passes.objects.get(pk=lesson['pid']))
