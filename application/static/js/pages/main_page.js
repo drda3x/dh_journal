@@ -1,11 +1,11 @@
 
-window.sideBarInit = function(menuData) {
+window.sideBarInit = function(menuData, group_id) {
     app.controller("sideBarCtrl", ["$scope", "$rootScope", "$sce", function($scope, $rootScope, $sce) {
         $scope.sidebar_menu = processSideBarHeader(menuData);
-        $scope.current_group = parseInt('{{group.id}}');
+        $scope.current_group = parseInt(group_id);
 
         $scope.isActive = (function() {
-            var current_group = '{{group.id}}';
+            var current_group = '' + group_id;
 
             return function(elem) {
                 if (elem.hasOwnProperty('url') && elem.url != undefined && elem.url.match(/[0-9]+/, '') == current_group) {
