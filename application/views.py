@@ -1833,7 +1833,11 @@ class GroupView(IndexView):
 
         real_group_calendar = [k['date'].date() for k in group.calcked_calendar]
 
-        period_begin, period_end = (lambda x: x[0::len(x)-1])(group.calcked_calendar)
+        l = len(group.calcked_calendar) - 1
+        if l > 0:
+            period_begin, period_end = group.calcked_calendar[0::l]
+        else:
+            period_begin = period_end = group.calcked_calendar[0]
 
         club_cards = [p.__json__() for p in Passes.objects\
             .filter(
