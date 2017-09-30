@@ -1908,10 +1908,12 @@ class GroupView(IndexView):
         ))
         context['default_teachers'] = '-'.join(t.last_name for t in group.orm.teachers.all())
 
+        teacher_cnt = len(group.orm.teachers.all())
         _substitutions = [
-            map(lambda v: v.pk, val)
-            for _, val in sorted(group.substitutions.iteritems(), key=lambda k: k[0])
+            ([teacher.pk for teacher in subst] + [-1] * teacher_cnt)[:teacher_cnt]
+            for subst in group.substitutions.itervalues()
         ]
+
         context['substitutions'] = json.dumps(_substitutions)
 
         default_teachers_cnt = len(group.orm.teachers.all())
