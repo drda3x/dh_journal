@@ -1394,14 +1394,13 @@ class GroupView(IndexView):
                     )
                     group_pass.save()
 
-
             for lesson in lessons:
-                l.delete()
+                lesson.delete()
 
             return HttpResponse()
 
-        except AssertionError:
-            return HttpResponse()
+        #except AssertionError:
+        #    return HttpResponse()
 
         except Exception:
             from traceback import format_exc
