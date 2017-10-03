@@ -383,7 +383,6 @@ class MultiPass(BasePass):
     """
 
     def set_lesson_attended(self, date, person=None, **kwargs):
-
         try:
             if not isinstance(kwargs['group'], Groups):
                 kwargs['group'] = Groups.all.get(pk=kwargs['group'])
@@ -409,6 +408,13 @@ class MultiPass(BasePass):
 
     def create_lessons(self, date, count=None, **kwargs):
         pass
+
+    def set_lesson_not_attended(self, date):
+        lesson = Lessons.objects.get(group_pass=self.orm_object, date=date)
+        lesson.delete()
+
+        self.orm_object.lessons += 1
+        self.orm_object.save()
 
 
 class GhostPass(BasePass):

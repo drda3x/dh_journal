@@ -7,7 +7,7 @@ from django.db.models import Sum, Q, Count
 from application.models import Groups, GroupList, Students, Lessons, Passes, Debts, Comments, TeachersSubstitution, BonusClasses
 from application.utils.date_api import get_last_day_of_month, get_count_of_weekdays_per_interval
 from itertools import chain, takewhile
-from collections import Counter
+from collections import Counter, OrderedDict
 from application.utils.phones import check_phone
 
 
@@ -134,7 +134,8 @@ class GroupLogic(object):
 
     @cached_property
     def substitutions(self):
-        result = dict.fromkeys(self.calendar, list(self.orm.teachers.all()))
+        default_teachers = list(self.orm.teachers.all())
+        result = OrderedDict.fromkeys(self.calendar, default_teachers)
         for subst in TeachersSubstitution.objects.filter(group=self.orm, date__range=(self.date_1, self.date_2)).order_by('date'):
             result[subst.date] = list(subst.teachers.all())
 
