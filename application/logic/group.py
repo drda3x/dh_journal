@@ -397,10 +397,11 @@ class GroupLogic(object):
 
                 min_month_salary = min(self.MIN_LESSON_SALARY * (len(self.calendar) - len(self.canceled_lessons)), 5000)
 
+                teachers_ids = [i.pk for i in compensation_to]
                 for teacher, salary in totals['salary'].iteritems():
                     compensation_value = min_month_salary - salary['count']
-                    if compensation_value > 0 and teacher in compensation_to:
-                        totals['salary'][int(teacher.pk)]['compensation'] = compensation_value
+                    if compensation_value > 0 and teacher in teachers_ids:
+                        totals['salary'][int(teacher)]['compensation'] = compensation_value
 
         except IndexError:
             pass
