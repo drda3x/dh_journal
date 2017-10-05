@@ -576,6 +576,10 @@
             }
 
             $scope.deleteStudent = function() {
+                if(!confirm("Подтвердите удаление ученика")) {
+                    return;
+                };
+                 
                 var json = {
                     gid: $scope.data.group_data.id,
                     ids: [$scope.data.students[$scope.row].person.id]
@@ -587,11 +591,23 @@
                         if(err) {
                             _alert.error('Ошибка');
                         } else {
-                            $scope.data.students = _.union(
-                                $scope.data.students.slice(0, $scope.row),
-                                $scope.data.students.slice($scope.row + 1)
-                            ); 
-                            _alert.success('Сохранено');
+                            var lessons = $scope.data.students[$scope.row].calendar;
+                            var i = lessons.length-1;
+                            for(; i>=0; i--) {
+                                if(lessons[i].pass) {
+                                    _alert.success("Сохранено. Правда, ученик в этом месяце был на занятиях, в следующем его уже не будет");
+                                    break;
+                                }
+                            }
+
+                            if(i<0) {
+                                $scope.data.students = _.union(
+                                    $scope.data.students.slice(0, $scope.row),
+                                    $scope.data.students.slice($scope.row + 1)
+                                ); 
+                                _alert.success('Сохранено');
+                            }
+
                             $scope.rowClick(null);
                         }
                     });
