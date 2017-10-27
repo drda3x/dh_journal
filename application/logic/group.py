@@ -35,17 +35,41 @@ class GroupLogic(object):
         # group_start_date = datetime.combine(self.orm.start_date, datetime.min.time())
         # group_end_date = self.orm_end_date
 
-        self.date_1 = max(date or datetime(now.year, now.month, 1), self.orm.start_datetime)
+        requested_date = date or datetime(now.year, now.month, 1)
 
-        if self.orm.end_datetime:
+        try:
+            # Гыыыы - самая короткая и удобочитаемая запись))
+            # Короче тут одновременная (не явная) проверка на
+            # self.orm.end_date_time is not None
+            # Спасибо AttributeError
+            _month = requested_date.month >= self.orm.end_datetime.month
+            _year = requested_date.year >= self.orm.end_datetime.year
+            req_date_less = _year and _month
+        except AttributeError:
+            req_date_less = False
+
+        if req_date_less:
+
+            if self.last_lesson_ever:
+                self.date_1 = datetime(
+                    self.last_lesson_ever.date.year,
+                    self.last_lesson_ever.date.month,
+                    1
+                )
+                min_date_2 = datetime.combine(self.last_lesson_ever.date, datetime.max.time())
+            else:
+                self.date_1 = datetime(
+                    self.orm.end_datetime.year,
+                    self.orm.end_datetime.month,
+                    1
+                )
+                min_date_2 = self.orm.end_datetime
 
             min_date_1 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
-            min_date_2 = datetime.combine(self.last_lesson_ever.date, datetime.max.time()) \
-                if self.last_lesson_ever \
-                else self.orm.end_datetime
-
             self.date_2 = min(min_date_1, min_date_2)
+
         else:
+            self.date_1 = max(requested_date, self.orm.start_datetime)
             self.date_2 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
 
         self.days = get_count_of_weekdays_per_interval(self.orm.days, self.date_1, self.date_2)
