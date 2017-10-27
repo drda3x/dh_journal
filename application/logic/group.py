@@ -65,6 +65,7 @@ class GroupLogic(object):
                 )
                 min_date_2 = self.orm.end_datetime
 
+            self.date_1 = max(self.date_1, self.orm.start_datetime)
             min_date_1 = get_last_day_of_month(self.date_1).replace(hour=23, minute=59, second=59, microsecond=0)
             self.date_2 = min(min_date_1, min_date_2)
 
