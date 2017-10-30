@@ -239,10 +239,6 @@ class BasePass(object):
             lesson.date = date
             lesson.save()
 
-    # Разморозить
-    def unfreeze(self, date):
-        pass
-
     # Сменить владельца
     def change_owner(self, new_owner, date=None):
 
@@ -267,7 +263,7 @@ class BasePass(object):
 
             return True
 
-        except Exception, e:
+        except Exception as e:
             from traceback import format_exc
             print format_exc()
             return False
@@ -336,7 +332,6 @@ class RegularPass(BasePass):
     def set_lesson_not_attended(self, date):
 
         status = Lessons.STATUSES['moved'] if self.orm_object.skips and self.orm_object.skips > 0 else Lessons.STATUSES['not_attended']
-        print self.orm_object.skips
         self.process_lesson(date, status)
         self.check_lessons_count()
 
