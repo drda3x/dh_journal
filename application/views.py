@@ -1538,16 +1538,22 @@ class GroupView(IndexView):
             date = datetime.datetime.strptime(json_data['date'], '%d.%m.%Y')
             teachers = map(int, json_data.get('teachers', []))
 
+            # TODO Простановку посещенных уроков можно делать одним запросом
+
             for lesson in json_data['lessons']:
                 if lesson['type'] == 'just_added':
+                    # TODO наверное можно не делать каждый раз запрос к базе
                     nearest_lesson = Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).first()
 
                     # Долги
                     if lesson['pass_type_id'] == -2:
+                        # TODO и тут тоже
                         if date <= datetime.datetime.now() and not Debts.objects.filter(student_id=lesson['student_id'], group=group, date=date).exists():
                             debt = Debts(student_id=lesson['student_id'], group=group, date=date, val=0)
                             debt.save()
 
+                    # TODO эту проверку можно сократить добавив ее в
+                    # self.check_available_days
                     elif not nearest_lesson or self.check_available_days(group.days, date.date(), nearest_lesson.date, int(lesson['lessons_cnt'])):
                         pass_type = PassTypes.objects.get(pk=lesson['pass_type_id'])
                         new_pass = Passes(
@@ -1565,6 +1571,7 @@ class GroupView(IndexView):
 
                         wrapped_pass = PassLogic.wrap(new_pass)
 
+                        # TODO тоже можно сделать один запрос на всех учеников
                         debts = list(Debts.objects.filter(group=group, student_id=lesson['student_id'], date__lt=date).order_by('date'))
 
                         if len(debts) > 0:
