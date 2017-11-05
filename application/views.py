@@ -995,7 +995,8 @@ class BonusClassView(BaseView):
             return HttpResponse(json.dumps({'id': comment.id}))
 
         except Exception:
-            from traceback import format_exc; print format_exc()
+            from traceback import format_exc;
+            print format_exc()
             return HttpResponseServerError('failed')
 
     def move(self, request):
@@ -1335,7 +1336,10 @@ class GroupView(IndexView):
 
     @staticmethod
     def check_available_days(days, dt1, dt2, cnt):
-        return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
+        if all(days, dt1, dt2, cnt):
+            return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
+        else:
+            return True
 
     def _edit_student_data(self, student_id, first_name=None, last_name=None, phone=None, org=False):
         try:
@@ -1540,21 +1544,43 @@ class GroupView(IndexView):
 
             # TODO Простановку посещенных уроков можно делать одним запросом
 
+            all_nearest_lessons = dict(
+                Lessons.objects.filter(
+                    group=group,
+                    date__gte=date
+                ).order_by(
+                    'student', 'date'
+                ).values_list(
+                    "student", "date"
+                )
+            )
+
+            all_debts = dict(
+                (d.student.id, d)
+                for d in Debts.objects.filter(
+                    group=group, date__lte=date
+                )
+            )
+
+            all_debts = defaultdict(list)
+            for d in Debts.objects.filter(group=group, date__lte=date).order_by('date'):
+                all_debts[d.student.id].append(d)
+
             for lesson in json_data['lessons']:
                 if lesson['type'] == 'just_added':
-                    # TODO наверное можно не делать каждый раз запрос к базе
-                    nearest_lesson = Lessons.objects.filter(student_id=lesson['student_id'], group=group, date__gte=date).first()
+                    nearest_lesson = all_nearest_lessons.get(lesson['student_id'])
+                    debts = all_debts[lesson['studend_id']]
 
                     # Долги
                     if lesson['pass_type_id'] == -2:
                         # TODO и тут тоже
-                        if date <= datetime.datetime.now() and not Debts.objects.filter(student_id=lesson['student_id'], group=group, date=date).exists():
+                        if date <= datetime.datetime.now() \
+                                and all(d.date != date for d in debts):
+
                             debt = Debts(student_id=lesson['student_id'], group=group, date=date, val=0)
                             debt.save()
 
-                    # TODO эту проверку можно сократить добавив ее в
-                    # self.check_available_days
-                    elif not nearest_lesson or self.check_available_days(group.days, date.date(), nearest_lesson.date, int(lesson['lessons_cnt'])):
+                    elif self.check_available_days(group.days, date.date(), nearest_lesson, int(lesson['lessons_cnt'])):
                         pass_type = PassTypes.objects.get(pk=lesson['pass_type_id'])
                         new_pass = Passes(
                             student_id=lesson['student_id'],
@@ -1570,9 +1596,6 @@ class GroupView(IndexView):
                         new_pass.save()
 
                         wrapped_pass = PassLogic.wrap(new_pass)
-
-                        # TODO тоже можно сделать один запрос на всех учеников
-                        debts = list(Debts.objects.filter(group=group, student_id=lesson['student_id'], date__lt=date).order_by('date'))
 
                         if len(debts) > 0:
                             new_pass.start_date = debts[0].date
