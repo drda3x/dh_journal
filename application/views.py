@@ -1336,7 +1336,7 @@ class GroupView(IndexView):
 
     @staticmethod
     def check_available_days(days, dt1, dt2, cnt):
-        if all(days, dt1, dt2, cnt):
+        if all((days, dt1, dt2, cnt)):
             return get_count_of_weekdays_per_interval(days, dt1, dt2) - 1 >= cnt
         else:
             return True
@@ -1569,11 +1569,10 @@ class GroupView(IndexView):
             for lesson in json_data['lessons']:
                 if lesson['type'] == 'just_added':
                     nearest_lesson = all_nearest_lessons.get(lesson['student_id'])
-                    debts = all_debts[lesson['studend_id']]
+                    debts = all_debts[lesson['student_id']]
 
                     # Долги
                     if lesson['pass_type_id'] == -2:
-                        # TODO и тут тоже
                         if date <= datetime.datetime.now() \
                                 and all(d.date != date for d in debts):
 
