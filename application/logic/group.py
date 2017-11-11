@@ -42,8 +42,8 @@ class GroupLogic(object):
             # Короче тут одновременная (не явная) проверка на
             # self.orm.end_date_time is not None
             # Спасибо AttributeError
-            _month = requested_date.month >= self.orm.end_datetime.month
-            _year = requested_date.year >= self.orm.end_datetime.year
+            _month = requested_date.month > self.orm.end_datetime.month
+            _year = requested_date.year > self.orm.end_datetime.year
             req_date_less = _year and _month
         except AttributeError:
             req_date_less = False
