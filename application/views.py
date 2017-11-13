@@ -336,8 +336,8 @@ class IndexView(BaseView):
                     self.update(group_repr)
 
                     if kwargs.get('is_superuser', False):
-                        profit = GroupLogic(args[0]).profit()
-                        self['profit'] = profit[0][1] if profit else None
+                        profit = GroupLogic(args[0]).rt_profit
+                        self['profit'] = profit
 
                     #self['label'] = '%s %s %s %s' % (
                     #    group_repr['dance_hall']['station'],
