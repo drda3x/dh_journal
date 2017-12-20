@@ -62,13 +62,13 @@ class CommaSeparatedSelectIntegerWithUpdate(CommaSeparatedSelectInteger):
 class GroupsForm(forms.ModelForm):
 
     _days = CommaSeparatedSelectInteger(label=u'Дни', choices=WEEK, widget=forms.CheckboxSelectMultiple())
-    updates = DateListField(widget=ListWidget(), required=False, label=u'Донаборы')
+    #updates = DateListField(widget=ListWidget(), required=False, label=u'Донаборы')
 
     class Meta:
         model = Groups
         fields = [
             'name',
-            'dance',
+      #      'dance',
             'level',
             'start_date',
             'end_date',
@@ -77,14 +77,14 @@ class GroupsForm(forms.ModelForm):
             'teachers',
             'dance_hall',
             'available_passes',
-            'external_passes',
-            'is_settable',
-            'free_placees',
-            'duration',
-            'lending_message',
-            'course_details',
-            'course_results',
-            'external_available'
+     #       'external_passes',
+     #       'is_settable',
+     #       'free_placees',
+     #       'duration',
+     #       'lending_message',
+     #       'course_details',
+     #       'course_results',
+     #       'external_available'
         ]
 
 
