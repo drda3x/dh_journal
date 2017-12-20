@@ -122,6 +122,9 @@ window.sideBarInit = function(menuData, group_id) {
                         
                         try {
                             label = urlElem.name+"<br>"+urlElem.dance_hall.station+"<br>"+urlElem.days+" "+urlElem.time;
+                            if(urlElem.show_st) {
+                                label = 'с ' + urlElem.start_date + '<br>' + label;
+                            }
                         } catch(e) {
                             label = urlElem.label;
                         }

@@ -339,6 +339,11 @@ class IndexView(BaseView):
                         profit = GroupLogic(args[0]).rt_profit
                         self['profit'] = profit
 
+                    group = args[0]
+                    now = datetime.datetime.now().date()
+                    self['show_st'] = group.start_date >= now
+
+
                     #self['label'] = '%s %s %s %s' % (
                     #    group_repr['dance_hall']['station'],
                     #    group_repr['days'],
