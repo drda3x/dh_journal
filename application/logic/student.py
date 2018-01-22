@@ -43,6 +43,14 @@ def add_student(group_id, student_main_data, e_mail=None, is_org=False, group_li
 
                 student.save()
 
+            except Students.MultipleObjectsReturned:
+                student = Students.objects.filter(
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone=phone
+                ).first()
+                edit_student(student.pk, student.phone, student.first_name, student.last_name, student.e_mail, student.org)
+
         group_id = int(group_id)
 
         try:
