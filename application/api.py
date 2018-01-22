@@ -882,8 +882,16 @@ def change_group(request):
             _add_student(int(_json['new_group']), student_orm)
             lessons = Lessons.objects.filter(group=old_group, date__gte=date, student=student_orm)
             last_lesson = Lessons.objects.filter(group=new_group, date__gte=date, student=student_orm).order_by('date').last()
+            new_date = max(
+                new_group.start_date,
+                last_lesson.date + datetime.timedelta(days=1) if last_lesson \
+                else date.date() if isinstance(date, datetime.datetime) else date
+            )
             passes = set([l.group_pass for l in lessons])
-            calendar = new_group.get_calendar(len(lessons), last_lesson.date + datetime.timedelta(days=1) if last_lesson else date)
+            calendar = new_group.get_calendar(
+                len(lessons),
+                new_date
+            )
 
             for p in passes:
                 pass_lessons = Lessons.objects.filter(group_pass=p, date__gte=date)
