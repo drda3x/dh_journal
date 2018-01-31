@@ -345,7 +345,7 @@ class IndexView(BaseView):
                         'urls': [
                             GroupLogic(g) for g in groups.filter(level=level).exclude(teachers=user)
                         ]
-                    } for level_depth, level in enumerate(GroupLevels.objects.all())
+                    } for level_depth, level in enumerate(GroupLevels.objects.all().order_by("sort_num"))
                 ]
             })
 

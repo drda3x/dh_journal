@@ -76,6 +76,7 @@ class GroupLevels(models.Model):
     """
     name = models.CharField(max_length=50, verbose_name=u'Наименование')
     string_code = models.CharField(max_length=50, verbose_name=u'Код')
+    sort_num = models.IntegerField(null=True, blank=True, verbose_name=u"Порядковый номер")
     course_details = models.TextField(null=True, blank=True, verbose_name=u'Подробности о курсе')
     course_results = models.TextField(null=True, blank=True, verbose_name=u'Результаты прохождения курса')
 
