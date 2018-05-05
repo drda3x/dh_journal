@@ -341,7 +341,7 @@ class GroupLogic(object):
                         Q(Q(group_pass__creation_date__lte=self.calendar[-1]) | Q(group_pass__in=self.passes)),
                         group=self.orm,
                         date__gt=self.calendar[-1]
-                    ))
+                    ).exclude(status=6))
                 ))
 
                 min_month_salary = min(self.MIN_LESSON_SALARY * (len(self.calendar) - len(self.canceled_lessons)), 5000)
