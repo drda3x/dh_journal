@@ -88,12 +88,12 @@ class GroupLogic(object):
     def lesson_is_last_in_pass(self, lesson):
         for _p in self.passes:
             if _p == lesson.group_pass:
-                return _p.last_lesson_date == lesson.date
+                return _p.last_lesson_date.date == lesson.date
 
     def lesson_is_first_in_pass(self, lesson):
         for _p in self.passes:
             if _p == lesson.group_pass:
-                return _p.first_lesson_date == lesson.date
+                return _p.first_lesson_date.date == lesson.date
 
     @cached_property
     def phantom_passes(self):

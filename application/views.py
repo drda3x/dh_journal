@@ -1319,8 +1319,8 @@ class GroupView(BaseView):
                 'sign_type': 's' if isinstance(obj.sign, str) else 'n',
                 'attended': obj.status == Lessons.STATUSES['attended'],
                 'pid': obj.group_pass.id,
-                'first': self.group.lesson_is_last_in_pass(obj),
-                'last': self.group.lesson_is_first_in_pass(obj),
+                'first': self.group.lesson_is_first_in_pass(obj),
+                'last': self.group.lesson_is_last_in_pass(obj),
                 'color': '' if obj.status == Lessons.STATUSES['moved'] else self.html_color_classes[obj.group_pass.color] if not obj.student.org  else ORG_PASS_HTML_CLASS
             }
 
