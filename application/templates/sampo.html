@@ -26,11 +26,10 @@
                                 </label>
                                 <label>
                                     Зал:
-                                    <select id="hall_id" name="hall_id" class="input-small">
-                                        <option value="1">Зал 1</option>
-                                        <option value="2">Зал 2</option>
+                                    <select id="hall_id" name="hall_id" class="input">
+                                        <option {% if hall == 4 %} selected {% endif %} value="4">Волгоградский пр-т</option>
+                                        <option {% if hall == 22 %} selected {% endif %} value="22">Выставочная</option>
                                     </select>
-                                    <input id="hall_id" name="hall_id" class="input-small" value="{{ date }}">
                                 </label>
                                <input type="submit" id="date-submit" class="btn" value="OK">
                             </form>

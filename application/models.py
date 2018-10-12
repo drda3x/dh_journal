@@ -867,12 +867,14 @@ class Lessons(models.Model):
 
 class SampoPayments(models.Model):
 
+    DEFAULT_DANCE_HALL = 4
+
     date = models.DateTimeField(verbose_name=u'Время оплаты')
     staff = models.ForeignKey(User, verbose_name=u'Администратор САМПО')
     people_count = models.PositiveIntegerField(verbose_name=u'Количество людей')
     money = models.IntegerField(verbose_name=u'Сумма')
     comment = models.CharField(verbose_name=u'Коментарий', max_length=50, null=True, blank=True)
-    hall = models.ForeignKey(DanceHalls, verboxe_name=u'Зал')
+    hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал', default=4)
 
     def __str__(self):
         return '%s %s %d' % (self.date.strftime('%d.%m.%Y %H:%M'), self.staff, self.money)
@@ -922,10 +924,11 @@ class SampoPasses(models.Model):
 
 class SampoPassUsage(models.Model):
 
+    DEFAULT_DANCE_HALL = 4
+
     sampo_pass = models.ForeignKey(SampoPasses, verbose_name=u'Абонемент')
     date = models.DateTimeField(verbose_name=u'Время')
-    hall = models.ForeignKey(DanceHalls, verboxe_name=u'Зал')
-
+    hall = models.ForeignKey(DanceHalls, verbose_name=u'Зал', default=4)
     class Meta:
         app_label = u'application'
         verbose_name = u'Отметки о посещении сампо'

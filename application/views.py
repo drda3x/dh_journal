@@ -507,9 +507,9 @@ class SampoView(BaseView):
     def add_sampo_payment(self):
         request_body = json.loads(self.request.GET['data'])
         data = request_body['info']
-        dance_hall_id = request_boy['hall_id']
 
         date = data.get('date')
+        dance_hall_id = data.get('hall_id')
         hhmm = data['time']
         if hhmm:
             hhmm = map(int, hhmm.split(':'))
@@ -538,7 +538,7 @@ class SampoView(BaseView):
 
             new_payment.save()
 
-            passes, payments, _ = get_sampo_details(now)
+            passes, payments, _ = get_sampo_details(now, dance_hall_id)
 
             return HttpResponse(
                 json.dumps({
@@ -598,13 +598,13 @@ class SampoView(BaseView):
         if action == 'check':
             new_usage = SampoPassUsage(
                 sampo_pass_id=int(self.request.GET['pid']),
-                hall_id=int(hall)
+                hall_id=int(hall),
                 date=now
             )
 
             new_usage.save()
 
-            passes, payments, _ = get_sampo_details(now)
+            passes, payments, _ = get_sampo_details(now, hall)
 
             _json = json.dumps({
                 'payments': payments
@@ -712,7 +712,8 @@ class SampoView(BaseView):
         context = super(SampoView, self).get_context_data(**kwargs)
 
         date_str = self.request.GET.get('date')
-        hall_id = self.request.GET.get('hall_id')
+        hall_id = self.request.GET.get('hall_id', 4)
+        hall_id = int(hall_id)
 
         try:
             if date_str:
@@ -725,15 +726,16 @@ class SampoView(BaseView):
         except Exception:
             return HttpResponseServerError('Не правильно указана дата')
 
-        context['passes'], context['today_payments'], context['totals'] = get_sampo_details(date)
+        context['passes'], context['today_payments'], context['totals'] = get_sampo_details(date, hall_id)
         context['pass_signs'] = filter(lambda x: not x['info']['type'], context['today_payments'])
         context['pass_signs_l'] = len(context['pass_signs'])
         context['date'] = date.strftime('%d.%m.%Y')
-        context['report'] = self.get_report(date)
+        context['report'] = self.get_report(date, hall_id)
+        context['hall'] = hall_id
 
         return context
 
-    def get_report(self, _date):
+    def get_report(self, _date, hall_id):
 
         date = _date.replace(day=1)
         month_num = date.month
@@ -751,7 +753,7 @@ class SampoView(BaseView):
             payments = SampoPayments.objects.filter(date__range=[
                 datetime.datetime.combine(date, datetime.datetime.min.time()).replace(tzinfo=UTC),
                 datetime.datetime.combine(date, datetime.datetime.max.time()).replace(tzinfo=UTC)
-            ])
+            ], hall_id=hall_id)
 
             passes = SampoPasses.objects \
                 .select_related('payment') \

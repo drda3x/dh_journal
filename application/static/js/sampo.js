@@ -112,6 +112,7 @@ window.sampoLogic = (function () {
             data.info[$(this).attr('name')] = $(this).val();
         });
         data.info.date = $('#date').val();
+        data.info.hall_id = $('#hall_id').val();
         return data;
     }
 
@@ -374,7 +375,8 @@ window.sampoLogic = (function () {
                     action: action,
                     pid: input.val(),
                     date: $('#date').val(),
-                    time: $('#addSampoPass #inputTime').val()
+                    time: $('#addSampoPass #inputTime').val(),
+                    hall_id: $('#hall_id').val()
                 }, successProcess, errorProcess);
             } else {
                 var checked = input.prop('checked');
