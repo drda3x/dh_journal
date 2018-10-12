@@ -563,7 +563,7 @@ class SampoView(BaseView):
             )
             new_pass.save()
 
-            passes, payments, _ = get_sampo_details(now)
+            passes, payments, _ = get_sampo_details(now, dance_hall_id)
 
             return HttpResponse(
                 json.dumps({
