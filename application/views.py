@@ -507,6 +507,7 @@ class SampoView(BaseView):
     def add_sampo_payment(self):
         request_body = json.loads(self.request.GET['data'])
         data = request_body['info']
+        dance_hall_id = request_boy['hall_id']
 
         date = data.get('date')
         hhmm = data['time']
@@ -527,7 +528,8 @@ class SampoView(BaseView):
                 date=now,
                 staff=self.request.user,
                 people_count=0,  # Кудрявцев сказал убрать
-                money=int(data['count']) * (-1 if self.request.GET['type'] == 'cash-wrt' else 1)
+                money=int(data['count']) * (-1 if self.request.GET['type'] == 'cash-wrt' else 1),
+                hall_id = int(dance_hall_id)
             )
 
             comment = data.get('reason')
@@ -549,7 +551,8 @@ class SampoView(BaseView):
                 date=now,
                 staff=self.request.user,
                 people_count=1,
-                money=int(data['count'] or 0)
+                money=int(data['count'] or 0),
+                hall_id = int(dance_hall_id)
             )
             new_payment.save()
 
@@ -574,6 +577,7 @@ class SampoView(BaseView):
     def check_uncheck_sampo(self):
         action = self.request.GET.get('action')
         time = self.request.GET.get('time')
+        hall = self.request.GET.get('hall_id')
 
         if time:
             hhmm = map(lambda x: int(x), self.request.GET['time'].split(':'))
@@ -594,6 +598,7 @@ class SampoView(BaseView):
         if action == 'check':
             new_usage = SampoPassUsage(
                 sampo_pass_id=int(self.request.GET['pid']),
+                hall_id=int(hall)
                 date=now
             )
 
@@ -707,6 +712,7 @@ class SampoView(BaseView):
         context = super(SampoView, self).get_context_data(**kwargs)
 
         date_str = self.request.GET.get('date')
+        hall_id = self.request.GET.get('hall_id')
 
         try:
             if date_str:

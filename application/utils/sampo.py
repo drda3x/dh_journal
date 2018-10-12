@@ -9,7 +9,7 @@ from django.db.models import Sum
 from application.models import SampoPayments, SampoPasses, SampoPassUsage, HtmlPaymentsTypes, Log
 
 
-def get_sampo_details(date):
+def get_sampo_details(date, hall_id):
 
     time_zone = timezone(TIME_ZONE)
 
@@ -28,7 +28,7 @@ def get_sampo_details(date):
         .filter(payment__date__range=[begin_time, end_time])\
         .exclude(payment__date__gt=datetime.datetime.combine(date.date(), datetime.datetime.max.time()))
 
-    today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end)).order_by('pk')
+    today_payments = SampoPayments.objects.filter(date__range=(day_begin, day_end), hall_id=hall_id).order_by('pk')
 
     totals = {
         'add': today_payments.filter(money__gt=0).aggregate(Sum('money')).get('money__sum') or 0,
@@ -45,7 +45,7 @@ def get_sampo_details(date):
             pass_buffer.append(int(_pass[0].id))
             payment.sampo_pass = _pass[0]
 
-    pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end)).order_by('pk')
+    pass_usages = SampoPassUsage.objects.select_related('sampo_pass').filter(date__range=(day_begin, day_end), hall_id=hall_id).order_by('pk')
     today_bought = []
 
     def get_data(elem):

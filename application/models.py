@@ -872,6 +872,7 @@ class SampoPayments(models.Model):
     people_count = models.PositiveIntegerField(verbose_name=u'Количество людей')
     money = models.IntegerField(verbose_name=u'Сумма')
     comment = models.CharField(verbose_name=u'Коментарий', max_length=50, null=True, blank=True)
+    hall = models.ForeignKey(DanceHalls, verboxe_name=u'Зал')
 
     def __str__(self):
         return '%s %s %d' % (self.date.strftime('%d.%m.%Y %H:%M'), self.staff, self.money)
@@ -923,6 +924,7 @@ class SampoPassUsage(models.Model):
 
     sampo_pass = models.ForeignKey(SampoPasses, verbose_name=u'Абонемент')
     date = models.DateTimeField(verbose_name=u'Время')
+    hall = models.ForeignKey(DanceHalls, verboxe_name=u'Зал')
 
     class Meta:
         app_label = u'application'
