@@ -626,7 +626,7 @@ class SampoView(BaseView):
             if last_usage:
                 last_usage.delete()
 
-            passes, payments, _ = get_sampo_details(now)
+            passes, payments, _ = get_sampo_details(now, hall)
 
             _json = json.dumps({
                 'payments': payments
