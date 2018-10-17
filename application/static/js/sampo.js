@@ -422,6 +422,18 @@ window.sampoLogic = (function () {
             return false;
         });
 
+        $('#hall_id').change(function() {
+            sendRequest({
+                action: 'update',
+                date: $("#date").val(),
+                hall_id: $('#hall_id').val()
+            }, function (json) {
+                var data = JSON.parse(json);
+                refreshTable(data.payments);
+                refureshPassList(data.passes);
+            });
+        });
+
         var clockInput = $('input.time'),
             $submit = $('.submitBtn');
 

@@ -30,6 +30,7 @@ from application.utils.sampo import get_sampo_details, write_log
 from models import Groups, Students, User, PassTypes, BonusClasses, BonusClassList, Comments # todo ненужный импорт
 from collections import namedtuple, defaultdict
 from itertools import groupby
+import functools
 
 
 def custom_proc(request):
@@ -674,7 +675,8 @@ class SampoView(BaseView):
         response = dict()
         passes, payments, _ = get_sampo_details(date_max)
         usages = SampoPassUsage.objects.filter(
-            date__range=[date_min, date_max]
+            date__range=[date_min, date_max],
+            hall_id=int(self.request.GET.get('hall_id'))
         ).values_list('sampo_pass', flat=True)
 
         def to_json(elem):
@@ -687,12 +689,38 @@ class SampoView(BaseView):
 
         return HttpResponse(json.dumps(response))
 
+    def update_data(self):
+        data = self.get_context_data()
+        date_str = self.request.GET.get('date')
+
+        date = make_aware(datetime.datetime.strptime(date_str, '%d.%m.%Y'), timezone(TIME_ZONE)) if date_str else datetime.datetime.now(timezone(TIME_ZONE))
+        date_min = datetime.datetime.combine(date.date(), datetime.datetime.min.time())
+        date_max = datetime.datetime.combine(date.date(), datetime.datetime.max.time())
+
+        usages = SampoPassUsage.objects.filter(
+            date__range=[date_min, date_max],
+            hall_id=int(self.request.GET.get('hall_id'))
+        ).values_list('sampo_pass', flat=True)
+
+        def to_json(elem):
+            _json = elem.__json__()
+            _json['usage'] = long(elem.id) in usages
+            return _json
+
+        response = dict(
+            passes=map(to_json, data['passes']),
+            payments=data['today_payments']
+        )
+
+        return HttpResponse(json.dumps(response))
+
     def get(self, request, *args, **kwargs):
         actions = {
             'add': self.add_sampo_payment,
             'check': self.check_uncheck_sampo,
             'uncheck': self.check_uncheck_sampo,
-            'del': self.write_off_sampo_record
+            'del': self.write_off_sampo_record,
+            'update': self.update_data
         }
 
         action = request.GET.get('action')
