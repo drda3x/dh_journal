@@ -7,7 +7,6 @@ RUN apt-get upgrade -y
 RUN apt-get install -y curl
 
 RUN apt-get install -y python-pip && pip install --upgrade
-RUN apt-get install -y iputils-ping
 
 RUN pip install django==1.8.2
 RUN apt-get install -y libmysqlclient-dev
