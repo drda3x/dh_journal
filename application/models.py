@@ -797,7 +797,8 @@ class Lessons(models.Model):
         'not_attended': 2,
         'frozen': 3,
         'moved': 4,
-        'written_off': 5
+        'written_off': 5,
+        'canceled': 6
     }
     STATUSES_RUS = {
         'not_processed': u'не обработано',
@@ -805,7 +806,8 @@ class Lessons(models.Model):
         'not_attended': u'не был(а)',
         'frozen': u'заморожен',
         'moved': u'пропуск',
-        'written_off': u'списан'
+        'written_off': u'списан',
+        'canceled': u"отменено занятие в группе"
     }
     DEFAULT_STATUS = STATUSES['not_processed']
 

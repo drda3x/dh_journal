@@ -51,7 +51,9 @@ class BasePass(object):
         self.orm_object.save()
 
     def check_moved_lessons(self):
-        all_lessons = Lessons.objects.filter(student=self.orm_object.student, group_pass=self.orm_object)
+        all_lessons = Lessons.objects.filter(student=self.orm_object.student,
+                                             group_pass=self.orm_object)\
+            .exclude(status=Lessons.STATUSES['canceled'])
         count = len(all_lessons)
         moved = len(all_lessons.filter(status=Lessons.STATUSES['moved']))
 
